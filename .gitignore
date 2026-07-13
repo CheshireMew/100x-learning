@@ -1,0 +1,12 @@
+# Personal knowledge vault; not part of the Codex skill runtime.
+System Knowledge/
+
+# Local Python artifacts.
+__pycache__/
+*.py[cod]
+
+# Common local editor and OS files.
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
