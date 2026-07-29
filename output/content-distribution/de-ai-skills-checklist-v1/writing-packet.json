@@ -1,0 +1,156 @@
+{
+  "action": "draft",
+  "viral_requested": true,
+  "narrative_basis": "research_explanation",
+  "shareable_point": "12 个常被放进“去 AI 味 Skill”清单的项目里，真正直接处理文字的去 AI 味 Skill 只有 7 个，其余项目分别承担 Prompt、完整工作流、检测、人物蒸馏和前端审美等不同任务。",
+  "writing_job": {
+    "object": "12 个与去 AI 味有关的 GitHub 项目",
+    "angle": "先纠正混乱分类，再按真实用途给普通内容创作者一份可以直接收藏的选择清单",
+    "deliverable": "short_post",
+    "audience": "使用 AI 写中文内容、脚本、文章或社交媒体帖子的普通创作者",
+    "core_information": [
+      "12 个项目并不属于同一种工具",
+      "7 个项目是直接处理文字的去 AI 味 Skill",
+      "Humanizer、Humanizer-zh、Stop-Slop 和 no-ai-slop 的规则存在来源或功能重叠",
+      "Taste Skill、Nuwa 和 ChatGPT Comparison Detection 不应被描述成文章改写工具",
+      "中文用户可以根据轻量改写、事实保真、作者风格和完整写作工作流选择不同项目"
+    ],
+    "requirements": [
+      "覆盖上一轮讨论的全部 12 个项目",
+      "使用清单式正文",
+      "开头具有病毒传播所需的明确反差，但不用没有来源的百分比",
+      "每个项目说明真实用途和适合人群",
+      "明确指出项目之间的重复与派生关系",
+      "保留全部官方项目入口",
+      "不把项目方自述写成独立实测结论",
+      "使用自然、直接、适合中文社交平台发布的口吻"
+    ]
+  },
+  "content_truth": [
+    {
+      "statement": "Humanizer 是用于识别并修改常见 AI 写作模式的英文向 Skill，规则基础包括 Wikipedia 的 Signs of AI writing。",
+      "status": "direct",
+      "source": "https://github.com/blader/humanizer"
+    },
+    {
+      "statement": "Humanizer-zh 是中文去 AI 味 Skill，其元数据写明翻译自 blader/humanizer，并参考 hardikpandya/stop-slop。",
+      "status": "direct",
+      "source": "https://github.com/op7418/Humanizer-zh"
+    },
+    {
+      "statement": "Stop-Slop 直接处理英文散文中的填充句、公式结构、机械节奏和其它 AI 写作痕迹。",
+      "status": "direct",
+      "source": "https://github.com/hardikpandya/stop-slop"
+    },
+    {
+      "statement": "Taste Skill 的官方定位是 Anti-Slop Frontend Framework，主要改善 AI 生成界面的布局、字体、动效和间距。",
+      "status": "direct",
+      "source": "https://github.com/Leonxlnx/taste-skill"
+    },
+    {
+      "statement": "AI Flavor Remover 仓库主要提供一段中文润色 Prompt，README 表示只在 Gemini 2.5 Pro 上测试过。",
+      "status": "direct",
+      "source": "https://github.com/hylarucoder/ai-flavor-remover"
+    },
+    {
+      "statement": "说人话是中文优先的去 AI 味 Skill，强调先保护数字、版本、命令、责任关系和其它事实，再调整表达。",
+      "status": "direct",
+      "source": "https://github.com/MrGeDiao/shuorenhua"
+    },
+    {
+      "statement": "说人话仓库公开了一套包含正反例、事实保真门槛和双模型判分记录的评测材料。",
+      "status": "project_claim",
+      "source": "https://github.com/MrGeDiao/shuorenhua"
+    },
+    {
+      "statement": "Nuwa Skill 用研究材料提取某个人的思维模型、判断规则、表达 DNA 和边界，最终生成可调用的人物视角 Skill。",
+      "status": "direct",
+      "source": "https://github.com/alchaincyf/nuwa-skill"
+    },
+    {
+      "statement": "Writing Agent 是从选题、证据、起草、去 AI 味、审稿到导出的完整写作生产线，去 AI 味只是其中一个环节。",
+      "status": "direct",
+      "source": "https://github.com/dongbeixiaohuo/writing-agent"
+    },
+    {
+      "statement": "ChatGPT Comparison Detection 是 HC3 人类与 ChatGPT 对比语料、检测模型和论文的官方仓库，不负责改写文章。",
+      "status": "direct",
+      "source": "https://github.com/Hello-SimpleAI/chatgpt-comparison-detection"
+    },
+    {
+      "statement": "De-AI Prompt Enhancer 提供去 AI 味和作者风格复现两种 Skill 模式，并明确标注上游仓库为 Humanizer-zh。",
+      "status": "direct",
+      "source": "https://github.com/OUBIGFA/De-AI-Prompt-Enhancer-Writer-Booster-SKILL"
+    },
+    {
+      "statement": "no-ai-slop 可以改写或只检测 AI 写作模式，强调尽量少改、保护作者原有声音，并附带改后自检清单。",
+      "status": "direct",
+      "source": "https://github.com/petergyang/no-ai-slop"
+    },
+    {
+      "statement": "no-ai-slop 与 Humanizer、Stop-Slop 在二元对比、开场铺垫、模糊归因、机械节奏和格式问题等规则上高度重叠，但增加了保留作者声音、最小修改和只检测模式。",
+      "status": "observed",
+      "source": "当前对话中对三个官方 SKILL.md 的逐项对比"
+    },
+    {
+      "statement": "xingpt88/deslop 的 Skill 文件明确注明综合了 blader/humanizer、hardikpandya/stop-slop、avoid-ai-writing 和 talk-normal 的规则。",
+      "status": "direct",
+      "source": "https://github.com/xingpt88/deslop"
+    },
+    {
+      "statement": "xingpt88/deslop 没有公开独立评测结果，因此适合描述成方便安装的中文规则合集，不宜直接宣称已经证明效果最强。",
+      "status": "observed",
+      "source": "当前对话对 https://github.com/xingpt88/deslop 仓库文件树和内容的核查"
+    }
+  ],
+  "writing_templates": [
+    "references/content-writing.md"
+  ],
+  "writing_examples": {
+    "writing_task": "整理并纠正工具与资源清单",
+    "content_type": "清单与资源推荐",
+    "topics": [
+      "去 AI 味",
+      "GitHub Skill",
+      "AI 写作"
+    ],
+    "structure": [
+      "知识缺口开头",
+      "真实用途分类",
+      "项目分工",
+      "选择建议"
+    ],
+    "references": [
+      "System Knowledge/20-Sources/Social Posts/Content Cases/钩子与开头/痛点钩子/用知识缺口承诺高级搜索教程.md",
+      "System Knowledge/20-Sources/Social Posts/Content Cases/完整短内容/清单与资源推荐/按搜索任务分配工具.md"
+    ]
+  },
+  "author_voice": {
+    "sources": [
+      {
+        "reference": "用户本轮要求：帮我为上面所有的项目写一份清单式的病毒传播内容",
+        "authorship": "user",
+        "verification": "current_user_input"
+      },
+      {
+        "reference": "当前对话中用户提供的十个去 AI 味项目口播草稿及后续纠错问题",
+        "authorship": "user",
+        "verification": "current_user_input"
+      }
+    ],
+    "signals": [
+      "从普通人一眼能感知的问题进入",
+      "用快速编号清单连续推进",
+      "判断直接，不回避指出项目归类错误和内容重复",
+      "整体口语化，保留“去 AI 味”“一眼就能看出来”等自然说法",
+      "结尾帮助读者按实际用途做选择"
+    ],
+    "preserved_choices": [
+      "使用清单形式覆盖全部项目",
+      "明确纠正 Nuwa 不是去 AI 味工具",
+      "说明 no-ai-slop 与既有项目的重复关系",
+      "核实并谨慎介绍 xingpt88/deslop"
+    ]
+  },
+  "experience_events": []
+}

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>每个人都在自救｜动效样稿</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <div class="viewport" id="viewport">
+      <div class="canvas-shell" id="canvasShell">
+        <section class="media-canvas" id="mediaCanvas" aria-label="千禧桥与节拍器动效样稿">
+          <div class="grain" aria-hidden="true"></div>
+          <header class="masthead">
+            <div class="issue-mark" aria-hidden="true">14</div>
+            <p class="kicker" data-field="kicker" data-editable-id="kicker"></p>
+            <h1 data-editable-id="title">
+              <span data-field="titleLine1"></span>
+              <span class="title-accent" data-field="titleLine2"></span>
+            </h1>
+            <p class="subtitle" data-field="subtitle" data-editable-id="subtitle"></p>
+          </header>
+
+          <div class="visual-stage" data-editable-id="visual-stage">
+            <svg id="scene" viewBox="0 0 980 720" role="img" aria-labelledby="sceneTitle sceneDesc">
+              <title id="sceneTitle">行人在晃动的桥面上逐渐同步，桥面随后成为节拍器的共同底座</title>
+              <desc id="sceneDesc">同一块持续存在的底座把彼此独立的个体连接起来。</desc>
+              <defs>
+                <filter id="paperShadow" x="-20%" y="-20%" width="140%" height="160%">
+                  <feDropShadow dx="0" dy="10" stdDeviation="7" flood-color="#07110e" flood-opacity=".3"/>
+                </filter>
+                <pattern id="halftone" width="12" height="12" patternUnits="userSpaceOnUse">
+                  <rect width="12" height="12" fill="#efe4cd"/>
+                  <circle cx="3" cy="3" r="1.7" fill="#202621"/>
+                  <circle cx="9" cy="9" r="1.7" fill="#202621"/>
+                </pattern>
+                <linearGradient id="baseShade" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#f5ead6"/>
+                  <stop offset="1" stop-color="#d8c9ad"/>
+                </linearGradient>
+              </defs>
+
+              <g data-editable-id="bridge-context">
+              <g id="bridgeContext">
+                <path class="cable cable-left" d="M70 384 Q255 125 488 390"/>
+                <path class="cable cable-right" d="M488 390 Q730 125 910 384"/>
+                <path class="hanger" d="M130 314 V420 M202 236 V420 M282 184 V420 M368 234 V420 M444 326 V420"/>
+                <path class="hanger" d="M536 326 V420 M612 235 V420 M698 184 V420 M778 236 V420 M850 314 V420"/>
+                <g class="tower tower-left"><rect x="58" y="258" width="34" height="186"/><rect x="45" y="248" width="60" height="28"/></g>
+                <g class="tower tower-right"><rect x="888" y="258" width="34" height="186"/><rect x="875" y="248" width="60" height="28"/></g>
+              </g>
+              </g>
+
+              <g id="feedbackWaves" aria-hidden="true">
+                <path d="M110 495 Q245 448 380 495 T650 495 T920 495"/>
+                <path d="M110 528 Q245 480 380 528 T650 528 T920 528"/>
+              </g>
+
+              <g data-editable-id="shared-base">
+              <g id="sharedBase" filter="url(#paperShadow)">
+                <path class="base-edge" d="M68 423 L912 423 L884 495 L96 495 Z"/>
+                <rect class="base-top" x="72" y="410" width="836" height="54" rx="6"/>
+                <rect class="base-accent" x="72" y="452" width="836" height="12"/>
+              </g>
+              </g>
+
+              <g data-editable-id="walkers">
+              <g id="walkers">
+                <g class="walker" data-index="0" transform="translate(150 385)">
+                  <circle class="head" cx="0" cy="-54" r="15"/><path class="body" d="M-13 -37 L13 -37 L19 16 L-20 16 Z"/><path class="limb leg-a" d="M-9 13 L-20 48"/><path class="limb leg-b" d="M9 13 L26 45"/><path class="limb arm-a" d="M-10 -23 L-31 2"/><path class="limb arm-b" d="M11 -22 L30 3"/>
+                </g>
+                <g class="walker patterned" data-index="1" transform="translate(282 385)">
+                  <circle class="head" cx="0" cy="-54" r="15"/><path class="body" d="M-13 -37 L13 -37 L19 16 L-20 16 Z"/><path class="limb leg-a" d="M-9 13 L-20 48"/><path class="limb leg-b" d="M9 13 L26 45"/><path class="limb arm-a" d="M-10 -23 L-31 2"/><path class="limb arm-b" d="M11 -22 L30 3"/>
+                </g>
+                <g class="walker" data-index="2" transform="translate(416 385)">
+                  <circle class="head" cx="0" cy="-54" r="15"/><path class="body" d="M-13 -37 L13 -37 L19 16 L-20 16 Z"/><path class="limb leg-a" d="M-9 13 L-20 48"/><path class="limb leg-b" d="M9 13 L26 45"/><path class="limb arm-a" d="M-10 -23 L-31 2"/><path class="limb arm-b" d="M11 -22 L30 3"/>
+                </g>
+                <g class="walker patterned" data-index="3" transform="translate(555 385)">
+                  <circle class="head" cx="0" cy="-54" r="15"/><path class="body" d="M-13 -37 L13 -37 L19 16 L-20 16 Z"/><path class="limb leg-a" d="M-9 13 L-20 48"/><path class="limb leg-b" d="M9 13 L26 45"/><path class="limb arm-a" d="M-10 -23 L-31 2"/><path class="limb arm-b" d="M11 -22 L30 3"/>
+                </g>
+                <g class="walker" data-index="4" transform="translate(692 385)">
+                  <circle class="head" cx="0" cy="-54" r="15"/><path class="body" d="M-13 -37 L13 -37 L19 16 L-20 16 Z"/><path class="limb leg-a" d="M-9 13 L-20 48"/><path class="limb leg-b" d="M9 13 L26 45"/><path class="limb arm-a" d="M-10 -23 L-31 2"/><path class="limb arm-b" d="M11 -22 L30 3"/>
+                </g>
+                <g class="walker patterned" data-index="5" transform="translate(830 385)">
+                  <circle class="head" cx="0" cy="-54" r="15"/><path class="body" d="M-13 -37 L13 -37 L19 16 L-20 16 Z"/><path class="limb leg-a" d="M-9 13 L-20 48"/><path class="limb leg-b" d="M9 13 L26 45"/><path class="limb arm-a" d="M-10 -23 L-31 2"/><path class="limb arm-b" d="M11 -22 L30 3"/>
+                </g>
+              </g>
+              </g>
+
+              <g data-editable-id="metronomes">
+              <g id="metronomes">
+                <g class="metronome" data-index="0" transform="translate(190 393)"><path class="metro-body" d="M-40 64 L40 64 L26 -20 L-26 -20 Z"/><g class="pendulum"><path d="M0 8 L0 -80"/><circle cx="0" cy="-54" r="9"/></g><circle class="pivot" cx="0" cy="8" r="7"/></g>
+                <g class="metronome" data-index="1" transform="translate(340 393)"><path class="metro-body" d="M-40 64 L40 64 L26 -20 L-26 -20 Z"/><g class="pendulum"><path d="M0 8 L0 -80"/><circle cx="0" cy="-54" r="9"/></g><circle class="pivot" cx="0" cy="8" r="7"/></g>
+                <g class="metronome" data-index="2" transform="translate(490 393)"><path class="metro-body" d="M-40 64 L40 64 L26 -20 L-26 -20 Z"/><g class="pendulum"><path d="M0 8 L0 -80"/><circle cx="0" cy="-54" r="9"/></g><circle class="pivot" cx="0" cy="8" r="7"/></g>
+                <g class="metronome" data-index="3" transform="translate(640 393)"><path class="metro-body" d="M-40 64 L40 64 L26 -20 L-26 -20 Z"/><g class="pendulum"><path d="M0 8 L0 -80"/><circle cx="0" cy="-54" r="9"/></g><circle class="pivot" cx="0" cy="8" r="7"/></g>
+                <g class="metronome" data-index="4" transform="translate(790 393)"><path class="metro-body" d="M-40 64 L40 64 L26 -20 L-26 -20 Z"/><g class="pendulum"><path d="M0 8 L0 -80"/><circle cx="0" cy="-54" r="9"/></g><circle class="pivot" cx="0" cy="8" r="7"/></g>
+              </g>
+              </g>
+
+              <g data-editable-id="connection-tag">
+              <g id="connectionTag">
+                <path d="M382 555 L598 555 L626 606 L354 606 Z"/>
+                <text x="490" y="589" text-anchor="middle">同一块底座</text>
+              </g>
+              </g>
+            </svg>
+          </div>
+
+          <div class="caption-shell" data-editable-id="caption-card">
+            <div class="caption-card">
+              <span class="caption-index" id="captionIndex">01</span>
+              <p id="captionText"></p>
+            </div>
+          </div>
+
+          <div class="phase-track" data-editable-id="phase-track" aria-label="叙事阶段">
+            <div class="phase-line"><span id="phaseProgress"></span></div>
+            <div class="phase-labels" id="phaseLabels"></div>
+          </div>
+
+          <div class="closing-shell" data-editable-id="closing">
+            <p class="closing" id="closing"></p>
+          </div>
+          <footer>
+            <p data-field="source" data-editable-id="source"></p>
+            <span>VISUAL STUDY · 01</span>
+          </footer>
+        </section>
+      </div>
+    </div>
+
+    <div class="controls" aria-label="预览控制">
+      <button id="play" type="button">播放</button>
+      <button id="pause" type="button">暂停</button>
+      <button id="reset" type="button">重置</button>
+      <input id="scrubber" type="range" min="0" max="12000" step="16" value="0">
+      <output id="time">0.00 s</output>
+    </div>
+  </main>
+
+  <script src="project-data.js"></script>
+  <script src="animation.js"></script>
+  <script src="editable-media-runtime.js"></script>
+</body>
+</html>

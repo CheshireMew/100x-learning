@@ -1,0 +1,34 @@
+{
+  "profile_id": "editorial-paper-collage-assembly",
+  "source": "built-in",
+  "visual_rules": {
+    "background": "deep forest uncoated paper",
+    "subject": "cream and charcoal cut-paper silhouettes",
+    "accent": "signal orange reserved for shared feedback and synchronization",
+    "composition": "one continuous shared base anchors bridge and metronome states",
+    "density": "one dominant relationship with generous negative space"
+  },
+  "image_treatment": {
+    "method": "code-native SVG collage",
+    "texture": "subtle deterministic paper grain and halftone",
+    "edges": "cream cut edge with low soft shadow",
+    "external_assets": false
+  },
+  "motion_rules": {
+    "timeline": "deterministic 12000ms non-looping sample",
+    "movement": "short paper-piece assembly, restrained lateral sway, match transformation through the same base",
+    "camera": "fixed",
+    "forbidden": ["slide-deck scene cuts", "continuous zoom", "floating decoration", "generic flowchart"]
+  },
+  "typography_rules": {
+    "family": "Microsoft YaHei UI, Noto Sans SC, system sans-serif",
+    "headline": "heavy editorial sans",
+    "labels": "compact uppercase and concise Chinese captions",
+    "critical_text": "HTML text layers only"
+  },
+  "overrides": {
+    "canvas": "1080x1350",
+    "sample_scope": "bridge-to-metronome representative transition",
+    "audio": "not included in this visual sample"
+  }
+}

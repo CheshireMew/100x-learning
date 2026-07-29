@@ -1,0 +1,171 @@
+{
+  "protocol": "editable-media",
+  "version": 1,
+  "entry": "index.html",
+  "canvas": {
+    "width": 1080,
+    "height": 1350,
+    "background_mode": "opaque",
+    "background_color": "#203b33"
+  },
+  "timeline": {
+    "duration_ms": 12000,
+    "fps": 30,
+    "loop": "none"
+  },
+  "layers": [
+    {
+      "id": "kicker",
+      "name": "Course kicker",
+      "kind": "text",
+      "selector": "[data-editable-id='kicker']",
+      "default_bounds": {"x": 76, "y": 66, "width": 700, "height": 30, "rotation": 0},
+      "editable": ["content", "color", "font_family", "font_size", "x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {"font_size": {"minimum": 12, "maximum": 60, "step": 1}}
+    },
+    {
+      "id": "title",
+      "name": "Headline",
+      "kind": "group",
+      "selector": "[data-editable-id='title']",
+      "default_bounds": {"x": 76, "y": 120, "width": 880, "height": 166, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "subtitle",
+      "name": "Subtitle",
+      "kind": "text",
+      "selector": "[data-editable-id='subtitle']",
+      "default_bounds": {"x": 76, "y": 302, "width": 880, "height": 42, "rotation": 0},
+      "editable": ["content", "color", "font_family", "font_size", "x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {"font_size": {"minimum": 14, "maximum": 72, "step": 1}}
+    },
+    {
+      "id": "bridge-context",
+      "name": "Bridge structure",
+      "kind": "group",
+      "selector": "[data-editable-id='bridge-context']",
+      "parent_id": "visual-stage",
+      "default_bounds": {"x": 95, "y": 481, "width": 890, "height": 260, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "shared-base",
+      "name": "Shared base",
+      "kind": "group",
+      "selector": "[data-editable-id='shared-base']",
+      "parent_id": "visual-stage",
+      "default_bounds": {"x": 118, "y": 766, "width": 844, "height": 86, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "walkers",
+      "name": "Walker group",
+      "kind": "group",
+      "selector": "[data-editable-id='walkers']",
+      "parent_id": "visual-stage",
+      "default_bounds": {"x": 177, "y": 687, "width": 713, "height": 110, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "metronomes",
+      "name": "Metronome group",
+      "kind": "group",
+      "selector": "[data-editable-id='metronomes']",
+      "parent_id": "visual-stage",
+      "default_bounds": {"x": 200, "y": 662, "width": 668, "height": 161, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "connection-tag",
+      "name": "Shared base label",
+      "kind": "group",
+      "selector": "[data-editable-id='connection-tag']",
+      "parent_id": "visual-stage",
+      "default_bounds": {"x": 404, "y": 912, "width": 272, "height": 51, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "caption-card",
+      "name": "Narrative caption",
+      "kind": "group",
+      "selector": "[data-editable-id='caption-card']",
+      "default_bounds": {"x": 76, "y": 1064, "width": 928, "height": 92, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "phase-track",
+      "name": "Phase track",
+      "kind": "group",
+      "selector": "[data-editable-id='phase-track']",
+      "default_bounds": {"x": 76, "y": 1200, "width": 928, "height": 42, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "closing",
+      "name": "Closing statement",
+      "kind": "group",
+      "selector": "[data-editable-id='closing']",
+      "default_bounds": {"x": 76, "y": 1064, "width": 928, "height": 100, "rotation": 0},
+      "editable": ["x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {}
+    },
+    {
+      "id": "source",
+      "name": "Source note",
+      "kind": "text",
+      "selector": "[data-editable-id='source']",
+      "default_bounds": {"x": 76, "y": 1280, "width": 680, "height": 22, "rotation": 0},
+      "editable": ["content", "color", "font_family", "font_size", "x", "y", "width", "height", "rotation", "opacity", "z_index", "visible"],
+      "constraints": {"font_size": {"minimum": 10, "maximum": 36, "step": 1}}
+    }
+  ],
+  "component": {
+    "id": "crowding-shared-base",
+    "name": "Crowding through a shared base",
+    "category": "animated-explainers",
+    "tags": ["portfolio", "crowding", "feedback", "bridge", "metronome"]
+  },
+  "theme_variables": [
+    {"id": "paper", "name": "Paper background", "kind": "color", "css_variable": "--paper", "default": "#203b33"},
+    {"id": "paper_deep", "name": "Deep paper", "kind": "color", "css_variable": "--paper-deep", "default": "#142b25"},
+    {"id": "cream", "name": "Cut paper cream", "kind": "color", "css_variable": "--cream", "default": "#f3e7cf"},
+    {"id": "cream_muted", "name": "Muted cream", "kind": "color", "css_variable": "--cream-muted", "default": "#cbbda2"},
+    {"id": "ink", "name": "Ink", "kind": "color", "css_variable": "--ink", "default": "#1d2420"},
+    {"id": "signal", "name": "Feedback signal", "kind": "color", "css_variable": "--signal", "default": "#ff623e"},
+    {"id": "mint", "name": "Editorial mint", "kind": "color", "css_variable": "--mint", "default": "#8ccbb6"},
+    {"id": "font_family", "name": "Font family", "kind": "font", "css_variable": "--font-family", "default": "Microsoft YaHei UI, Noto Sans SC, system-ui, sans-serif"}
+  ],
+  "layouts": [
+    {
+      "id": "portrait-4x5",
+      "name": "Portrait 4:5",
+      "canvas": {"width": 1080, "height": 1350, "background_mode": "opaque", "background_color": "#203b33"},
+      "layers": {
+        "kicker": {"x": 76, "y": 66, "width": 700, "height": 30},
+        "title": {"x": 76, "y": 120, "width": 880, "height": 166},
+        "subtitle": {"x": 76, "y": 302, "width": 880, "height": 42},
+        "caption-card": {"x": 76, "y": 1064, "width": 928, "height": 92},
+        "phase-track": {"x": 76, "y": 1200, "width": 928, "height": 42},
+        "source": {"x": 76, "y": 1280, "width": 680, "height": 22}
+      }
+    }
+  ],
+  "default_layout_id": "portrait-4x5",
+  "data_fields": [],
+  "resources": [
+    "project-data.js",
+    "styles.css",
+    "animation.js",
+    "editable-media-runtime.js",
+    "style-profile.json"
+  ]
+}

@@ -1,0 +1,324 @@
+{
+  "canvas": {
+    "width": 1080,
+    "height": 1080,
+    "fps": 20,
+    "frames": 48
+  },
+  "theme": {
+    "name": "light",
+    "motion_color": "#1677ff"
+  },
+  "title": {
+    "text": "再平衡为何有效",
+    "highlight": "50 / 50",
+    "subtitle": "两项资产都回到原点，组合却从 100 变成 156.25"
+  },
+  "nodes": [
+    {
+      "id": "hold-bg",
+      "type": "box",
+      "layer": "background",
+      "label": "",
+      "body": "",
+      "x": 50,
+      "y": 150,
+      "w": 980,
+      "h": 245,
+      "color": "red"
+    },
+    {
+      "id": "hold-title",
+      "type": "label",
+      "label": "单独持有：两条路径最终都回到 100",
+      "x": 78,
+      "y": 168,
+      "w": 640,
+      "h": 38,
+      "size": 23,
+      "bold": true,
+      "fill": "#7b403b"
+    },
+    {
+      "id": "asset-a",
+      "type": "box",
+      "label": "资产 A",
+      "body": "100 → 200 → 100\n两年收益 0%",
+      "x": 80,
+      "y": 225,
+      "w": 250,
+      "h": 125,
+      "label_h": 38,
+      "label_size": 22,
+      "body_size": 17,
+      "label_bold": true,
+      "color": "blue"
+    },
+    {
+      "id": "asset-b",
+      "type": "box",
+      "label": "资产 B",
+      "body": "100 → 50 → 100\n两年收益 0%",
+      "x": 380,
+      "y": 225,
+      "w": 250,
+      "h": 125,
+      "label_h": 38,
+      "label_size": 22,
+      "body_size": 17,
+      "label_bold": true,
+      "color": "purple"
+    },
+    {
+      "id": "zero-return",
+      "type": "box",
+      "label": "单独结果",
+      "body": "各自回到 100\n收益都是 0%",
+      "x": 770,
+      "y": 230,
+      "w": 210,
+      "h": 115,
+      "label_h": 36,
+      "label_size": 21,
+      "body_size": 16,
+      "label_bold": true,
+      "color": "red"
+    },
+    {
+      "id": "mix-bg",
+      "type": "box",
+      "layer": "background",
+      "label": "",
+      "body": "",
+      "x": 50,
+      "y": 420,
+      "w": 980,
+      "h": 585,
+      "color": "green"
+    },
+    {
+      "id": "mix-title",
+      "type": "label",
+      "label": "50 / 50 组合：第一年后恢复目标配置",
+      "x": 78,
+      "y": 438,
+      "w": 650,
+      "h": 38,
+      "size": 23,
+      "bold": true,
+      "fill": "#27694e"
+    },
+    {
+      "id": "start",
+      "type": "box",
+      "label": "初始配置",
+      "body": "总额 100\nA 50\nB 50",
+      "x": 75,
+      "y": 515,
+      "w": 205,
+      "h": 190,
+      "label_h": 44,
+      "label_size": 22,
+      "body_size": 18,
+      "label_bold": true,
+      "color": "blue"
+    },
+    {
+      "id": "year-one",
+      "type": "box",
+      "label": "第一年后",
+      "body": "A 100\nB 25\n总额 125",
+      "x": 325,
+      "y": 515,
+      "w": 205,
+      "h": 190,
+      "label_h": 44,
+      "label_size": 22,
+      "body_size": 18,
+      "label_bold": true,
+      "color": "purple"
+    },
+    {
+      "id": "rebalance",
+      "type": "box",
+      "label": "再平衡",
+      "body": "卖出 A 37.5\nA 62.5\nB 62.5",
+      "x": 575,
+      "y": 515,
+      "w": 205,
+      "h": 190,
+      "label_h": 44,
+      "label_size": 22,
+      "body_size": 18,
+      "label_bold": true,
+      "color": "green"
+    },
+    {
+      "id": "year-two",
+      "type": "box",
+      "label": "第二年后",
+      "body": "A 31.25\nB 125\n总额 156.25",
+      "x": 825,
+      "y": 515,
+      "w": 205,
+      "h": 190,
+      "label_h": 44,
+      "label_size": 22,
+      "body_size": 18,
+      "label_bold": true,
+      "color": "blue"
+    },
+    {
+      "id": "mechanism",
+      "type": "note",
+      "label": "关键机制",
+      "body": "卖出相对上涨者\n补入相对下跌者\n恢复目标配置",
+      "x": 80,
+      "y": 790,
+      "w": 450,
+      "h": 135,
+      "label_h": 40,
+      "label_size": 22,
+      "body_size": 17,
+      "label_bold": true,
+      "color": "purple"
+    },
+    {
+      "id": "result",
+      "type": "note",
+      "label": "组合最终结果",
+      "body": "100 → 156.25\n累计 +56.25%",
+      "x": 600,
+      "y": 790,
+      "w": 380,
+      "h": 135,
+      "label_h": 40,
+      "label_size": 22,
+      "body_size": 20,
+      "label_bold": true,
+      "color": "green"
+    },
+    {
+      "id": "boundary",
+      "type": "label",
+      "label": "理想化示例：忽略交易成本与税费，不代表任何资产组合都能靠再平衡获利。",
+      "x": 80,
+      "y": 950,
+      "w": 900,
+      "h": 35,
+      "size": 15,
+      "bold": false,
+      "fill": "#8f4b43",
+      "align": "center"
+    }
+  ],
+  "edges": [
+    {
+      "from": "asset-a",
+      "to": "zero-return",
+      "label": "",
+      "points": [
+        [
+          205,
+          350
+        ],
+        [
+          205,
+          375
+        ],
+        [
+          700,
+          375
+        ],
+        [
+          700,
+          260
+        ],
+        [
+          770,
+          260
+        ]
+      ]
+    },
+    {
+      "from": "asset-b",
+      "to": "zero-return",
+      "label": "",
+      "points": [
+        [
+          630,
+          315
+        ],
+        [
+          700,
+          315
+        ],
+        [
+          770,
+          315
+        ]
+      ]
+    },
+    {
+      "from": "start",
+      "to": "year-one",
+      "label": ""
+    },
+    {
+      "from": "year-one",
+      "to": "rebalance",
+      "label": ""
+    },
+    {
+      "from": "rebalance",
+      "to": "year-two",
+      "label": ""
+    },
+    {
+      "from": "year-two",
+      "to": "result",
+      "label": "结果"
+    },
+    {
+      "from": "rebalance",
+      "to": "mechanism",
+      "label": "动作"
+    }
+  ],
+  "animation": {
+    "motion_color": "#1677ff",
+    "paths": [
+      {
+        "edge": 0
+      },
+      {
+        "edge": 1
+      },
+      {
+        "edge": 2
+      },
+      {
+        "edge": 3
+      },
+      {
+        "edge": 4
+      },
+      {
+        "edge": 5
+      },
+      {
+        "edge": 6
+      }
+    ],
+    "pulses": [
+      "asset-a",
+      "asset-b",
+      "zero-return",
+      "start",
+      "year-one",
+      "rebalance",
+      "year-two",
+      "result"
+    ]
+  }
+}

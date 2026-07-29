@@ -46,7 +46,12 @@ def timestamp_to_seconds(value: str) -> float:
             minutes, seconds = parts
         else:
             raise ValueError
-        return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+        hours_value = int(hours)
+        minutes_value = int(minutes)
+        seconds_value = float(seconds)
+        if hours_value < 0 or not 0 <= minutes_value < 60 or not 0 <= seconds_value < 60:
+            raise ValueError
+        return hours_value * 3600 + minutes_value * 60 + seconds_value
     except ValueError as exc:
         raise ValueError(f"invalid timestamp: {value}") from exc
 
@@ -161,17 +166,33 @@ def parse_plain_text(text: str) -> list[Cue]:
     return [Cue(None, None, clean_text(paragraph)) for paragraph in paragraphs if clean_text(paragraph)]
 
 
+def validate_cues(cues: list[Cue]) -> None:
+    previous_start: float | None = None
+    for index, cue in enumerate(cues, start=1):
+        if cue.start is not None and previous_start is not None and cue.start < previous_start:
+            raise ValueError(f"timestamps are not monotonic at cue {index}")
+        if cue.start is not None:
+            previous_start = cue.start
+        if cue.start is not None and cue.end is not None and cue.end < cue.start:
+            raise ValueError(f"end timestamp precedes start at cue {index}")
+
+
 def parse_subtitles(text: str) -> tuple[list[Cue], str]:
     normalized = text.replace("\r\n", "\n").replace("\r", "\n").lstrip("\ufeff")
     lines = normalized.splitlines()
     if any(TIMING_RE.match(line) for line in lines):
         source_format = "VTT" if normalized.lstrip().startswith("WEBVTT") else "SRT/VTT"
-        return parse_cued_text(lines), source_format
+        cues = parse_cued_text(lines)
+        validate_cues(cues)
+        return cues, source_format
 
     timestamped = parse_timestamped_lines(lines)
     if timestamped:
+        validate_cues(timestamped)
         return timestamped, "timestamped text"
-    return parse_plain_text(normalized), "plain text"
+    cues = parse_plain_text(normalized)
+    validate_cues(cues)
+    return cues, "plain text"
 
 
 def merge_cues(cues: list[Cue], max_gap: float, max_chars: int) -> list[Cue]:
