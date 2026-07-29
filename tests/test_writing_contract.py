@@ -335,6 +335,16 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("**成稿回读。**", skill)
         self.assertIn("### 第一遍：核对材料、关系和语气", natural)
 
+    def test_single_project_definition_and_list_transition_stay_direct_without_a_fixed_phrase(self) -> None:
+        github = _read("references/github-project-short-content.md")
+
+        self.assertIn("第一次正式介绍项目时，优先直接以项目名作主语", github)
+        self.assertIn("过渡句直接说清楚下面列的是使用方式、步骤、功能还是输出结果", github)
+        self.assertIn("要不要写数量、要不要单独写一句过渡", github)
+        self.assertIn("用户已经给出自然说法时沿用", github)
+        self.assertIn("不把案例中的过渡句或临时口语说法变成固定句式", github)
+        self.assertNotIn("有 N 种不同的使用方法", github)
+
     def test_upper_route_owns_every_writing_choice_and_case_asset_mapping(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
