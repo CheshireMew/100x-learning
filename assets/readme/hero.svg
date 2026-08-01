@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1200 400"
+     role="img" aria-labelledby="title desc">
+  <title id="title">100x Learning</title>
+  <desc id="desc">一张机制说明图：材料、主题和真实问题经过 100x Learning，形成理解、判断、使用和分享四类结果；它不表示性能倍率。</desc>
+
+  <rect width="1200" height="400" fill="#f3efe6"/>
+  <path d="M0 28H1200" stroke="#1f2024" stroke-width="2"/>
+  <circle cx="64" cy="28" r="6" fill="#c34f3a"/>
+  <circle cx="84" cy="28" r="6" fill="#28786d"/>
+
+  <g id="identity" fill="#1f2024">
+    <text x="64" y="82"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif"
+          font-size="18" font-weight="700" letter-spacing="3">OPEN AGENT SKILL</text>
+    <text x="58" y="184"
+          font-family="Georgia, 'Times New Roman', 'Songti SC', serif"
+          font-size="92" font-weight="700" letter-spacing="-4">100x Learning</text>
+    <text x="64" y="248"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif"
+          font-size="31" font-weight="650">把材料、主题和真实问题</text>
+    <text x="64" y="291"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif"
+          font-size="31" font-weight="650">变成能理解、判断、使用和分享的结果</text>
+    <text x="64" y="350"
+          fill="#65635e"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif"
+          font-size="19">LEARN · RESEARCH · EXPLAIN · WRITE</text>
+  </g>
+
+  <g id="input-to-outcomes"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <text x="735" y="75" fill="#65635e" font-size="17" font-weight="700" letter-spacing="2">交给它</text>
+
+    <g fill="none" stroke="#8c8981" stroke-width="3" stroke-linecap="round">
+      <path d="M738 116H828"/>
+      <path d="M738 182H852"/>
+      <path d="M738 248H818"/>
+    </g>
+    <g fill="#1f2024" font-size="24" font-weight="650">
+      <text x="738" y="108">材料</text>
+      <text x="738" y="174">主题</text>
+      <text x="738" y="240">问题</text>
+    </g>
+
+    <g fill="none" stroke-width="4" stroke-linecap="round">
+      <path d="M840 116C880 116 886 164 918 190" stroke="#c34f3a"/>
+      <path d="M864 182C886 182 894 188 918 194" stroke="#1f2024"/>
+      <path d="M830 248C874 248 890 222 918 200" stroke="#28786d"/>
+    </g>
+
+    <circle cx="934" cy="196" r="44" fill="#1f2024"/>
+    <text x="934" y="205" text-anchor="middle" fill="#f3efe6"
+          font-family="Georgia, 'Times New Roman', serif"
+          font-size="30" font-weight="700">100x</text>
+
+    <g fill="none" stroke="#1f2024" stroke-width="3" stroke-linecap="round">
+      <path d="M976 180C1003 158 1009 116 1046 102"/>
+      <path d="M978 192C1018 188 1034 169 1065 164"/>
+      <path d="M978 204C1018 210 1034 230 1065 236"/>
+      <path d="M976 216C1003 238 1009 278 1046 294"/>
+    </g>
+
+    <g font-size="28" font-weight="750">
+      <text x="1060" y="110" fill="#c34f3a">理解</text>
+      <text x="1080" y="173" fill="#1f2024">判断</text>
+      <text x="1080" y="246" fill="#1f2024">使用</text>
+      <text x="1060" y="305" fill="#28786d">分享</text>
+    </g>
+    <text x="735" y="342" fill="#65635e" font-size="16">这是一张机制说明图，不是效果证明</text>
+  </g>
+</svg>

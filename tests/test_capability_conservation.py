@@ -52,27 +52,47 @@ class CapabilityConservationTests(unittest.TestCase):
 
         self.assertIn("模拟用于降低风险，结果明确标记为模拟结果", practice)
         self.assertIn("用共同操作、演示和选择代替闭卷回答", practice)
-        self.assertIn("第一人称经历、动机、感受和结果必须来自用户材料", article)
+        self.assertIn("具体个人经历、使用时长、测试结果和感受可以先进入草稿", article)
+        self.assertIn("接触动作、假设场景和叙事视角可以借鉴案例自然改写", article)
         self.assertIn("用户同时要求大纲和全文时", article)
         self.assertIn("每一部分说明", article)
 
     def test_voice_migration_keeps_previous_voice_contract(self) -> None:
         memory = _read("references/personal-writing-memory.md")
-        voice = _read("System Knowledge/60-Systems/Writing/style-guide/voice.md")
+        home = _read("assets/private-library/Home.md")
 
-        self.assertIn("当前明确指令 → 当前有效用户样稿 → 本文件 → 通用写作原则", voice)
-        self.assertIn("段落偏短", voice)
-        self.assertIn("通行中文译名", voice)
-        self.assertIn("海外制度细节", voice)
-        self.assertIn("不强行总结全文", voice)
+        self.assertIn("当前要求可以改变本次写法，但不会自动改写长期声音", memory)
+        self.assertIn("当前有效正文", memory)
+        self.assertIn("长期声音真源", memory)
+        self.assertIn("voice_eligible: true", memory)
         self.assertIn("内容案例库", memory)
         self.assertIn("不能证明用户身份、经历、立场或个人声音", memory)
+        self.assertIn("发布历史、声音资格和内容案例承担不同用途", home)
 
-    def test_non_learning_boundaries_and_requested_output_remain_intact(self) -> None:
+    def test_existing_result_routes_remain_reachable_after_promotion_branch(self) -> None:
+        skill = _read("SKILL.md")
+
+        for marker in (
+            "references/learning-process-and-method-selection.md",
+            "references/material-analysis.md",
+            "references/shareable-content-selection.md",
+            "references/research-led-learning.md",
+            "references/concept-deconstruction.md",
+            "references/practice-led-learning.md",
+            "references/content-audit.md",
+            "references/private-knowledge-library.md",
+            "references/knowledge-base-workflow.md",
+            "单个 GitHub 项目介绍",
+            "个人写作记忆",
+            "内容案例",
+        ):
+            self.assertIn(marker, skill)
+
+    def test_adjacent_boundaries_and_requested_output_remain_intact(self) -> None:
         skill = _read("SKILL.md")
         article = _read("references/article-from-practice.md")
 
-        for marker in ("翻译", "普通计划", "营销文案"):
+        for marker in ("翻译", "普通计划", "广告投放", "销售页与落地页"):
             self.assertIn(marker, skill)
         self.assertIn("上层已经确定写作动作、精确成品形态、表达任务", article)
         self.assertIn("达到用户要求且由上层选定的大纲、局部、草稿或终稿层级后停止", article)

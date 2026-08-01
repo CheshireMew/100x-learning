@@ -11,35 +11,40 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Sequence
 
+try:
+    from scripts.private_library import (
+        LibraryError,
+        LibraryLayout,
+        resolve_library_root,
+        validate_library,
+    )
+except ModuleNotFoundError:
+    from private_library import (
+        LibraryError,
+        LibraryLayout,
+        resolve_library_root,
+        validate_library,
+    )
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-BLOG_RELATIVE = Path("System Knowledge/20-Sources/Articles/Cheshire/Blog")
-OUTPUT_RELATIVE = Path("System Knowledge/40-Outputs/Writing")
+
+OUTPUT_RELATIVE = Path("40-Outputs/Writing")
 SOCIAL_CASE_RELATIVE = Path(
-    "System Knowledge/20-Sources/Social Posts/Content Cases/完整短内容"
+    "20-Sources/Social Posts/Content Cases/完整短内容"
 )
-CONFIG_RELATIVE = Path(
-    "System Knowledge/60-Systems/Writing/writing-memory.json"
-)
-INDEX_RELATIVE = Path(
-    "System Knowledge/60-Systems/Writing/published-content-index.jsonl"
-)
+CONFIG_RELATIVE = Path("60-Systems/Writing/writing-memory.json")
+INDEX_RELATIVE = Path("60-Systems/Writing/published-content-index.jsonl")
 X_SNOWFLAKE_EPOCH_MS = 1_288_834_974_657
 
-FIRST_PARTY_AUTHORSHIP = {"本人主导"}
 FINAL_OUTPUT_STATUS = {"final", "published"}
 FIRST_PARTY_OUTPUT_SOURCE = {
     "user-confirmed",
     "published-article",
-    "published-newsletter",
     "published-post",
     "published-thread",
 }
 SUPPORTED_FORMATS = {
     "article",
-    "newsletter",
     "original",
-    "reply",
     "quote",
     "resource",
     "thread",
@@ -54,6 +59,23 @@ FORMAT_ALIASES = {
     "product-post": "product",
     "short": "short-post",
 }
+SUPPORTED_SEARCH_PURPOSES = {"voice", "novelty"}
+SUPPORTED_WRITING_ORIGINS = {
+    "human",
+    "human-edited",
+    "ai-generated",
+    "curated",
+    "translated",
+    "unknown",
+}
+VOICE_ELIGIBLE_ORIGINS = {"human", "human-edited"}
+BLOG_ORIGIN_MAP = {
+    "本人主导": "human",
+    "AI 主笔": "ai-generated",
+    "资料整理": "curated",
+    "翻译": "translated",
+    "待确认": "unknown",
+}
 
 
 class MemoryError(ValueError):
@@ -67,7 +89,9 @@ class WritingRecord:
     title: str
     format: str
     content_type: str
-    authorship: str
+    publisher: str
+    writing_origin: str
+    voice_eligible: bool
     status: str
     updated: str
     source_url: str
@@ -127,6 +151,26 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     return metadata, "\n".join(lines[end + 1 :]).lstrip()
 
 
+def _parse_case_index_metadata(text: str, path: Path) -> dict[str, str]:
+    match = re.search(
+        r"\n?<!-- content-case-index\s*\n(?P<metadata>.*?)\n-->\s*$",
+        text,
+        re.DOTALL,
+    )
+    if not match:
+        raise MemoryError(f"{path}: 缺少 content-case-index")
+
+    metadata: dict[str, str] = {}
+    for raw_line in match.group("metadata").splitlines():
+        if not raw_line.strip():
+            continue
+        if ":" not in raw_line:
+            raise MemoryError(f"{path}: 无法解析 content-case-index：{raw_line}")
+        key, value = raw_line.split(":", 1)
+        metadata[key.strip()] = _strip_quotes(value)
+    return metadata
+
+
 def _normalize_text(value: str) -> str:
     return (
         value.replace("\r\n", "\n")
@@ -184,8 +228,6 @@ def _normalize_format(value: str, path: Path) -> str:
         return normalized
 
     lowered_parts = {part.lower() for part in path.parts}
-    if "newsletter" in lowered_parts or "newsletters" in lowered_parts:
-        return "newsletter"
     if "social" in lowered_parts:
         return "short-post"
     return "article"
@@ -197,6 +239,34 @@ def _updated(metadata: dict[str, str]) -> str:
         if value:
             return value
     return ""
+
+
+def _writing_origin(value: str, path: Path) -> str:
+    origin = value.strip().lower() or "unknown"
+    if origin not in SUPPORTED_WRITING_ORIGINS:
+        raise MemoryError(f"{path}: 不支持的 writing_origin：{value}")
+    return origin
+
+
+def _voice_eligible(
+    value: str | None,
+    *,
+    writing_origin: str,
+    path: Path,
+    default: bool = False,
+) -> bool:
+    if value is None or not value.strip():
+        eligible = default
+    else:
+        normalized = value.strip().lower()
+        if normalized not in {"true", "false"}:
+            raise MemoryError(f"{path}: voice_eligible 必须是 true 或 false")
+        eligible = normalized == "true"
+    if eligible and writing_origin not in VOICE_ELIGIBLE_ORIGINS:
+        raise MemoryError(
+            f"{path}: writing_origin={writing_origin} 不能作为长期声音证据"
+        )
+    return eligible
 
 
 def _x_status_date(source_url: str) -> str:
@@ -214,53 +284,89 @@ def _x_status_date(source_url: str) -> str:
     ).date().isoformat()
 
 
-def _load_config(project_root: Path) -> tuple[str, ...]:
-    config_path = project_root.resolve() / CONFIG_RELATIVE
+def _load_config(library_root: Path) -> tuple[tuple[str, ...], tuple[Path, ...]]:
+    config_path = library_root.resolve() / CONFIG_RELATIVE
     if not config_path.exists():
-        return ()
+        raise MemoryError(f"写作记忆配置不存在：{config_path}")
     try:
         values = json.loads(config_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         raise MemoryError(f"{config_path} 不是有效 JSON：{exc}") from exc
-    prefixes = values.get("verified_first_party_url_prefixes", [])
+    prefixes = values.get("verified_first_party_url_prefixes")
     if not isinstance(prefixes, list) or not all(
         isinstance(prefix, str) and prefix.strip() for prefix in prefixes
     ):
         raise MemoryError(
             f"{config_path}: verified_first_party_url_prefixes 必须是字符串数组"
         )
-    normalized = tuple(prefix.strip().lower() for prefix in prefixes)
+    normalized_prefixes = tuple(prefix.strip().lower() for prefix in prefixes)
     if not all(
         re.fullmatch(r"https://x\.com/[a-z0-9_]+/status/", prefix)
-        for prefix in normalized
+        for prefix in normalized_prefixes
     ):
         raise MemoryError(
             f"{config_path}: 每个本人入口必须是 https://x.com/<账号>/status/"
         )
-    return normalized
+    article_roots = values.get("published_article_roots")
+    if not isinstance(article_roots, list) or not all(
+        isinstance(root, str) and root.strip() for root in article_roots
+    ):
+        raise MemoryError(
+            f"{config_path}: published_article_roots 必须是字符串数组"
+        )
+    normalized_roots: list[Path] = []
+    for raw_root in article_roots:
+        relative = Path(raw_root.strip())
+        if relative.is_absolute() or ".." in relative.parts:
+            raise MemoryError(
+                f"{config_path}: published_article_roots 必须使用私人库相对路径"
+            )
+        resolved = (library_root.resolve() / relative).resolve()
+        try:
+            resolved.relative_to(library_root.resolve())
+        except ValueError as exc:
+            raise MemoryError(
+                f"{config_path}: 文章根目录越出私人知识库：{raw_root}"
+            ) from exc
+        if not resolved.is_dir():
+            raise MemoryError(f"已配置的文章根目录不存在：{resolved}")
+        normalized_roots.append(relative)
+    return normalized_prefixes, tuple(normalized_roots)
 
 
-def _relative(path: Path, project_root: Path) -> str:
-    return path.resolve().relative_to(project_root.resolve()).as_posix()
+def _relative(path: Path, library_root: Path) -> str:
+    return path.resolve().relative_to(library_root.resolve()).as_posix()
 
 
-def _record_from_blog(path: Path, project_root: Path) -> WritingRecord | None:
+def _record_from_blog(path: Path, library_root: Path) -> WritingRecord | None:
     metadata, body = _parse_frontmatter(path.read_text(encoding="utf-8-sig"))
-    authorship = metadata.get("authorship", "")
-    if authorship not in FIRST_PARTY_AUTHORSHIP:
+    source_url = metadata.get("source_url", "").strip()
+    if not source_url:
         return None
+    source_label = metadata.get("authorship", "").strip()
+    writing_origin = _writing_origin(
+        BLOG_ORIGIN_MAP.get(source_label, "unknown"),
+        path,
+    )
+    voice_eligible = _voice_eligible(
+        metadata.get("voice_eligible"),
+        writing_origin=writing_origin,
+        path=path,
+        default=writing_origin in VOICE_ELIGIBLE_ORIGINS,
+    )
     normalized_body = _authored_body(body, "published-source")
     if not normalized_body:
         raise MemoryError(f"{path}: 正文为空")
-    source_url = metadata.get("source_url", "").strip()
-    relative = _relative(path, project_root)
+    relative = _relative(path, library_root)
     return WritingRecord(
         id=source_url or f"path:{relative}",
         path=relative,
         title=_title(normalized_body, path),
         format=_normalize_format(metadata.get("format", ""), path),
         content_type=metadata.get("content_type", "").strip(),
-        authorship=authorship,
+        publisher="Cheshire Blog",
+        writing_origin=writing_origin,
+        voice_eligible=voice_eligible,
         status="published",
         updated=_updated(metadata),
         source_url=source_url,
@@ -269,7 +375,7 @@ def _record_from_blog(path: Path, project_root: Path) -> WritingRecord | None:
     )
 
 
-def _record_from_output(path: Path, project_root: Path) -> WritingRecord | None:
+def _record_from_output(path: Path, library_root: Path) -> WritingRecord | None:
     metadata, body = _parse_frontmatter(path.read_text(encoding="utf-8-sig"))
     if metadata.get("type", "") != "writing-output":
         return None
@@ -284,16 +390,27 @@ def _record_from_output(path: Path, project_root: Path) -> WritingRecord | None:
         metadata.get("published_url", "").strip()
         or metadata.get("source_url", "").strip()
     )
-    relative = _relative(path, project_root)
+    writing_origin = _writing_origin(
+        metadata.get("writing_origin", "unknown"),
+        path,
+    )
+    voice_eligible = _voice_eligible(
+        metadata.get("voice_eligible"),
+        writing_origin=writing_origin,
+        path=path,
+    )
+    relative = _relative(path, library_root)
     return WritingRecord(
         id=source_url or f"path:{relative}",
         path=relative,
         title=_title(normalized_body, path),
         format=_normalize_format(metadata.get("format", ""), path),
         content_type=metadata.get("content_type", "").strip(),
-        authorship=metadata.get("authorship", "").strip()
+        publisher=metadata.get("published_by", "").strip()
         or metadata.get("author", "").strip()
         or source,
+        writing_origin=writing_origin,
+        voice_eligible=voice_eligible,
         status=status,
         updated=_updated(metadata),
         source_url=source_url,
@@ -304,7 +421,7 @@ def _record_from_output(path: Path, project_root: Path) -> WritingRecord | None:
 
 def _record_from_social_case(
     path: Path,
-    project_root: Path,
+    library_root: Path,
     verified_prefixes: Sequence[str],
 ) -> WritingRecord | None:
     if not verified_prefixes:
@@ -324,10 +441,24 @@ def _record_from_social_case(
     ):
         return None
 
+    case_metadata = _parse_case_index_metadata(body, path)
+    writing_format = case_metadata.get("writing_format", "").strip()
+    if not writing_format:
+        raise MemoryError(f"{path}: 本人发布案例缺少 writing_format")
+    writing_origin = _writing_origin(
+        case_metadata.get("writing_origin", "unknown"),
+        path,
+    )
+    voice_eligible = _voice_eligible(
+        case_metadata.get("voice_eligible"),
+        writing_origin=writing_origin,
+        path=path,
+    )
+
     normalized_body = _authored_body(body, "published-social")
     if not normalized_body:
         raise MemoryError(f"{path}: 原帖全文为空")
-    relative = _relative(path, project_root)
+    relative = _relative(path, library_root)
     handle_match = re.match(
         r"https://x\.com/([^/]+)/status/",
         source_url,
@@ -337,9 +468,11 @@ def _record_from_social_case(
         id=source_url,
         path=relative,
         title=_title(body, path),
-        format=_normalize_format("short-post", path),
+        format=_normalize_format(writing_format, path),
         content_type=path.parent.name,
-        authorship=handle_match.group(1) if handle_match else "本人发布",
+        publisher=handle_match.group(1) if handle_match else "本人发布",
+        writing_origin=writing_origin,
+        voice_eligible=voice_eligible,
         status="published",
         updated=_x_status_date(source_url),
         source_url=source_url,
@@ -352,21 +485,26 @@ def _merge_record(preferred: WritingRecord, fallback: WritingRecord) -> WritingR
     return replace(
         preferred,
         content_type=preferred.content_type or fallback.content_type,
-        authorship=preferred.authorship or fallback.authorship,
+        publisher=preferred.publisher or fallback.publisher,
         updated=preferred.updated or fallback.updated,
         source_url=preferred.source_url or fallback.source_url,
     )
 
 
 def discover_records(
-    project_root: Path,
+    library_root: Path,
 ) -> tuple[list[WritingRecord], DiscoveryReceipt]:
-    project_root = project_root.resolve()
-    blog_root = project_root / BLOG_RELATIVE
-    output_root = project_root / OUTPUT_RELATIVE
-    social_root = project_root / SOCIAL_CASE_RELATIVE
-    verified_prefixes = _load_config(project_root)
-    blog_paths = sorted(blog_root.glob("*.md")) if blog_root.exists() else []
+    library_root = library_root.resolve()
+    output_root = library_root / OUTPUT_RELATIVE
+    social_root = library_root / SOCIAL_CASE_RELATIVE
+    verified_prefixes, published_article_roots = _load_config(library_root)
+    blog_paths = sorted(
+        {
+            path
+            for relative in published_article_roots
+            for path in (library_root / relative).rglob("*.md")
+        }
+    )
     output_paths = (
         sorted(output_root.rglob("*.md")) if output_root.exists() else []
     )
@@ -377,12 +515,12 @@ def discover_records(
     blog_records = [
         record
         for path in blog_paths
-        if (record := _record_from_blog(path, project_root)) is not None
+        if (record := _record_from_blog(path, library_root)) is not None
     ]
     output_records = [
         record
         for path in output_paths
-        if (record := _record_from_output(path, project_root)) is not None
+        if (record := _record_from_output(path, library_root)) is not None
     ]
     social_records = [
         record
@@ -390,7 +528,7 @@ def discover_records(
         if (
             record := _record_from_social_case(
                 path,
-                project_root,
+                library_root,
                 verified_prefixes,
             )
         )
@@ -458,15 +596,15 @@ def render_index(records: Sequence[WritingRecord]) -> str:
     return "".join(f"{_record_json(record)}\n" for record in records)
 
 
-def write_index(project_root: Path, records: Sequence[WritingRecord]) -> Path:
-    index_path = project_root.resolve() / INDEX_RELATIVE
+def write_index(library_root: Path, records: Sequence[WritingRecord]) -> Path:
+    index_path = library_root.resolve() / INDEX_RELATIVE
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(render_index(records), encoding="utf-8")
     return index_path
 
 
-def load_index(project_root: Path) -> list[WritingRecord]:
-    index_path = project_root.resolve() / INDEX_RELATIVE
+def load_index(library_root: Path) -> list[WritingRecord]:
+    index_path = library_root.resolve() / INDEX_RELATIVE
     if not index_path.exists():
         raise MemoryError(f"发布记录索引不存在：{index_path}")
     records: list[WritingRecord] = []
@@ -486,8 +624,8 @@ def load_index(project_root: Path) -> list[WritingRecord]:
     return records
 
 
-def index_is_current(project_root: Path, records: Sequence[WritingRecord]) -> bool:
-    index_path = project_root.resolve() / INDEX_RELATIVE
+def index_is_current(library_root: Path, records: Sequence[WritingRecord]) -> bool:
+    index_path = library_root.resolve() / INDEX_RELATIVE
     return (
         index_path.exists()
         and index_path.read_text(encoding="utf-8") == render_index(records)
@@ -522,8 +660,8 @@ def _coverage(query: str, candidates: Iterable[str]) -> float:
     return score
 
 
-def _body(project_root: Path, record: WritingRecord) -> str:
-    path = project_root.resolve() / Path(record.path)
+def _body(library_root: Path, record: WritingRecord) -> str:
+    path = library_root.resolve() / Path(record.path)
     if not path.exists():
         raise MemoryError(f"发布记录指向的正文不存在：{path}")
     _, body = _parse_frontmatter(path.read_text(encoding="utf-8-sig"))
@@ -543,8 +681,9 @@ def _excerpt(value: str, *, from_end: bool = False, limit: int = 360) -> str:
 
 
 def search_memory(
-    project_root: Path,
+    library_root: Path,
     records: Sequence[WritingRecord],
+    purpose: str,
     query: str,
     format_name: str | None,
     content_type: str | None,
@@ -552,65 +691,107 @@ def search_memory(
 ) -> list[SearchHit]:
     if limit < 1:
         raise MemoryError("limit 必须大于 0")
+    if purpose not in SUPPORTED_SEARCH_PURPOSES:
+        raise MemoryError("purpose 必须是 voice 或 novelty")
     if format_name:
         format_name = _normalize_format(format_name, Path("memory.md"))
+    if purpose == "voice" and not format_name:
+        raise MemoryError("声音检索必须指定 format")
+    if purpose == "voice" and query.strip():
+        raise MemoryError("声音检索不接收主题 query；主题词只用于 novelty 查重")
+    if purpose == "novelty" and not query.strip():
+        raise MemoryError("查重检索必须提供 query 或 query-file")
 
     hits: list[SearchHit] = []
-    normalized_query_hash = _text_hash(query)
+    normalized_query_hash = _text_hash(query) if query.strip() else ""
     for record in records:
         if format_name and record.format != format_name:
             continue
-        body = _body(project_root, record)
-        score = _coverage(query, (record.title, record.content_type)) * 8
-        score += _coverage(query, (body,)) * 5
-        if content_type:
-            if record.content_type == content_type:
-                score += 6
-            else:
-                score += _coverage(content_type, (record.content_type,)) * 2
+        if purpose == "voice":
+            if not record.voice_eligible:
+                continue
+            if content_type and record.content_type != content_type:
+                continue
+        body = _body(library_root, record)
+        if purpose == "voice":
+            score = 0.0
+            exact_text = False
+        else:
+            score = _coverage(query, (record.title, record.content_type)) * 8
+            score += _coverage(query, (body,)) * 5
+            if content_type:
+                if record.content_type == content_type:
+                    score += 6
+                else:
+                    score += _coverage(content_type, (record.content_type,)) * 2
+            exact_text = normalized_query_hash == record.text_hash
+            if score <= 0 and not exact_text:
+                continue
         hits.append(
             SearchHit(
                 record=record,
                 score=score,
-                exact_text=normalized_query_hash == record.text_hash,
+                exact_text=exact_text,
                 opening=_excerpt(body),
                 ending=_excerpt(body, from_end=True),
             )
         )
 
-    hits.sort(
-        key=lambda hit: (
-            hit.exact_text,
-            hit.score,
-            hit.record.updated,
-            hit.record.title,
-        ),
-        reverse=True,
-    )
+    if purpose == "voice":
+        hits.sort(
+            key=lambda hit: (hit.record.updated, hit.record.title),
+            reverse=True,
+        )
+    else:
+        hits.sort(
+            key=lambda hit: (
+                hit.exact_text,
+                hit.score,
+                hit.record.updated,
+                hit.record.title,
+            ),
+            reverse=True,
+        )
     return hits[:limit]
 
 
 def render_search_results(
     hits: Sequence[SearchHit],
     *,
+    purpose: str,
     memory_source: str,
     total: int,
+    voice_total: int,
 ) -> str:
+    if purpose == "voice":
+        title = "作者声音候选"
+        purpose_line = (
+            "用途：只比较经过明确标注的声音证据。单篇中的具体句型、"
+            "口头禅和转场不自动成为作者声音。"
+        )
+    else:
+        title = "发布历史查重候选"
+        purpose_line = (
+            "用途：判断主题、主张、材料与旧内容是否重复；"
+            "命中结果不提供作者声音。"
+        )
     lines = [
-        f"# 本人写作证据候选（{len(hits)} 条）",
+        f"# {title}（{len(hits)} 条）",
         "",
         f"- 数据来源：{memory_source}",
-        f"- 当前记录：{total} 条",
-        "- 用途：判断作者声音和内容新鲜度；事实仍以当前材料与可靠来源为准。",
+        f"- 发布历史：{total} 条",
+        f"- 可用声音证据：{voice_total} 条",
+        f"- {purpose_line}",
         "",
     ]
     if not hits:
-        lines.extend(
-            [
-                "没有找到符合指定成品形态的本人作品。继续使用当前材料和长期声音真源，不拿其它形态硬凑。",
-                "",
-            ]
+        empty = (
+            "没有找到符合当前成品形态和内容职责的声音证据。"
+            "继续使用当前用户语言与长期声音真源，不拿发布历史硬凑。"
+            if purpose == "voice"
+            else "没有找到相关旧内容。按当前材料继续，不制造重复判断。"
         )
+        lines.extend([empty, ""])
     for index, hit in enumerate(hits, start=1):
         record = hit.record
         lines.extend(
@@ -620,12 +801,19 @@ def render_search_results(
                 f"- 本地路径：{record.path}",
                 f"- 成品形态：{record.format}",
                 f"- 内容类型：{record.content_type or '未标注'}",
-                f"- 来源性质：{record.authorship}",
+                f"- 发布归属：{record.publisher}",
+                f"- 写作来源：{record.writing_origin}",
+                f"- 声音资格：{'可用' if record.voice_eligible else '不可用'}",
                 f"- 日期：{record.updated or '未标注'}",
-                f"- 相关度：{hit.score:.2f}",
-                f"- 完全同文：{'是' if hit.exact_text else '否'}",
             ]
         )
+        if purpose == "novelty":
+            lines.extend(
+                [
+                    f"- 相关度：{hit.score:.2f}",
+                    f"- 完全同文：{'是' if hit.exact_text else '否'}",
+                ]
+            )
         if record.source_url:
             lines.append(f"- 发布入口：{record.source_url}")
         lines.extend(
@@ -647,6 +835,8 @@ def render_search_results(
 def _query_text(args: argparse.Namespace) -> str:
     if args.query:
         return args.query
+    if not args.query_file:
+        return ""
     path = Path(args.query_file).resolve()
     if not path.exists():
         raise MemoryError(f"查询文件不存在：{path}")
@@ -656,14 +846,14 @@ def _query_text(args: argparse.Namespace) -> str:
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="维护并检索已确认或已发布的本人写作证据"
+        description="维护发布历史，并分别检索查重记录与经过确认的声音证据"
     )
     parser.add_argument(
-        "--project-root",
+        "--library-root",
         type=Path,
-        default=PROJECT_ROOT,
-        help="包含 System Knowledge 的项目根目录",
+        help="私人知识库根目录；省略时读取本机私人库配置",
     )
+    parser.add_argument("--config", type=Path, help="本机私人库指针配置")
     commands = parser.add_subparsers(dest="command", required=True)
 
     build = commands.add_parser("build-index", help="从正式成果和来源重建发布记录")
@@ -675,8 +865,13 @@ def _parser() -> argparse.ArgumentParser:
 
     commands.add_parser("validate", help="检查正式来源与发布记录索引")
 
-    search = commands.add_parser("search", help="检索同主题、同形态的本人写作")
-    query = search.add_mutually_exclusive_group(required=True)
+    search = commands.add_parser("search", help="按明确用途检索发布记录")
+    search.add_argument(
+        "--purpose",
+        choices=sorted(SUPPORTED_SEARCH_PURPOSES),
+        required=True,
+    )
+    query = search.add_mutually_exclusive_group(required=False)
     query.add_argument("--query", help="主题、主张、钩子或草稿")
     query.add_argument("--query-file", help="从 UTF-8 文件读取完整草稿")
     search.add_argument("--format", choices=sorted(SUPPORTED_FORMATS))
@@ -687,24 +882,23 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    project_root = args.project_root.resolve()
     try:
-        current, receipt = discover_records(project_root)
-        if not current:
-            raise MemoryError("没有找到已确认或已发布的本人写作")
+        library_root = resolve_library_root(args.library_root, args.config)
+        validate_library(library_root)
+        current, receipt = discover_records(library_root)
 
         if args.command == "build-index":
             if args.check:
-                if not index_is_current(project_root, current):
+                if not index_is_current(library_root, current):
                     raise MemoryError("发布记录索引不存在或需要重建")
                 print(
                     f"发布记录索引有效：{len(current)} 条；"
-                    f"本人来源 {receipt.accepted_blog} 篇，"
+                    f"博客发布 {receipt.accepted_blog} 篇，"
                     f"确认成果 {receipt.accepted_outputs} 篇，"
-                    f"本人短内容 {receipt.accepted_social} 条。"
+                    f"社交发布 {receipt.accepted_social} 条。"
                 )
                 return 0
-            index_path = write_index(project_root, current)
+            index_path = write_index(library_root, current)
             print(
                 json.dumps(
                     {
@@ -720,27 +914,28 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "validate":
-            if not index_is_current(project_root, current):
+            if not index_is_current(library_root, current):
                 raise MemoryError("发布记录索引不存在或与当前正文不一致")
-            indexed = load_index(project_root)
+            indexed = load_index(library_root)
             for record in indexed:
-                _body(project_root, record)
+                _body(library_root, record)
             print(
                 f"个人写作记忆有效：{len(indexed)} 条；"
                 f"索引和正文一致，重复发布入口与同文已经合并。"
             )
             return 0
 
-        if index_is_current(project_root, current):
-            records = load_index(project_root)
+        if index_is_current(library_root, current):
+            records = load_index(library_root)
             memory_source = "发布记录索引"
         else:
             records = current
             memory_source = "当前正式文件（索引未写入或需要更新）"
         query_text = _query_text(args)
         hits = search_memory(
-            project_root=project_root,
+            library_root=library_root,
             records=records,
+            purpose=args.purpose,
             query=query_text,
             format_name=args.format,
             content_type=args.content_type,
@@ -749,13 +944,15 @@ def main(argv: list[str] | None = None) -> int:
         print(
             render_search_results(
                 hits,
+                purpose=args.purpose,
                 memory_source=memory_source,
                 total=len(records),
+                voice_total=sum(record.voice_eligible for record in records),
             ),
             end="",
         )
         return 0
-    except (MemoryError, OSError, UnicodeError) as exc:
+    except (LibraryError, MemoryError, OSError, UnicodeError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
 

@@ -1,9 +1,17 @@
 # Personal knowledge vault; used by the local skill but not tracked or distributed.
 System Knowledge/
 
+# Generated project output and local review artifacts are not source files.
+output/
+artifacts/
+
+# Retired README visual retained locally for reference only.
+100x-learning-writing-flow.png
+
 # Local Python artifacts.
 __pycache__/
 *.py[cod]
+.pytest_cache/
 
 # Common local editor and OS files.
 .DS_Store

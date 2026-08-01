@@ -7,9 +7,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from scripts.private_library import initialize_library
 from scripts.writing_memory import (
     CONFIG_RELATIVE,
     INDEX_RELATIVE,
+    MemoryError,
     discover_records,
     index_is_current,
     load_index,
@@ -29,26 +31,30 @@ def _write(path: Path, text: str) -> None:
 class WritingMemoryTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.project_root = Path(self.temp_dir.name)
-        self.blog_root = (
-            self.project_root
-            / "System Knowledge"
-            / "20-Sources"
-            / "Articles"
-            / "Cheshire"
-            / "Blog"
+        self.temp_root = Path(self.temp_dir.name)
+        self.layout, _, _ = initialize_library(
+            self.temp_root / "private-library",
+            self.temp_root / "config.json",
         )
-        self.output_root = (
-            self.project_root
-            / "System Knowledge"
-            / "40-Outputs"
-            / "Writing"
+        self.project_root = self.layout.root
+        self.blog_root = self.project_root / "20-Sources" / "Articles" / "Published"
+        self.output_root = self.layout.writing_outputs
+        self.blog_root.mkdir(parents=True, exist_ok=True)
+        (self.project_root / CONFIG_RELATIVE).write_text(
+            json.dumps(
+                {
+                    "verified_first_party_url_prefixes": [],
+                    "published_article_roots": ["20-Sources/Articles/Published"],
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
         )
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
-    def test_only_first_party_final_writing_enters_memory(self) -> None:
+    def test_publication_history_keeps_ai_work_but_does_not_inherit_voice(self) -> None:
         _write(
             self.blog_root / "published.md",
             """---
@@ -111,10 +117,18 @@ format: original
 
         records, receipt = discover_records(self.project_root)
 
-        self.assertEqual(1, len(records))
-        self.assertEqual("用户确认版本", records[0].title)
-        self.assertEqual("教程与操作指南", records[0].content_type)
-        self.assertEqual("writing-output", records[0].source_kind)
+        self.assertEqual(2, len(records))
+        by_url = {record.source_url: record for record in records}
+        confirmed = by_url["https://example.com/published/"]
+        ai_work = by_url["https://example.com/ai/"]
+        self.assertEqual("用户确认版本", confirmed.title)
+        self.assertEqual("教程与操作指南", confirmed.content_type)
+        self.assertEqual("writing-output", confirmed.source_kind)
+        self.assertEqual("unknown", confirmed.writing_origin)
+        self.assertFalse(confirmed.voice_eligible)
+        self.assertEqual("ai-generated", ai_work.writing_origin)
+        self.assertFalse(ai_work.voice_eligible)
+        self.assertEqual(2, receipt.accepted_blog)
         self.assertEqual(1, receipt.merged_by_url)
 
     def test_hidden_case_index_is_not_part_of_authored_evidence(self) -> None:
@@ -141,8 +155,9 @@ index_moves: ["正文"]
         write_index(self.project_root, records)
 
         hits = search_memory(
-            project_root=self.project_root,
+            library_root=self.project_root,
             records=load_index(self.project_root),
+            purpose="novelty",
             query="实际发布正文",
             format_name="article",
             content_type=None,
@@ -151,21 +166,21 @@ index_moves: ["正文"]
         self.assertIn("实际发布正文", hits[0].opening)
         self.assertNotIn("案例维护说明", hits[0].ending)
 
-    def test_verified_source_first_social_case_enters_memory(self) -> None:
+    def test_verified_social_source_needs_explicit_voice_provenance(self) -> None:
         _write(
             self.project_root / CONFIG_RELATIVE,
             json.dumps(
                 {
                     "verified_first_party_url_prefixes": [
                         "https://x.com/author/status/"
-                    ]
+                    ],
+                    "published_article_roots": ["20-Sources/Articles/Published"],
                 },
                 ensure_ascii=False,
             ),
         )
         social_root = (
             self.project_root
-            / "System Knowledge"
             / "20-Sources"
             / "Social Posts"
             / "Content Cases"
@@ -182,9 +197,30 @@ index_moves: ["正文"]
 原帖链接：https://x.com/author/status/2053104321668239801
 
 <!-- content-case-index
+writing_format: "product"
+writing_origin: "human-edited"
+voice_eligible: true
 index_task: "分享一次真实观察"
 index_topics: ["AI", "工作流"]
 index_moves: ["观察", "机制"]
+-->
+""",
+        )
+        _write(
+            social_root / "个人观察与实测" / "来源未知.md",
+            """# 来源未知
+
+## 原帖全文
+
+这条内容由本人账号发布，但没有写作来源标注。
+
+原帖链接：https://x.com/author/status/2053104321668239804
+
+<!-- content-case-index
+writing_format: "product"
+index_task: "介绍一个产品"
+index_topics: ["产品"]
+index_moves: ["介绍"]
 -->
 """,
         )
@@ -208,23 +244,82 @@ index_moves: ["观察"]
 
         records, receipt = discover_records(self.project_root)
 
-        self.assertEqual(1, len(records))
-        self.assertEqual("published-social", records[0].source_kind)
-        self.assertEqual("short-post", records[0].format)
-        self.assertEqual("个人观察与实测", records[0].content_type)
-        self.assertEqual("2026-05-09", records[0].updated)
-        self.assertEqual(1, receipt.accepted_social)
+        self.assertEqual(2, len(records))
+        eligible = next(record for record in records if record.title == "本人帖子")
+        unknown = next(record for record in records if record.title == "来源未知")
+        self.assertEqual("published-social", eligible.source_kind)
+        self.assertEqual("product", eligible.format)
+        self.assertEqual("个人观察与实测", eligible.content_type)
+        self.assertEqual("2026-05-09", eligible.updated)
+        self.assertEqual("human-edited", eligible.writing_origin)
+        self.assertTrue(eligible.voice_eligible)
+        self.assertEqual("unknown", unknown.writing_origin)
+        self.assertFalse(unknown.voice_eligible)
+        self.assertEqual(2, receipt.accepted_social)
         write_index(self.project_root, records)
-        hits = search_memory(
-            project_root=self.project_root,
+        novelty_hits = search_memory(
+            library_root=self.project_root,
             records=load_index(self.project_root),
+            purpose="novelty",
             query="减少上下文切换",
-            format_name="short-post",
+            format_name="product",
             content_type=None,
             limit=1,
         )
-        self.assertIn("上下文切换", hits[0].opening)
-        self.assertNotIn("content-case-index", hits[0].ending)
+        self.assertIn("上下文切换", novelty_hits[0].opening)
+        self.assertNotIn("content-case-index", novelty_hits[0].ending)
+        voice_hits = search_memory(
+            library_root=self.project_root,
+            records=load_index(self.project_root),
+            purpose="voice",
+            query="",
+            format_name="product",
+            content_type="个人观察与实测",
+            limit=3,
+        )
+        self.assertEqual(["本人帖子"], [hit.record.title for hit in voice_hits])
+
+    def test_verified_social_case_requires_its_actual_writing_format(self) -> None:
+        _write(
+            self.project_root / CONFIG_RELATIVE,
+            json.dumps(
+                {
+                    "verified_first_party_url_prefixes": [
+                        "https://x.com/author/status/"
+                    ],
+                    "published_article_roots": ["20-Sources/Articles/Published"],
+                }
+            ),
+        )
+        social = (
+            self.project_root
+            / "20-Sources"
+            / "Social Posts"
+            / "Content Cases"
+            / "完整短内容"
+            / "项目与产品介绍"
+            / "缺少形态.md"
+        )
+        _write(
+            social,
+            """# 缺少形态
+
+## 原帖全文
+
+这是本人发布的产品介绍。
+
+原帖链接：https://x.com/author/status/2053104321668239803
+
+<!-- content-case-index
+index_task: "介绍产品"
+index_topics: ["产品"]
+index_moves: ["介绍"]
+-->
+""",
+        )
+
+        with self.assertRaisesRegex(MemoryError, "缺少 writing_format"):
+            discover_records(self.project_root)
 
     def test_first_party_social_prefix_must_name_one_account(self) -> None:
         _write(
@@ -233,7 +328,8 @@ index_moves: ["观察"]
                 {
                     "verified_first_party_url_prefixes": [
                         "https://x.com/"
-                    ]
+                    ],
+                    "published_article_roots": ["20-Sources/Articles/Published"],
                 }
             ),
         )
@@ -242,17 +338,17 @@ index_moves: ["观察"]
 
     def test_index_output_is_consumed_by_same_format_search(self) -> None:
         _write(
-            self.output_root / "Social" / "X" / "reply.md",
+            self.output_root / "Articles" / "article.md",
             """---
 type: writing-output
 status: final
 source: user-confirmed
 author: 柴郡
 updated: 2026-07-29
-format: reply
+format: article
 content_type: 个人观察与实测
 ---
-# 回复
+# 文章
 
 这个工具真正省下来的不是点击次数，而是来回切换上下文。
 """,
@@ -281,16 +377,17 @@ content_type: 项目与产品介绍
 
         indexed = load_index(self.project_root)
         hits = search_memory(
-            project_root=self.project_root,
+            library_root=self.project_root,
             records=indexed,
+            purpose="novelty",
             query="工具如何减少上下文切换",
-            format_name="reply",
+            format_name="article",
             content_type=None,
             limit=3,
         )
 
         self.assertEqual(1, len(hits))
-        self.assertEqual("reply", hits[0].record.format)
+        self.assertEqual("article", hits[0].record.format)
         self.assertIn("上下文", hits[0].opening)
 
     def test_cli_build_then_search_reads_generated_index(self) -> None:
@@ -315,7 +412,7 @@ published_url: "https://x.com/example/status/1"
             [
                 sys.executable,
                 str(SCRIPT_PATH),
-                "--project-root",
+                "--library-root",
                 str(self.project_root),
                 "build-index",
             ],
@@ -332,9 +429,11 @@ published_url: "https://x.com/example/status/1"
             [
                 sys.executable,
                 str(SCRIPT_PATH),
-                "--project-root",
+                "--library-root",
                 str(self.project_root),
                 "search",
+                "--purpose",
+                "novelty",
                 "--query",
                 "问题发生后哪个机制改变结果",
                 "--format",
@@ -403,7 +502,7 @@ format: article
             [
                 sys.executable,
                 str(SCRIPT_PATH),
-                "--project-root",
+                "--library-root",
                 str(self.project_root),
                 "build-index",
             ],
@@ -418,13 +517,13 @@ format: article
             [
                 sys.executable,
                 str(SCRIPT_PATH),
-                "--project-root",
+                "--library-root",
                 str(self.project_root),
                 "search",
-                "--query",
-                "回复内容",
+                "--purpose",
+                "voice",
                 "--format",
-                "reply",
+                "thread",
             ],
             check=False,
             capture_output=True,
@@ -432,8 +531,62 @@ format: article
             encoding="utf-8",
         )
         self.assertEqual(0, search.returncode, search.stderr)
-        self.assertIn("本人写作证据候选（0 条）", search.stdout)
-        self.assertIn("不拿其它形态硬凑", search.stdout)
+        self.assertIn("作者声音候选（0 条）", search.stdout)
+        self.assertIn("不拿发布历史硬凑", search.stdout)
+
+    def test_voice_search_rejects_topic_queries(self) -> None:
+        _write(
+            self.output_root / "Social" / "X" / "voice.md",
+            """---
+type: writing-output
+status: final
+source: user-confirmed
+format: product
+writing_origin: human-edited
+voice_eligible: true
+---
+# 可用声音
+
+这是经过确认的表达。
+""",
+        )
+        records, _ = discover_records(self.project_root)
+
+        with self.assertRaisesRegex(MemoryError, "主题词只用于 novelty"):
+            search_memory(
+                library_root=self.project_root,
+                records=records,
+                purpose="voice",
+                query="币安 Robinhood Chain",
+                format_name="product",
+                content_type=None,
+                limit=1,
+            )
+
+    def test_removed_writing_formats_are_rejected_by_the_cli(self) -> None:
+        for removed_format in ("reply", "newsletter"):
+            with self.subTest(removed_format=removed_format):
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(SCRIPT_PATH),
+                        "--library-root",
+                        str(self.project_root),
+                        "search",
+                        "--purpose",
+                        "novelty",
+                        "--query",
+                        "任意内容",
+                        "--format",
+                        removed_format,
+                    ],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                )
+                self.assertEqual(2, result.returncode)
+                self.assertIn("invalid choice", result.stderr)
 
 
 if __name__ == "__main__":

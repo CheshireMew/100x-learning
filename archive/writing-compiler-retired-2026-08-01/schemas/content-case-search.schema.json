@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "content-case-search.schema.json",
+  "title": "100x Learning content case search receipt",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "query",
+    "request",
+    "result_status",
+    "issues",
+    "candidates"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "query": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "assets",
+        "content_type",
+        "roles",
+        "benefit_recipients",
+        "limit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "assets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["hook", "short", "article"]
+          }
+        },
+        "content_type": {
+          "type": ["string", "null"]
+        },
+        "roles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["promotion"]
+          }
+        },
+        "benefit_recipients": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["reader", "publisher", "partner", "none"]
+          }
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "result_status": {
+      "type": "string",
+      "enum": ["candidates", "no_candidate"]
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "candidate_id",
+          "title",
+          "matched_asset",
+          "content_type",
+          "case_file",
+          "source",
+          "text_kind",
+          "text",
+          "required_relations",
+          "optional_amplifiers",
+          "hook_techniques",
+          "reader_effects"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "matched_asset": {
+            "type": "string",
+            "enum": ["hook", "short", "article"]
+          },
+          "content_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "case_file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text_kind": {
+            "type": "string",
+            "enum": ["full_text", "hook_excerpt"]
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required_relations": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "optional_amplifiers": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "hook_techniques": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "reader_effects": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,12 +1,12 @@
 # 知识库工作流
 
-用于读取和更新本地 Markdown 知识库 `System Knowledge`。目录边界以 `System Knowledge/Home.md` 为唯一规则；目录决定内容角色，frontmatter 只辅助检索和维护。
+用于读取和更新上层已经定位的 `<私人知识库>`。目录边界以 `<私人知识库>/Home.md` 为唯一规则；目录决定内容角色，frontmatter 只辅助检索和维护。
 
 ## 一、读取与写入边界
 
 只有上层选择知识库读取或写入时进入。本文件负责检索、目录归属、唯一真源、写入和写后核对，不决定普通材料理解、主题研究或写作是否必须读取知识库。
 
-进入后先读取 `System Knowledge/Home.md`。该文件缺失时，把缺失状态交回上层，继续使用用户材料和外部资料；交付必须持久化时再询问真实保存位置。
+进入后先读取 `<私人知识库>/Home.md`。该文件缺失时，把缺失状态交回上层，继续使用用户材料和外部资料；交付必须持久化时再询问初始化或接入位置。
 
 满足以下任一条件时进入写入分支：
 
@@ -18,21 +18,21 @@
 
 ## 二、用 `rg` 找到需要的文档
 
-1. 读取 `System Knowledge/Home.md`，确认当前目录边界。
+1. 读取 `<私人知识库>/Home.md`，确认当前目录边界。
 2. 从任务中提取主题名、常见别名、近义表达、缩写和必要的中英文术语。只扩展会改变检索结果的词。
 3. 先查 `10-Knowledge` 的文件名，再查正文：
 
 ```powershell
-rg --files "System Knowledge/10-Knowledge" | rg -i "关键词1|关键词2|English term"
-rg -n -i -g "*.md" "关键词1|关键词2|English term" "System Knowledge/10-Knowledge"
+rg --files "<私人知识库>/10-Knowledge" | rg -i "关键词1|关键词2|English term"
+rg -n -i -g "*.md" "关键词1|关键词2|English term" "<私人知识库>/10-Knowledge"
 ```
 
 4. 优先打开标题、`topic` 或 `aliases` 直接命中的文档，其次是小标题和正文多次命中的文档。结合目录、开头的主题范围、正文范围、状态和更新时间判断相关性。
 5. 从候选知识文档沿 Obsidian 链接读取直接相关的专题和来源。需要找反向引用时搜索短链接或完整路径：
 
 ```powershell
-rg -l -F "[[笔记名]]" "System Knowledge"
-rg -l -F "[[10-Knowledge/目录/笔记名]]" "System Knowledge"
+rg -l -F "[[笔记名]]" "<私人知识库>"
+rg -l -F "[[10-Knowledge/目录/笔记名]]" "<私人知识库>"
 ```
 
 6. 需要核对证据、恢复原始上下文或已有知识不足时，再读取已链接的 `20-Sources`，必要时对该目录全文搜索。
@@ -66,7 +66,7 @@ rg -l -F "[[10-Knowledge/目录/笔记名]]" "System Knowledge"
 
 ### 已确认或已发布的写作成果
 
-用户明确要求保存确认稿或记录已发布内容时，正文进入 `40-Outputs/Writing` 的现有分类；同一作品只保留一个活动正文。为了让后续写作能够检索本人作品，新增或实质更新的写作成果使用：
+用户明确要求保存确认稿或记录已发布内容时，正文进入 `40-Outputs/Writing` 的现有分类；同一作品只保留一个活动正文。为了让后续写作能够分别检索发布历史和合格声音证据，新增或实质更新的写作成果使用：
 
 ```yaml
 ---
@@ -77,13 +77,15 @@ author: 作者名
 source: user-confirmed
 format: article
 content_type: 内容类型
+writing_origin: human-edited
+voice_eligible: true
 published_url: ""
 ---
 ```
 
-`source` 按真实状态使用 `user-confirmed`、`published-article`、`published-newsletter`、`published-post` 或 `published-thread`。`format` 使用上层已经选定的成品形态。已经发布时填写规范入口；用户只确认终稿但尚未发布时保留空值。
+`source` 按真实状态使用 `user-confirmed`、`published-article`、`published-post` 或 `published-thread`。`format` 使用上层已经选定的成品形态。已经发布时填写规范入口；用户只确认终稿但尚未发布时保留空值。`writing_origin` 按实际情况使用 `human`、`human-edited`、`ai-generated`、`curated`、`translated` 或 `unknown`。只有用户明确确认正文能代表自己的表达，而且来源是 `human` 或 `human-edited` 时，才填写 `voice_eligible: true`；发布账号、确认终稿和发布入口本身不提供声音资格。
 
-`System Knowledge/60-Systems/Writing/style-guide/voice.md` 继续是长期声音的唯一真源。`published-content-index.jsonl` 只索引确认稿和已发布正文的路径、形态、日期与哈希，不复制正文；内容案例继续留在 `20-Sources/Social Posts/Content Cases`，不会仅因被选为案例就进入本人写作记录。案例中的社交原帖只有规范入口匹配 `writing-memory.json` 已验证的本人账号时，才以原帖全文进入索引。
+`<私人知识库>/60-Systems/Writing/style-guide/voice.md` 继续是长期声音的唯一真源。`published-content-index.jsonl` 只索引确认稿和已发布正文的路径、形态、发布归属、写作来源、声音资格、日期与哈希，不复制正文。内容案例继续留在 `20-Sources/Social Posts/Content Cases`；被选为案例不能证明作者声音。案例中的社交原帖只有规范入口匹配 `writing-memory.json` 已验证的本人账号时，才以原帖全文进入发布历史；还必须另外具有可靠 `writing_origin` 和 `voice_eligible: true` 才能进入声音检索，缺少时按 `unknown` 和 `false` 处理。
 
 ## 五、来源、知识与关系
 
@@ -97,7 +99,7 @@ published_url: ""
 
 ## 六、按知识库约定解释和组织文档
 
-`System Knowledge/Home.md` 的“面向人和 AI 的文档约定”是主题文档格式的唯一说明。
+`<私人知识库>/Home.md` 的文档约定是主题文档格式的唯一说明。
 
 读取候选文档时，先用标题、`topic`、`aliases` 和开头的范围说明判断它是否回答当前问题，再读取相关章节、证据和边界。单独命中一段时，确认该段的主题对象、适用条件和来源关系。
 
@@ -126,7 +128,7 @@ published_url: ""
 
 ## 七、体系化写回
 
-正式修改前，先读取 `System Knowledge/Home.md`，搜索主题名、别名和已有来源，确认本次是更新现有文件还是创建独立新主题。用户已经授权、目标路径符合 Home 的目录边界后再写入。
+正式修改前，先读取 `<私人知识库>/Home.md`，搜索主题名、别名和已有来源，确认本次是更新现有文件还是创建独立新主题。用户已经授权、目标路径符合 Home 的目录边界后再写入。
 
 1. 新来源需要长期保留时，先写入或更新 `20-Sources`；网页研究通常保存出处、作用和必要上下文。本地来源需要哈希时，在写入计划前从实际文件计算一次，并把同一个计算结果复用于 `source_identity`、来源元数据和正文。
 2. 把新结论、修正、关系、边界和开放问题合并进 `10-Knowledge` 的唯一主题文档。
@@ -135,7 +137,7 @@ published_url: ""
 5. 更新 `updated` 日期，并确认活动目录中的主题真源唯一。
 6. 新建或更新知识文档后重新读取文件，检查标题、主题范围、来源链接、必要边界和内部链接是否完整，确认用户实际能找到并使用。
 7. 本地来源写入后重新计算实际文件哈希，并与来源记录中保存的值比较；两者一致后交付。
-8. 保存确认稿、已发布内容或长期声音后，运行 `python scripts/writing_memory.py build-index` 和 `python scripts/writing_memory.py validate`，证明正式正文已经进入发布记录并能被下一次写作读取。没有新的可靠本人作品或稳定声音变化时，不更新对应真源。
+8. 保存确认稿、已发布内容或长期声音后，运行 `python scripts/writing_memory.py build-index` 和 `python scripts/writing_memory.py validate`，证明正式正文已经进入发布历史，写作来源和声音资格也能被下一次写作按用途读取。没有新的可靠声音证据或稳定声音变化时，不更新长期声音真源。
 9. 告诉用户实际更新了哪些文件和认识；稳定增量存在时执行写入。
 
 进入文章或实践前，检查当前用途需要的机制、证据、案例和限制是否已经可用。发现缺口就补对应知识，材料足够后停止。

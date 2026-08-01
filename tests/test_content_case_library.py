@@ -1,159 +1,183 @@
 from __future__ import annotations
 
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+import tempfile
+from pathlib import Path
 
 from scripts.content_case_library import (
-    CaseError,
+    ContentCase,
+    HookPattern,
+    add_case,
+    add_hook,
+    build_index,
     load_library,
     main,
-    render_search_results,
-    search_library,
+    write_index,
 )
+from scripts.private_library import initialize_library
 
 
 class ContentCaseLibraryTests(unittest.TestCase):
-    def test_content_type_cannot_make_an_unrelated_case_pass(self) -> None:
-        with self.assertRaisesRegex(CaseError, "没有可读取的案例"):
-            search_library(
-                query="中子星潮汐形变引力波参数Lambda",
-                assets=["short"],
-                content_type="项目与产品介绍",
-                limit=2,
-            )
-
-    def test_single_project_type_prefers_project_cases(self) -> None:
-        hits, _ = search_library(
-            query="AI 智能体帮助普通人管理助手任务和工作流",
-            assets=["short"],
-            content_type="项目与产品介绍",
-            limit=2,
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.library_root = Path(self.temp_dir.name) / "private-library"
+        self.config_path = Path(self.temp_dir.name) / "config.json"
+        self.layout, _, _ = initialize_library(
+            self.library_root,
+            self.config_path,
         )
+        write_index(self.layout, [])
+        self.short, self.article, self.hook = self._seed_library()
 
-        self.assertTrue(hits)
-        self.assertEqual("项目与产品介绍", hits[0].case.content_type)
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
 
-    def test_project_list_type_prefers_list_cases(self) -> None:
-        hits, _ = search_library(
-            query="盘点去除 AI 味的写作工具，帮助普通创作者选择",
-            assets=["short"],
-            content_type="清单与资源推荐",
-            limit=2,
-        )
+    def _input(self, name: str, text: str) -> Path:
+        path = Path(self.temp_dir.name) / name
+        path.write_text(text, encoding="utf-8")
+        return path
 
-        self.assertTrue(hits)
-        self.assertEqual("清单与资源推荐", hits[0].case.content_type)
-
-    def test_content_type_is_an_index_hint_not_a_usage_gate(self) -> None:
-        cases, issues = load_library()
+    def _seed_library(self) -> tuple[Path, Path, Path]:
+        existing, issues = load_library(self.layout)
         self.assertFalse(issues)
-        candidate = next(
-            case
-            for case in cases
-            if case.asset == "short"
-            and case.content_type != "项目与产品介绍"
-        )
-        hits, _ = search_library(
-            query=candidate.title,
-            assets=["short"],
-            content_type="项目与产品介绍",
-            limit=1,
-        )
-
-        self.assertEqual(candidate.path, hits[0].case.path)
-        self.assertNotEqual("项目与产品介绍", hits[0].case.content_type)
-
-    def test_hook_search_uses_technique_instead_of_topic(self) -> None:
-        ai_hits, _ = search_library(
-            query="AI 项目先点出目标读者熟悉的痛点，立即给出项目带来的明确变化，让人共鸣和兴奋",
-            assets=["hook"],
-            content_type="项目与产品介绍",
-            limit=1,
-        )
-        travel_hits, _ = search_library(
-            query="旅行产品先点出目标读者熟悉的痛点，立即给出项目带来的明确变化，让人共鸣和兴奋",
-            assets=["hook"],
-            content_type="项目与产品介绍",
-            limit=1,
-        )
-
-        self.assertEqual(ai_hits[0].case.path, travel_hits[0].case.path)
-        self.assertEqual("hook", ai_hits[0].matched_asset)
-        self.assertTrue(ai_hits[0].case.supports_hook)
-
-    def test_same_topic_with_different_hook_technique_changes_result(self) -> None:
-        pain_hits, _ = search_library(
-            query="开源 AI 项目先点出主要痛点，立即给出项目和变化，让人共鸣",
-            assets=["hook"],
-            content_type=None,
-            limit=1,
-        )
-        suspense_hits, _ = search_library(
-            query="开源 AI 项目连续叠加困境，留下结果悬念，让人紧张和期待",
-            assets=["hook"],
-            content_type=None,
-            limit=1,
-        )
-
-        self.assertNotEqual(pain_hits[0].case.path, suspense_hits[0].case.path)
-        self.assertTrue(pain_hits[0].case.supports_hook)
-        self.assertTrue(suspense_hits[0].case.supports_hook)
-
-    def test_topic_words_alone_cannot_select_a_hook(self) -> None:
-        with self.assertRaisesRegex(CaseError, "没有可读取的案例"):
-            search_library(
-                query="Twitter 高级搜索",
-                assets=["hook"],
-                content_type=None,
-                limit=2,
-            )
-
-    def test_one_source_can_supply_full_case_and_hook_roles(self) -> None:
-        cases, issues = load_library()
-        self.assertFalse(issues)
-        candidate = next(
-            case
-            for case in cases
-            if case.asset == "short" and case.supports_hook
-        )
-        hits, _ = search_library(
-            query=" ".join(
-                (
-                    candidate.index_task,
-                    *candidate.index_moves,
-                    *candidate.hook_techniques,
-                    *candidate.reader_effects,
-                    *candidate.required_material,
-                )
+        short = add_case(
+            self.layout,
+            existing,
+            kind="short",
+            input_path=self._input(
+                "short.md",
+                "把一份长材料交给工具，它会先恢复主线，再生成可以继续使用的知识。",
             ),
-            assets=["short", "hook"],
-            content_type=candidate.content_type,
-            limit=20,
+            title="材料变成可复用知识",
+            content_type="项目与产品介绍",
+            source="https://example.com/short",
+            index_task="介绍项目结果",
+            topics=("学习", "知识库"),
+            moves=("输入变成结果",),
+            index_roles=("promotion",),
+            promotion_stages=("launch",),
+            audience_actions=("visit",),
+            benefit_recipients=("reader",),
         )
-        same_source_hits = [
-            hit
-            for hit in hits
-            if hit.case.path == candidate.path
-        ]
-
-        self.assertEqual(
-            {"short", "hook"},
-            {hit.matched_asset for hit in same_source_hits},
-        )
-        self.assertEqual(1, len({hit.case.path for hit in same_source_hits}))
-
-    def test_all_hook_roles_have_consumer_metadata(self) -> None:
-        cases, issues = load_library()
+        existing, issues = load_library(self.layout)
         self.assertFalse(issues)
-        hook_cases = [case for case in cases if case.supports_hook]
+        article = add_case(
+            self.layout,
+            existing,
+            kind="article",
+            input_path=self._input(
+                "article.md",
+                "这篇文章完整解释了材料、知识、案例和钩子为什么需要不同的保存边界。",
+            ),
+            title="私人知识库的四种内容",
+            content_type="概念与机制解释",
+            source="https://example.com/article",
+            index_task="解释知识库边界",
+            topics=("知识库",),
+            moves=("先区分消费者",),
+        )
+        existing, issues = load_library(self.layout)
+        self.assertFalse(issues)
+        source_relative = short.relative_to(self.layout.root).as_posix()
+        hook = add_hook(
+            self.layout,
+            existing,
+            title="输入直接变成可见结果",
+            pattern_id="result-visible-output",
+            content_type="结果钩子",
+            source_case=source_relative,
+            index_task="从结果进入",
+            topics=("学习",),
+            moves=("结果前置",),
+            techniques=("直接展示输入到结果",),
+            reader_effects=("迅速理解变化",),
+        )
+        cases, issues = load_library(self.layout)
+        self.assertFalse(issues)
+        write_index(self.layout, cases)
+        return short, article, hook
 
-        self.assertGreater(len(hook_cases), 0)
-        self.assertTrue(all(case.hook_family for case in hook_cases))
+    def test_library_loads_all_three_resource_types(self) -> None:
+        cases, issues = load_library(self.layout)
+
+        self.assertFalse(issues)
+        self.assertTrue(any(isinstance(case, HookPattern) for case in cases))
+        self.assertTrue(
+            any(
+                isinstance(case, ContentCase) and case.asset == "short"
+                for case in cases
+            )
+        )
+        self.assertTrue(
+            any(
+                isinstance(case, ContentCase) and case.asset == "article"
+                for case in cases
+            )
+        )
+
+    def test_hook_pattern_can_reference_a_full_case_without_mixing_resources(self) -> None:
+        cases, issues = load_library(self.layout)
+        self.assertFalse(issues)
+        pattern = next(
+            item
+            for item in cases
+            if isinstance(item, HookPattern) and item.source_case_file is not None
+        )
+        source = next(
+            item
+            for item in cases
+            if isinstance(item, ContentCase) and item.path == pattern.source_case_file
+        )
+
+        self.assertEqual(pattern.source_text, source.original_text)
+        self.assertIn("钩子与开头", pattern.path.parts)
+        self.assertNotIn("钩子与开头", source.path.parts)
+
+    def test_all_hook_patterns_have_lightweight_creative_metadata(self) -> None:
+        cases, issues = load_library(self.layout)
+        self.assertFalse(issues)
+        hook_cases = [case for case in cases if isinstance(case, HookPattern)]
+
+        self.assertTrue(hook_cases)
+        self.assertTrue(all(case.pattern_id for case in hook_cases))
         self.assertTrue(all(case.hook_techniques for case in hook_cases))
         self.assertTrue(all(case.reader_effects for case in hook_cases))
-        self.assertTrue(all(case.required_material for case in hook_cases))
+        for case in hook_cases:
+            text = case.path.read_text(encoding="utf-8-sig")
+            for retired_field in (
+                "required_material:",
+                "required_relations:",
+                "optional_amplifiers:",
+                "hook_context_blocks:",
+                "hook_family:",
+            ):
+                self.assertNotIn(retired_field, text, case.path)
+
+    def test_all_promotion_resources_name_the_actor_and_action(self) -> None:
+        cases, issues = load_library(self.layout)
+        self.assertFalse(issues)
+        promotion_cases = [
+            case for case in cases if "promotion" in case.index_roles
+        ]
+
+        self.assertTrue(promotion_cases)
+        self.assertTrue(all(case.promotion_stages for case in promotion_cases))
+        self.assertTrue(all(case.audience_actions for case in promotion_cases))
+        self.assertTrue(all(case.benefit_recipients for case in promotion_cases))
+        reader_cases = [
+            case
+            for case in promotion_cases
+            if "reader" in case.benefit_recipients
+        ]
+        self.assertTrue(reader_cases)
+        self.assertTrue(
+            all("publisher" not in case.benefit_recipients for case in reader_cases)
+        )
 
     def test_case_files_are_source_first_without_editorial_limits(self) -> None:
-        cases, issues = load_library()
+        cases, issues = load_library(self.layout)
         self.assertFalse(issues)
 
         for case in cases:
@@ -162,7 +186,10 @@ class ContentCaseLibraryTests(unittest.TestCase):
             self.assertNotIn("## 可以参考什么", text, case.path)
             self.assertNotIn("## 适用场景", text, case.path)
             self.assertNotIn("<!-- content-case-notes -->", text, case.path)
-            if case.asset != "article":
+            if isinstance(case, HookPattern) and case.source_case_file is not None:
+                self.assertIn("## 来源示例", text)
+                self.assertIn("source_case_file:", text)
+            elif not isinstance(case, ContentCase) or case.asset != "article":
                 self.assertTrue(text.startswith("# "), case.path)
                 self.assertLess(
                     text.index("## 原帖全文"),
@@ -170,74 +197,67 @@ class ContentCaseLibraryTests(unittest.TestCase):
                     case.path,
                 )
 
-    def test_search_output_leads_with_original_and_hides_index_fields(self) -> None:
-        hits, _ = search_library(
-            query="让不懂技术的人迅速感到项目变化，用短句和紧凑的并列事实增加力度",
-            assets=["short"],
-            content_type="项目与产品介绍",
-            limit=1,
+    def test_cli_creates_a_case_from_real_input_and_updates_the_index(self) -> None:
+        raw = self._input(
+            "another.md",
+            "用户给出一段完整材料，正式生产入口保存全文并更新索引。",
         )
-        rendered = render_search_results(hits)
+        stdout = StringIO()
+        with redirect_stdout(stdout):
+            result = main(
+                [
+                    "--library-root",
+                    str(self.library_root),
+                    "add-case",
+                    "--kind",
+                    "short",
+                    "--input",
+                    str(raw),
+                    "--title",
+                    "正式入口保存材料",
+                    "--content-type",
+                    "教程与操作指南",
+                    "--source",
+                    "https://example.com/another",
+                    "--index-task",
+                    "说明沉淀流程",
+                    "--topic",
+                    "私人知识库",
+                    "--move",
+                    "材料进入真源",
+                ]
+            )
+        self.assertEqual(0, result, stdout.getvalue())
+        self.assertIn("内容案例已保存", stdout.getvalue())
+        cases, issues = load_library(self.layout)
+        self.assertFalse(issues)
+        created = next(case for case in cases if case.title == "正式入口保存材料")
+        self.assertIn("正式生产入口保存全文", created.original_text)
+        self.assertIn(created.title, self.layout.case_index.read_text(encoding="utf-8"))
 
-        self.assertLess(
-            rendered.index("### 原文全文"),
-            rendered.index("### 检索记录"),
-        )
-        for hidden_label in (
-            "内容类型：",
-            "写作任务：",
-            "主题：",
-            "结构：",
-            "开头技巧：",
-            "可以参考什么",
-            "适用场景",
-        ):
-            self.assertNotIn(hidden_label, rendered)
+    def test_generated_index_matches_every_active_resource(self) -> None:
+        cases, issues = load_library(self.layout)
+        self.assertFalse(issues)
+        generated = build_index(cases, self.layout)
 
-    def test_long_natural_description_is_not_diluted_by_query_length(self) -> None:
-        hits, _ = search_library(
-            query=(
-                "让使用 AI 编程工具的人马上感到工作方式被改变；"
-                "第一句直接击中常见不满，第二句交代项目和变化，"
-                "再用紧凑的并列内容加强，最后迅速收束"
-            ),
-            assets=["short"],
-            content_type="项目与产品介绍",
-            limit=1,
-        )
+        self.assertEqual(self.layout.case_index.read_text(encoding="utf-8"), generated)
+        for case in cases:
+            self.assertIn(case.title, generated)
 
-        self.assertEqual("short", hits[0].matched_asset)
-        self.assertTrue(hits[0].case.original_text)
+    def test_cli_only_maintains_and_validates_resources(self) -> None:
+        stdout = StringIO()
+        with redirect_stdout(stdout):
+            self.assertEqual(
+                0,
+                main(["--library-root", str(self.library_root), "validate"]),
+            )
+        self.assertIn("案例库有效", stdout.getvalue())
 
-    def test_cli_requires_the_upper_layer_to_choose_an_asset(self) -> None:
-        with self.assertRaises(SystemExit) as error:
-            main(["search", "--query", "介绍一个项目"])
-
+        stderr = StringIO()
+        with redirect_stderr(stderr), self.assertRaises(SystemExit) as error:
+            main(["--library-root", str(self.library_root), "search"])
         self.assertEqual(2, error.exception.code)
-
-    def test_article_asset_never_silently_falls_back_to_short(self) -> None:
-        hits, _ = search_library(
-            query="从一次真实实践写成长文，按过程推进并解释结果",
-            assets=["article"],
-            content_type="教程与操作指南",
-            limit=2,
-        )
-
-        self.assertTrue(hits)
-        self.assertTrue(all(hit.matched_asset == "article" for hit in hits))
-        self.assertTrue(all(hit.case.asset == "article" for hit in hits))
-
-    def test_style_index_does_not_turn_example_item_count_into_a_contract(self) -> None:
-        from scripts.content_case_library import _content_style_terms
-
-        terms = _content_style_terms(
-            "先交代变化。\n\n• 第一项\n• 第二项\n\n最后收束。"
-        )
-
-        self.assertIn("并列事实", terms)
-        self.assertNotIn("两条", terms)
-        self.assertNotIn("两项", terms)
-        self.assertNotIn("两个具体事实", terms)
+        self.assertIn("invalid choice", stderr.getvalue())
 
 
 if __name__ == "__main__":
