@@ -142,3 +142,11 @@ python scripts/writing_memory.py validate
 这个 Skill 负责理解材料、研究主题、解释概念、设计实践、审查内容，以及写作短帖、Thread、GitHub 项目介绍、文章和内容型宣发。图片、GIF、视频、音频与播客制作，普通翻译，广告投放，销售页、邮件营销序列、品牌全案、完整营销策略和实际发布不属于它的交付范围，需要另行选择对应能力。
 
 文件写入、媒体制作、上传和发布互不代替。没有明确授权时，结果只保留在当前回复或本地工作区。
+
+## Star History
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/CheshireMew/100x-learning/star-history/star-history-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/CheshireMew/100x-learning/star-history/star-history.svg">
+  <img alt="CheshireMew/100x-learning GitHub Star History" src="https://raw.githubusercontent.com/CheshireMew/100x-learning/star-history/star-history.svg">
+</picture>
