@@ -39,6 +39,17 @@ class WritingContractTests(unittest.TestCase):
         self.assertNotIn("正文最后一行永远逐字写", project)
         self.assertIn("统一选择标准", _read("references/github-project-list.md"))
 
+    def test_output_identity_is_selected_before_promotional_requirements(self) -> None:
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+
+        identity = skill.index("### 2. 选择写作动作和成品身份")
+        promotion = skill.index("### 3. 判断是否叠加内容型宣发")
+        self.assertLess(identity, promotion)
+        self.assertIn("单个 GitHub 项目介绍", skill)
+        self.assertIn("传播效果由 `references/content-writing.md` 实现", skill)
+        self.assertIn("这是效果目标，不是模板", content)
+
     def test_github_search_discovers_and_cleans_material_before_drafting(self) -> None:
         skill = _read("SKILL.md")
         research = _read("references/prewriting-research.md")

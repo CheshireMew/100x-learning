@@ -14,19 +14,31 @@ def _read(relative: str) -> str:
 class PromotionalWritingContractTests(unittest.TestCase):
     def test_explicit_promotion_intent_has_a_distinct_route(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("只有明确提出宣发、推广、招募、预热、发布期传播", skill)
-        self.assertIn("普通介绍、分享、推荐和产品帖仍走普通写作", skill)
+        self.assertIn("只有用户明确要求宣发、推广、招募、预热、发布期传播", skill)
+        self.assertIn("普通介绍、分享、推荐、产品帖", skill)
+        self.assertNotIn("只有明确传播目的", skill)
 
-    def test_default_route_delivers_a_plan_and_stops_before_drafting(self) -> None:
+    def test_plan_only_route_delivers_a_plan_and_stops_before_drafting(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("新宣发请求默认先交付可确认方案并停止", skill)
+        self.assertIn("只要求方案，或提出宽泛推广目标却没有指定文字成品", skill)
+        self.assertIn("交付可确认方案并停止", skill)
         self.assertIn("只交付宣发方案时不读取写作案例与钩子", skill)
 
-    def test_direct_request_can_enter_writing_without_second_confirmation(self) -> None:
+    def test_specific_promotional_copy_enters_writing_without_an_intermediate_plan(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("直接写", skill)
-        self.assertIn("无需方案", skill)
+        method = _read("references/promotional-content-writing.md")
+        self.assertIn("已经要求起草具体宣发文字", skill)
         self.assertIn("直接带着同一份写作要求进入写作", skill)
+        self.assertIn("上层已经选择起草具体文字", method)
+        self.assertNotIn("默认先交付下面这份可确认方案", method)
+
+    def test_virality_is_a_writing_effect_not_a_promotion_trigger(self) -> None:
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+        self.assertIn("先选择成品身份，再判断是否叠加宣发要求", skill)
+        self.assertIn("“病毒式传播”“更有传播力”“爆款”等效果要求", skill)
+        self.assertIn("不触发宣发方案", skill)
+        self.assertIn("这是效果目标，不是模板", content)
 
     def test_offer_owner_trigger_and_dates_are_locked(self) -> None:
         skill = _read("SKILL.md")
