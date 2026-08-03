@@ -14,7 +14,7 @@ def _read(relative: str) -> str:
 class PromotionalWritingContractTests(unittest.TestCase):
     def test_explicit_promotion_intent_has_a_distinct_route(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("只有用户明确要求宣发、推广、招募、预热、发布期传播", skill)
+        self.assertIn("只有明确提出宣发、推广、招募、预热、发布期传播", skill)
         self.assertIn("普通介绍、分享、推荐、产品帖", skill)
         self.assertNotIn("只有明确传播目的", skill)
 
@@ -84,7 +84,7 @@ class PromotionalWritingContractTests(unittest.TestCase):
         skill = _read("SKILL.md")
         self.assertIn("多个完整案例", skill)
         self.assertIn("多个钩子示例", skill)
-        self.assertIn("先给可复制的正文或大纲", skill)
+        self.assertIn("先交付正文或大纲", skill)
         self.assertNotIn("scripts/writing_delivery.py", skill)
 
     def test_archived_compiler_is_not_an_active_route(self) -> None:

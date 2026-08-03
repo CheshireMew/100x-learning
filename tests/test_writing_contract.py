@@ -35,7 +35,10 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("references/github-project-short-content.md", skill)
         self.assertIn("references/github-project-list.md", skill)
         self.assertIn("不再使用固定结尾", project)
-        self.assertIn("许可证、平台、免费范围", project)
+        self.assertIn("默认留在研究材料中", project)
+        self.assertIn("都不足以让它进入正文", project)
+        self.assertIn("不在项目入口附近或结尾合并成一组稳妥说明", project)
+        self.assertNotIn("适合保留时可以压缩进项目入口附近或结尾", project)
         self.assertNotIn("正文最后一行永远逐字写", project)
         self.assertIn("统一选择标准", _read("references/github-project-list.md"))
 
@@ -121,14 +124,64 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("组件、工作流、数据结构", prewrite)
         self.assertIn("MP4、时间线、工作流、组件或格式", github)
 
-    def test_writing_explanation_is_detailed_but_not_a_validator(self) -> None:
+    def test_delivery_follows_reader_use_and_keeps_the_explanation_by_default(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("先给可复制的正文或大纲", skill)
-        self.assertIn("足够详细的写作说明", skill)
-        self.assertIn("多个案例与钩子共同带来了哪些方向", skill)
+        content = _read("references/content-writing.md")
+        natural = _read("references/natural-writing.md")
+
+        self.assertIn("表达任务只说明内容讲什么，不决定长短", skill)
+        self.assertIn("单个代码块仍便于通读和整段复制", skill)
+        self.assertIn("内容较长、结构复杂或需要继续修改时使用 Markdown 文件", skill)
+        self.assertIn("先交付正文或大纲", skill)
+        self.assertIn("提示词不是默认组成", skill)
+        self.assertIn("只是介绍、推荐、制造兴趣或提供项目入口时不加提示词", skill)
+        self.assertNotIn("具备目标环境操作能力的 AI 能完成核心动作时，正文给出", skill)
+        self.assertIn("普通读者不需要先理解技术实现", content)
+        self.assertIn("除非用户明确只要正文", skill)
         self.assertIn("本次创作参考（实际阅读）", skill)
-        self.assertIn("完整案例和钩子文件路径", skill)
-        self.assertIn("不输出分数、候选状态、JSON、隐藏推理或检查日志", skill)
+        self.assertIn("本次实际阅读的案例与钩子路径", natural)
+
+    def test_actionable_copy_uses_ai_prompts_only_when_they_are_the_real_next_step(self) -> None:
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+        project = _read("references/github-project-short-content.md")
+        natural = _read("references/natural-writing.md")
+
+        for text in (skill, content, project):
+            self.assertIn("一至三句", text)
+        self.assertIn("提示词不是正文的固定部分", content)
+        self.assertIn("提示词不是项目介绍的固定部分", project)
+        self.assertIn("没有因为 AI 可以代办而机械加入", skill)
+        self.assertIn("因为 AI 理论上能够代办某个动作而机械增加", natural)
+        self.assertNotIn("AI 能完成正文任务却没有给出", natural)
+        self.assertNotIn("AI 能完成本篇任务时已经给出", project)
+        self.assertIn("AI 提示词可执行性", natural)
+
+    def test_action_entry_has_one_goal_based_owner(self) -> None:
+        skill = _read("SKILL.md")
+        prewrite = _read("references/prewriting-research.md")
+        content = _read("references/content-writing.md")
+        project = _read("references/github-project-short-content.md")
+        project_list = _read("references/github-project-list.md")
+        natural = _read("references/natural-writing.md")
+
+        self.assertIn("具体选择和呈现统一由 `references/content-writing.md` 执行", skill)
+        self.assertIn("本阶段也不根据命令外形替正文选择最终入口", prewrite)
+        self.assertIn("行动入口的唯一选择规则", content)
+        self.assertIn("普通介绍、推荐、分享或制造兴趣", content)
+        self.assertIn("不包含完整的 HTTP(S) URL", content)
+        self.assertIn("没有隐藏前置步骤", content)
+        self.assertIn("`npx package-name`", content)
+        self.assertIn("`curl`、`wget` 或 `iwr`", content)
+        self.assertIn("属于链接式安装路线，不算直接指令", content)
+        self.assertIn("先用自然语言说明这条指令会完成什么", content)
+        self.assertIn("本模板不根据命令外形重选行动入口", project)
+        self.assertIn("本模板不为每个项目重新选择行动入口", project_list)
+        self.assertIn("已选行动入口不能完成正文承诺的下一步", natural)
+
+        for text in (skill, prewrite, content, project, project_list, natural):
+            self.assertNotIn("一行安装或启用指令", text)
+            self.assertNotIn("不再放项目链接", text)
 
     def test_case_library_has_no_creative_search_or_scoring_architecture(self) -> None:
         script = _read("scripts/content_case_library.py")
@@ -154,6 +207,10 @@ class WritingContractTests(unittest.TestCase):
     def test_natural_writing_uses_semantics_not_phrase_blacklists(self) -> None:
         natural = _read("references/natural-writing.md")
         self.assertIn("不要建立“不是……而是……”或其它固定句式黑名单", natural)
+        self.assertIn("不用一个抽象动词代替几个具体动作", natural)
+        self.assertIn("一个正常人会不会在聊天中直接这样说", natural)
+        self.assertIn("谁做了什么、结果怎样", natural)
+        self.assertIn("不靠建立词语黑名单判断", natural)
         self.assertIn("直接从内容写起", natural)
         self.assertIn("叙事动作可以自由使用", _read("SKILL.md"))
 
@@ -168,6 +225,24 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("只核查成品实际使用的重要事实", natural)
         self.assertIn("不为了逐字严谨改回官方语言", natural)
         self.assertIn("不在段尾补", natural)
+
+    def test_material_based_writing_is_creative_for_short_and_long_outputs(self) -> None:
+        skill = _read("SKILL.md")
+        prewrite = _read("references/prewriting-research.md")
+        content = _read("references/content-writing.md")
+        natural = _read("references/natural-writing.md")
+
+        self.assertIn("不把它解释成忠实摘要合同", skill)
+        self.assertIn("这一判断同时适用于短帖、Thread、项目介绍、文章和 Newsletter", skill)
+        self.assertIn("不联网只限制信息来源", skill)
+        self.assertIn("事实锚点", prewrite)
+        self.assertIn("不把每条时间片依次改写成正文", prewrite)
+        self.assertIn("恢复成完整互动", content)
+        self.assertIn("短内容围绕一条最值得复述的关系", content)
+        self.assertIn("长内容可以继续展开机制、例子、反面情况、现实意义和行动框架", content)
+        self.assertIn("不当作等待换词的句子库", natural)
+        self.assertIn("没有逐字出处但有场景依据的作者判断", natural)
+        self.assertIn("已经建立的读者收获", natural)
 
     def test_language_defaults_to_chinese_once(self) -> None:
         skill = _read("SKILL.md")

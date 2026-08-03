@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import date
@@ -13,6 +14,9 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 ASSET_ROOT = SKILL_ROOT / "assets" / "private-library"
 HOME_TEMPLATE = ASSET_ROOT / "Home.md"
 WRITING_CONFIG_TEMPLATE = ASSET_ROOT / "writing-memory.json"
+CONTENT_STRATEGY_TEMPLATE = ASSET_ROOT / "content-strategy.md"
+TOPIC_PORTFOLIO_TEMPLATE = ASSET_ROOT / "topic-portfolio.md"
+PUBLISHED_REVIEW_TEMPLATE = ASSET_ROOT / "published-content-review.md"
 
 LIBRARY_SCHEMA = "100x-learning-private-library"
 LIBRARY_VERSION = 1
@@ -92,6 +96,22 @@ class LibraryLayout:
         return self.writing_system / "published-content-index.jsonl"
 
     @property
+    def content_strategy(self) -> Path:
+        return self.writing_system / "content-strategy.md"
+
+    @property
+    def writing_templates(self) -> Path:
+        return self.writing_system / "templates"
+
+    @property
+    def topic_portfolio_template(self) -> Path:
+        return self.writing_templates / "topic-portfolio.md"
+
+    @property
+    def published_review_template(self) -> Path:
+        return self.writing_templates / "published-content-review.md"
+
+    @property
     def voice(self) -> Path:
         return self.writing_system / "style-guide" / "voice.md"
 
@@ -130,12 +150,15 @@ def _manifest_value() -> dict[str, Any]:
     return {"schema": LIBRARY_SCHEMA, "version": LIBRARY_VERSION}
 
 
-def _config_value(root: Path) -> dict[str, Any]:
-    return {
+def _config_value(root: Path, marktree_cli: Path | None = None) -> dict[str, Any]:
+    value: dict[str, Any] = {
         "schema": LIBRARY_SCHEMA,
         "version": LIBRARY_VERSION,
         "library_root": str(root),
     }
+    if marktree_cli is not None:
+        value["marktree_cli"] = str(marktree_cli)
+    return value
 
 
 def _check_manifest(path: Path) -> None:
@@ -151,8 +174,38 @@ def _check_manifest(path: Path) -> None:
 
 def _write_config(root: Path, config_path: Path | None) -> Path:
     target = _absolute(config_path or default_config_path())
-    _write_json(target, _config_value(root))
+    marktree_cli = None
+    if target.is_file():
+        current = _json(target)
+        raw_cli = current.get("marktree_cli")
+        if isinstance(raw_cli, str) and raw_cli.strip():
+            marktree_cli = _absolute(Path(raw_cli))
+    _write_json(target, _config_value(root, marktree_cli))
     return target
+
+
+def configure_marktree_cli(
+    cli_path: Path,
+    config_path: Path | None = None,
+) -> tuple[Path, Path]:
+    config = _absolute(config_path or default_config_path())
+    value = _json(config)
+    root = resolve_library_root(config_path=config)
+    executable = _absolute(cli_path)
+    if not executable.is_file():
+        raise LibraryError(f"marktree-cli 不存在：{executable}")
+    probe = subprocess.run(
+        [str(executable), "--version"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    if probe.returncode != 0 or "marktree-cli" not in probe.stdout:
+        raise LibraryError(f"不是可用的 marktree-cli：{executable}")
+    value.update(_config_value(root, executable))
+    _write_json(config, value)
+    return executable, config
 
 
 def resolve_library_root(
@@ -222,6 +275,13 @@ def _inside_skill(root: Path) -> bool:
     return True
 
 
+def _copy_template_if_missing(template: Path, target: Path) -> None:
+    if target.exists():
+        return
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(template.read_text(encoding="utf-8"), encoding="utf-8")
+
+
 def initialize_library(
     root: Path,
     config_path: Path | None = None,
@@ -248,16 +308,23 @@ def initialize_library(
     for relative in REQUIRED_DIRECTORIES:
         (root / relative).mkdir(parents=True, exist_ok=True)
 
-    home = root / "Home.md"
-    if not home.exists():
+    layout = LibraryLayout(root)
+    if not layout.home.exists():
         template = HOME_TEMPLATE.read_text(encoding="utf-8")
-        home.write_text(template.replace("{{DATE}}", date.today().isoformat()), encoding="utf-8")
-    writing_config = root / "60-Systems" / "Writing" / "writing-memory.json"
-    if not writing_config.exists():
-        writing_config.write_text(
-            WRITING_CONFIG_TEMPLATE.read_text(encoding="utf-8"),
+        layout.home.write_text(
+            template.replace("{{DATE}}", date.today().isoformat()),
             encoding="utf-8",
         )
+    _copy_template_if_missing(WRITING_CONFIG_TEMPLATE, layout.writing_config)
+    _copy_template_if_missing(CONTENT_STRATEGY_TEMPLATE, layout.content_strategy)
+    _copy_template_if_missing(
+        TOPIC_PORTFOLIO_TEMPLATE,
+        layout.topic_portfolio_template,
+    )
+    _copy_template_if_missing(
+        PUBLISHED_REVIEW_TEMPLATE,
+        layout.published_review_template,
+    )
 
     layout = validate_library(root)
     config = _write_config(root, config_path)
@@ -301,6 +368,11 @@ def _parser() -> argparse.ArgumentParser:
 
     validate = commands.add_parser("validate", help="验证当前私人知识库")
     validate.add_argument("--root", type=Path)
+    configure_marktree = commands.add_parser(
+        "configure-marktree",
+        help="配置由 Marktree 管理私人知识库写入和可选 Git",
+    )
+    configure_marktree.add_argument("--cli", type=Path, required=True)
     return parser
 
 
@@ -339,10 +411,29 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0
+        if args.command == "configure-marktree":
+            executable, config = configure_marktree_cli(args.cli, args.config)
+            root = resolve_library_root(config_path=config)
+            print(
+                json.dumps(
+                    {
+                        "ok": True,
+                        "action": "marktree-configured",
+                        "library_root": str(root),
+                        "marktree_cli": str(executable),
+                        "config": str(config),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 0
 
         root = resolve_library_root(args.root, args.config)
         layout = validate_library(root)
         if args.command == "show":
+            config = _absolute(args.config or default_config_path())
+            config_value = _json(config)
             print(
                 json.dumps(
                     {
@@ -350,6 +441,7 @@ def main(argv: list[str] | None = None) -> int:
                         "library_root": str(layout.root),
                         "home": str(layout.home),
                         "version": LIBRARY_VERSION,
+                        "marktree_cli": config_value.get("marktree_cli"),
                     },
                     ensure_ascii=False,
                     indent=2,

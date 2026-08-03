@@ -60,7 +60,8 @@ rg -l -F "[[10-Knowledge/目录/笔记名]]" "<私人知识库>"
 | 已消化的概念、机制、证据判断和可复用案例 | `10-Knowledge` | 合并成主题知识文档，链接来源 |
 | 有目标和结束条件的文章系列、研究或实践 | `30-Projects` | 保存范围、状态、材料链接、缺口和下一步 |
 | 已确认完成的文章或其他成果 | `40-Outputs` | 保存最终版本，并链接知识和项目 |
-| 写作声音、模板和长期流程 | `60-Systems` | 维护长期规则，具体文章保存在对应项目或成果目录 |
+| 长期内容策略、写作声音、模板和长期流程 | `60-Systems` | 分别维护内容方向、表达证据和复用规则，具体文章保存在对应项目或成果目录 |
+| 持续选题状态和单篇发布复盘 | `30-Projects/Content/<系列>` | 只保存决策、证据快照、下一步和真源链接，不复制来源或正文 |
 
 暂时无法判断归属的材料进入 `00-Inbox`。归档使用 `90-Archive`，活动路径保持当前版本。
 
@@ -86,6 +87,12 @@ published_url: ""
 `source` 按真实状态使用 `user-confirmed`、`published-article`、`published-post` 或 `published-thread`。`format` 使用上层已经选定的成品形态。已经发布时填写规范入口；用户只确认终稿但尚未发布时保留空值。`writing_origin` 按实际情况使用 `human`、`human-edited`、`ai-generated`、`curated`、`translated` 或 `unknown`。只有用户明确确认正文能代表自己的表达，而且来源是 `human` 或 `human-edited` 时，才填写 `voice_eligible: true`；发布账号、确认终稿和发布入口本身不提供声音资格。
 
 `<私人知识库>/60-Systems/Writing/style-guide/voice.md` 继续是长期声音的唯一真源。`published-content-index.jsonl` 只索引确认稿和已发布正文的路径、形态、发布归属、写作来源、声音资格、日期与哈希，不复制正文。内容案例继续留在 `20-Sources/Social Posts/Content Cases`；被选为案例不能证明作者声音。案例中的社交原帖只有规范入口匹配 `writing-memory.json` 已验证的本人账号时，才以原帖全文进入发布历史；还必须另外具有可靠 `writing_origin` 和 `voice_eligible: true` 才能进入声音检索，缺少时按 `unknown` 和 `false` 处理。
+
+### 内容策略、选题和发布复盘
+
+`<私人知识库>/60-Systems/Writing/content-strategy.md` 是长期内容方向的唯一真源，只记录用户确认或被重复真实反馈支持的读者问题、内容职责、发布情境、目标和排除项；当前任务的明确要求始终优先。声音真源只回答“怎样表达”，内容策略只回答“长期服务谁、讲什么和为什么”，发布表现不能直接改写声音。
+
+只有系列确实需要跨任务延续时，才在 `30-Projects/Content/<系列>/topic-portfolio.md` 保存稳定 `topic_id`、状态、证据链接、下一步和关联成品。用户明确要求保存单篇发布复盘时，放入同一项目的 `reviews`，链接 `40-Outputs/Writing` 中的唯一正文和真实发布入口。一次结果保留为候选解释和下一次实验；只有重复证据、直接行为证据或用户确认支持的认识，才迁移到内容策略、主题知识、完整案例或钩子对应的唯一真源。
 
 ## 五、来源、知识与关系
 
@@ -129,6 +136,16 @@ published_url: ""
 ## 七、体系化写回
 
 正式修改前，先读取 `<私人知识库>/Home.md`，搜索主题名、别名和已有来源，确认本次是更新现有文件还是创建独立新主题。用户已经授权、目标路径符合 Home 的目录边界后再写入。
+
+如果 `private_library.py show` 返回了可用的 `marktree_cli`，持久化正文不再用 `apply_patch`、`write_text` 或其它外部写入绕过 Marktree。单文件正文通过标准输入交给：
+
+```powershell
+python scripts/marktree_integration.py write --path "10-Knowledge/主题.md"
+```
+
+一次任务需要共同更新来源、知识和综合入口时，把最终内容组成 `{"writes":[{"path":"相对路径","content":"完整正文"}]}`，通过标准输入交给 `write-batch`。适配器会从真实文件计算预期哈希，让 Marktree 拒绝覆盖外部新改动；写后再按实际字节核对。内容案例索引和个人写作索引脚本也使用同一个写入适配器。未配置 Marktree 时保持现有独立文件工作流，不为了集成阻断知识库操作。
+
+写完后可运行 `python scripts/marktree_integration.py changes` 或 `sync-plan` 核对精确路径。只有用户明确要求同步远端时才运行 `sync`；普通保存不会自动提交或推送。
 
 1. 新来源需要长期保留时，先写入或更新 `20-Sources`；网页研究通常保存出处、作用和必要上下文。本地来源需要哈希时，在写入计划前从实际文件计算一次，并把同一个计算结果复用于 `source_identity`、来源元数据和正文。
 2. 把新结论、修正、关系、边界和开放问题合并进 `10-Knowledge` 的唯一主题文档。

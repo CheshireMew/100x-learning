@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Sequence, TypeAlias
 
 try:
+    from scripts.marktree_integration import managed_write_text
     from scripts.private_library import (
         LibraryError,
         LibraryLayout,
@@ -18,6 +19,7 @@ try:
         validate_library,
     )
 except ModuleNotFoundError:
+    from marktree_integration import managed_write_text
     from private_library import (
         LibraryError,
         LibraryLayout,
@@ -673,6 +675,7 @@ def add_case(
     writing_format: str | None = None,
     writing_origin: str | None = None,
     voice_eligible: bool | None = None,
+    config_path: Path | None = None,
 ) -> Path:
     title = _safe_segment(title, "title")
     content_type = _safe_segment(content_type, "content_type")
@@ -758,7 +761,7 @@ def add_case(
     if path.exists():
         raise CaseError(f"内容案例已经存在：{path}")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(body, encoding="utf-8")
+    managed_write_text(layout.root, path, body, config_path=config_path)
     if kind == "short":
         parsed = _parse_social(path, layout)
         if not isinstance(parsed, ContentCase):
@@ -785,6 +788,7 @@ def add_hook(
     promotion_stages: Sequence[str] = (),
     audience_actions: Sequence[str] = (),
     benefit_recipients: Sequence[str] = (),
+    config_path: Path | None = None,
 ) -> Path:
     title = _safe_segment(title, "title")
     content_type = _safe_segment(content_type, "content_type")
@@ -829,16 +833,25 @@ def add_hook(
         ]
     ) + "\n"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(body, encoding="utf-8")
+    managed_write_text(layout.root, path, body, config_path=config_path)
     parsed = _parse_social(path, layout)
     if not isinstance(parsed, HookPattern):
         raise CaseError(f"没有生成钩子技巧：{path}")
     return path
 
 
-def write_index(layout: LibraryLayout, cases: Sequence[LibraryResource]) -> Path:
+def write_index(
+    layout: LibraryLayout,
+    cases: Sequence[LibraryResource],
+    config_path: Path | None = None,
+) -> Path:
     layout.case_index_root.mkdir(parents=True, exist_ok=True)
-    layout.case_index.write_text(build_index(cases, layout), encoding="utf-8")
+    managed_write_text(
+        layout.root,
+        layout.case_index,
+        build_index(cases, layout),
+        config_path=config_path,
+    )
     return layout.case_index
 
 
@@ -925,11 +938,12 @@ def main(argv: list[str] | None = None) -> int:
                     if args.voice_eligible is not None
                     else None
                 ),
+                config_path=args.config,
             )
             cases, issues = load_library(layout)
             if issues:
                 raise CaseError("\n".join(issues))
-            index_path = write_index(layout, cases)
+            index_path = write_index(layout, cases, args.config)
             print(f"内容案例已保存：{created}\n索引已更新：{index_path}")
             return 0
 
@@ -950,11 +964,12 @@ def main(argv: list[str] | None = None) -> int:
                 promotion_stages=args.promotion_stage,
                 audience_actions=args.audience_action,
                 benefit_recipients=args.benefit_recipient,
+                config_path=args.config,
             )
             cases, issues = load_library(layout)
             if issues:
                 raise CaseError("\n".join(issues))
-            index_path = write_index(layout, cases)
+            index_path = write_index(layout, cases, args.config)
             print(f"钩子技巧已保存：{created}\n索引已更新：{index_path}")
             return 0
 
@@ -982,7 +997,7 @@ def main(argv: list[str] | None = None) -> int:
                 raise CaseError(f"索引需要更新：{layout.case_index}")
             print(f"索引有效：{layout.case_index}")
             return 0
-        index_path = write_index(layout, cases)
+        index_path = write_index(layout, cases, args.config)
         print(f"索引已更新：{index_path}")
         return 0
     except (CaseError, LibraryError, OSError, UnicodeError) as exc:

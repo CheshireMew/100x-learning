@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 try:
+    from scripts.marktree_integration import managed_write_text
     from scripts.private_library import (
         LibraryError,
         LibraryLayout,
@@ -19,6 +20,7 @@ try:
         validate_library,
     )
 except ModuleNotFoundError:
+    from marktree_integration import managed_write_text
     from private_library import (
         LibraryError,
         LibraryLayout,
@@ -596,10 +598,19 @@ def render_index(records: Sequence[WritingRecord]) -> str:
     return "".join(f"{_record_json(record)}\n" for record in records)
 
 
-def write_index(library_root: Path, records: Sequence[WritingRecord]) -> Path:
+def write_index(
+    library_root: Path,
+    records: Sequence[WritingRecord],
+    config_path: Path | None = None,
+) -> Path:
     index_path = library_root.resolve() / INDEX_RELATIVE
     index_path.parent.mkdir(parents=True, exist_ok=True)
-    index_path.write_text(render_index(records), encoding="utf-8")
+    managed_write_text(
+        library_root,
+        index_path,
+        render_index(records),
+        config_path=config_path,
+    )
     return index_path
 
 
@@ -898,7 +909,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"社交发布 {receipt.accepted_social} 条。"
                 )
                 return 0
-            index_path = write_index(library_root, current)
+            index_path = write_index(library_root, current, args.config)
             print(
                 json.dumps(
                     {

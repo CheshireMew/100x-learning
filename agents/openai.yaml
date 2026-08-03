@@ -1,4 +1,4 @@
 interface:
   display_name: "100x Learning"
-  short_description: "从材料提炼知识、完成内容写作，并初始化和维护本机私人知识库"
-  default_prompt: "使用 $100x-learning 读懂这份材料；先讲清主线和关键关系，再按我的明确要求沉淀或写成内容。"
+  short_description: "从材料学习、写作、筛选选题，并用发布结果改进下一轮内容"
+  default_prompt: "使用 $100x-learning 读懂这份材料或复盘已发布内容；根据真实证据完成学习、选题、写作或下一轮改进。"

@@ -16,7 +16,7 @@
 python scripts/private_library.py init --root "D:\Knowledge\100x-learning"
 ```
 
-没有给保存位置时只询问这一项。新库必须位于 Skill 目录之外。初始化器会建立 `Home.md`、知识、来源、案例、钩子、成果、写作系统和归档目录，并把唯一根目录记录到当前用户的 `~/.100x-learning/config.json`。目标目录已经包含其它内容但没有私人库标识时停止，请用户确认是否接入现有知识库。
+没有给保存位置时只询问这一项。新库必须位于 Skill 目录之外。初始化器会建立 `Home.md`、知识、来源、案例、钩子、成果、写作系统和归档目录；写作系统包含未配置的长期内容策略，以及持续选题和发布复盘模板。它不会根据空白库推测用户定位。唯一根目录记录到当前用户的 `~/.100x-learning/config.json`。目标目录已经包含其它内容但没有私人库标识时停止，请用户确认是否接入现有知识库。
 
 初始化完成后运行：
 
@@ -25,7 +25,7 @@ python scripts/private_library.py validate
 python scripts/private_library.py show
 ```
 
-两条命令都应从本机配置重新找到同一个根目录。重复初始化已经有效的同一个库时保持现有文件不变，只报告它已经就绪。
+两条命令都应从本机配置重新找到同一个根目录。重复初始化已经有效的同一个库时保留已有文件内容；Skill 新增的缺失模板会补齐，但不会覆盖用户已经修改的策略或模板。
 
 ## 接入现有库
 
@@ -52,6 +52,17 @@ python scripts/private_library.py show
 ```
 
 把返回的 `library_root` 作为本次唯一的 `<私人知识库>`。后续所有路径都相对这个根目录解释。当前任务明确给出另一个库时，可以在相应脚本上使用 `--library-root <路径>`；这只覆盖本次调用，不改变已保存的默认库。
+
+`show` 同时返回可选的 `marktree_cli`。用户要让 Marktree 与本 Skill 共管同一个私人库时，先构建或安装 Marktree CLI，再运行：
+
+```powershell
+python scripts/private_library.py configure-marktree --cli "D:\Tools\Marktree\marktree-cli.exe"
+python scripts/marktree_integration.py status
+```
+
+状态结果中的 `data.root` 必须与 `library_root` 指向同一个实际目录。`data.git` 为空表示普通工作区；这种情况下 Marktree 仍会显示 Agent 的真实文件结果，但不会生成 Git 变更清单。只有私人库根目录自身存在 `.git` 时才进入 Marktree 的精确 Git 链路，禁止借用父目录仓库。
+
+Marktree 只负责工作区边界、源码保真、并发写入、操作恢复和可选 Git；本 Skill 继续负责知识、来源、项目、成果、案例和钩子的语义归属。不要在 Marktree 内复制一套知识分类规则。
 
 配置不存在、根目录不可达或库版本无效时，把这个状态直接交回上层。普通理解、研究和写作继续使用当前材料；用户要求的结果必须持久化时，询问初始化或接入位置后停止。
 
