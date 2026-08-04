@@ -52,8 +52,8 @@ class CapabilityConservationTests(unittest.TestCase):
 
         self.assertIn("模拟用于降低风险，结果明确标记为模拟结果", practice)
         self.assertIn("用共同操作、演示和选择代替闭卷回答", practice)
-        self.assertIn("具体个人经历、使用时长、测试结果和感受可以先进入草稿", article)
-        self.assertIn("接触动作、假设场景和叙事视角可以借鉴案例自然改写", article)
+        self.assertIn("具体个人经历、使用时长、测试结果和感受只有在当前作者材料明确提供时进入草稿", article)
+        self.assertIn("案例中的第一人称和经历不能转移给当前作者", article)
         self.assertIn("用户同时要求大纲和全文时", article)
         self.assertIn("每一部分说明", article)
 

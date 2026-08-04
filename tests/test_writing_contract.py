@@ -51,7 +51,7 @@ class WritingContractTests(unittest.TestCase):
         self.assertLess(identity, promotion)
         self.assertIn("单个 GitHub 项目介绍", skill)
         self.assertIn("传播效果由 `references/content-writing.md` 实现", skill)
-        self.assertIn("这是效果目标，不是模板", content)
+        self.assertIn("是效果目标，不是修辞模板", content)
 
     def test_github_search_discovers_and_cleans_material_before_drafting(self) -> None:
         skill = _read("SKILL.md")
@@ -72,14 +72,16 @@ class WritingContractTests(unittest.TestCase):
     def test_multiple_cases_and_hooks_share_the_creative_context(self) -> None:
         skill = _read("SKILL.md")
         cases = _read("references/content-case-library.md")
+        hooks = _read("references/hook-library.md")
         content = _read("references/content-writing.md")
 
         for text in (skill, cases, content):
             self.assertIn("多个", text)
             self.assertIn("共同", text)
-        self.assertIn("完整案例与钩子技巧分开存放、分别定位", cases)
-        self.assertIn("不要求只选择一个案例或一个钩子", cases)
-        self.assertIn("模型结合净化后的可写材料、外部真实声音、作者位置、专项模板、多个完整案例和多个钩子", skill)
+        self.assertIn("多份钩子和多份完整案例", hooks)
+        self.assertIn("它不管理钩子", cases)
+        self.assertIn("不同目录、脚本、数据类型与索引", skill)
+        self.assertIn("多个完整案例与多个独立钩子原文共同参与写作", content)
 
     def test_creative_flow_has_no_compiler_or_adoption_ledger(self) -> None:
         active_text = "\n".join(
@@ -99,21 +101,21 @@ class WritingContractTests(unittest.TestCase):
 
     def test_hook_library_is_a_distinct_lightweight_resource(self) -> None:
         cases = _read("references/content-case-library.md")
-        self.assertIn("钩子技巧只位于 `钩子与开头`", cases)
-        self.assertIn("hook_pattern_id", cases)
-        self.assertIn("hook_techniques", cases)
-        self.assertIn("reader_effects", cases)
-        self.assertIn("完整短内容与文章只能成为来源示例", cases)
+        hooks = _read("references/hook-library.md")
+        self.assertIn("案例文件不存在钩子字段，也不能通过案例路径生成钩子", cases)
+        self.assertIn("连续开头与紧接内容", hooks)
+        self.assertIn("只有连续原文、来源和寻址字段", hooks)
+        for polluted in ("hook_techniques", "reader_effects", "source_case_file"):
+            self.assertNotIn(polluted, hooks)
 
-    def test_first_person_entry_is_not_rejected_as_fake_experience(self) -> None:
+    def test_first_person_experience_cannot_be_borrowed_from_references(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
         natural = _read("references/natural-writing.md")
 
-        self.assertIn("刷到、打开、丢进去试试", skill)
-        self.assertIn("直接作为叙事进入方式", content)
-        self.assertIn("具体亲历或证据", content)
-        self.assertIn("不必先证明它逐字发生过", natural)
+        self.assertIn("不能转写成本次作者经历", skill)
+        self.assertIn("第一人称属于原作者", content)
+        self.assertIn("案例中的“我”不能迁移给当前作者", natural)
 
     def test_reader_result_stays_distinct_from_proof_and_mechanism(self) -> None:
         prewrite = _read("references/prewriting-research.md")
@@ -201,18 +203,27 @@ class WritingContractTests(unittest.TestCase):
             '"--limit"',
         ):
             self.assertNotIn(retired, script)
-        self.assertIn("用普通文本搜索直接查标题、正文和隐藏索引", cases)
-        self.assertIn("搜索只负责定位文件，不给创作价值打分", cases)
+        self.assertIn("用普通文本搜索标题、正文和隐藏索引", cases)
+        self.assertIn("索引只负责定位", cases)
 
-    def test_natural_writing_uses_semantics_not_phrase_blacklists(self) -> None:
+    def test_natural_writing_uses_semantic_contribution_not_style_menus(self) -> None:
         natural = _read("references/natural-writing.md")
-        self.assertIn("不要建立“不是……而是……”或其它固定句式黑名单", natural)
         self.assertIn("不用一个抽象动词代替几个具体动作", natural)
         self.assertIn("一个正常人会不会在聊天中直接这样说", natural)
         self.assertIn("谁做了什么、结果怎样", natural)
         self.assertIn("不靠建立词语黑名单判断", natural)
         self.assertIn("直接从内容写起", natural)
-        self.assertIn("叙事动作可以自由使用", _read("SKILL.md"))
+        self.assertIn("增加了事实、关系或推进", natural)
+        active = "\n".join(
+            [_read("SKILL.md")]
+            + [path.read_text(encoding="utf-8") for path in (PROJECT_ROOT / "references").glob("*.md")]
+        )
+        for polluted in (
+            "口语概括、假设场景、轻微泛化",
+            "反差、设问、排比、比喻、短句和口语都可以用",
+            "可以自由使用",
+        ):
+            self.assertNotIn(polluted, active)
 
     def test_all_writing_discovers_cleans_drafts_then_checks_the_draft(self) -> None:
         skill = _read("SKILL.md")
@@ -220,10 +231,10 @@ class WritingContractTests(unittest.TestCase):
         natural = _read("references/natural-writing.md")
 
         self.assertIn("用户要任何文字成品时", skill)
-        self.assertIn("发现材料 → 净化材料 → 自由成文 → 核查成品", prewrite)
+        self.assertIn("发现材料 → 净化材料 → 围绕具体关系成文 → 核查成品", prewrite)
         self.assertIn("不在动笔前逐项证明资料是否准确", prewrite)
         self.assertIn("只核查成品实际使用的重要事实", natural)
-        self.assertIn("不为了逐字严谨改回官方语言", natural)
+        self.assertIn("不要为了形式上的严谨改回官方套话", natural)
         self.assertIn("不在段尾补", natural)
 
     def test_material_based_writing_is_creative_for_short_and_long_outputs(self) -> None:

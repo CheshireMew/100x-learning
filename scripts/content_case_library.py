@@ -8,7 +8,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence, TypeAlias
+from typing import Sequence
 
 try:
     from scripts.marktree_integration import managed_write_text
@@ -27,9 +27,8 @@ except ModuleNotFoundError:
         validate_library,
     )
 
-ASSET_DIRECTORIES = {"钩子与开头": "hook", "完整短内容": "short"}
+ASSET_DIRECTORIES = {"完整短内容": "short"}
 ASSET_LABELS = {
-    "hook": "钩子与开头",
     "short": "完整短内容",
     "article": "完整文章",
 }
@@ -37,7 +36,6 @@ SUPPORTED_ROLES = {"promotion"}
 SUPPORTED_BENEFIT_RECIPIENTS = {"reader", "publisher", "partner", "none"}
 SUPPORTED_CASE_STATUS = {"active", "history-only"}
 CONTENT_TYPE_ORDER = {
-    "hook": ["反常识钩子", "痛点钩子", "结果钩子", "问题钩子"],
     "short": [
         "项目与产品介绍",
         "概念与机制解释",
@@ -80,31 +78,6 @@ class ContentCase:
     promotion_stages: tuple[str, ...] = ()
     audience_actions: tuple[str, ...] = ()
     benefit_recipients: tuple[str, ...] = ()
-
-
-
-@dataclass(frozen=True)
-class HookPattern:
-    path: Path
-    pattern_id: str
-    content_type: str
-    title: str
-    index_task: str
-    index_topics: tuple[str, ...]
-    index_moves: tuple[str, ...]
-    source_text: str
-    source: str
-    source_case_file: Path | None
-    hook_techniques: tuple[str, ...]
-    reader_effects: tuple[str, ...]
-    index_roles: tuple[str, ...] = ()
-    promotion_stages: tuple[str, ...] = ()
-    audience_actions: tuple[str, ...] = ()
-    benefit_recipients: tuple[str, ...] = ()
-
-
-LibraryResource: TypeAlias = ContentCase | HookPattern
-
 
 def _strip_quotes(value: str) -> str:
     value = value.strip()
@@ -191,41 +164,17 @@ def _case_status(metadata: dict[str, str]) -> str:
     return status
 
 
-def _hook_metadata(
-    metadata: dict[str, str],
-    *,
-    required: bool,
-) -> tuple[
-    tuple[str, ...],
-    tuple[str, ...],
-]:
-    required_fields = ("hook_techniques", "reader_effects")
-    present = [key for key in required_fields if key in metadata]
-
-    if not present:
-        if required:
-            raise CaseError("开头案例缺少 hook_techniques 和 reader_effects")
-        return (), ()
-
-    missing_fields = [key for key in required_fields if key not in metadata]
-    if missing_fields:
-        missing = "、".join(missing_fields)
-        raise CaseError(f"开头元数据不完整，缺少 {missing}")
-    return (
-        _metadata_list(metadata, "hook_techniques"),
-        _metadata_list(metadata, "reader_effects"),
-    )
-
-
 def _reject_hook_metadata(metadata: dict[str, str]) -> None:
-    legacy_fields = {
+    hook_fields = {
+        "hook_pattern_id",
         "hook_techniques",
         "reader_effects",
+        "source_case_file",
     }
-    present = sorted(legacy_fields & set(metadata))
+    present = sorted(hook_fields & set(metadata))
     if present:
         raise CaseError(
-            "完整内容不能再声明钩子技巧；请把这些字段迁入“钩子与开头”中的 HookPattern："
+            "完整内容不能声明钩子字段；案例库与钩子库使用独立生产入口："
             + "、".join(present)
         )
 
@@ -313,72 +262,7 @@ def _source_from_social_body(body: str) -> tuple[str, str]:
     return source, visible
 
 
-def _resolve_source_case(path_value: str, layout: LibraryLayout) -> ContentCase:
-    source_path = (layout.root / path_value).resolve()
-    try:
-        source_path.relative_to(layout.root)
-    except ValueError as exc:
-        raise CaseError("source_case_file 必须位于当前私人知识库内") from exc
-    if not source_path.exists():
-        raise CaseError(f"source_case_file 不存在：{source_path}")
-    if source_path.is_relative_to(layout.article_sources):
-        return _parse_article(source_path)
-    if source_path.is_relative_to(layout.social_cases):
-        resource = _parse_social(source_path, layout)
-        if isinstance(resource, ContentCase):
-            return resource
-    raise CaseError("source_case_file 必须指向完整短内容或活动文章案例")
-
-
-def _parse_hook_pattern(
-    path: Path,
-    *,
-    layout: LibraryLayout,
-    content_type: str,
-    metadata: dict[str, str],
-    body: str,
-) -> HookPattern:
-    title, _ = _title(body)
-    source_case_value = _strip_quotes(metadata.get("source_case_file", ""))
-    if source_case_value:
-        source_case = _resolve_source_case(source_case_value, layout)
-        source_text = source_case.original_text
-        source = source_case.source
-        source_case_file = source_case.path
-    else:
-        source, source_text = _source_from_social_body(
-            _section(body, "原帖全文")
-        )
-        source_case_file = None
-    _check_text(source_text)
-    hook_techniques, reader_effects = _hook_metadata(
-        metadata,
-        required=True,
-    )
-    index_roles, promotion_stages, audience_actions, benefit_recipients = (
-        _promotion_metadata(metadata)
-    )
-    return HookPattern(
-        path=path,
-        pattern_id=_required(metadata, "hook_pattern_id"),
-        content_type=content_type,
-        title=title,
-        index_task=_required(metadata, "index_task"),
-        index_topics=_metadata_list(metadata, "index_topics"),
-        index_moves=_metadata_list(metadata, "index_moves"),
-        source_text=source_text,
-        source=source,
-        source_case_file=source_case_file,
-        hook_techniques=hook_techniques,
-        reader_effects=reader_effects,
-        index_roles=index_roles,
-        promotion_stages=promotion_stages,
-        audience_actions=audience_actions,
-        benefit_recipients=benefit_recipients,
-    )
-
-
-def _parse_social(path: Path, layout: LibraryLayout) -> LibraryResource | None:
+def _parse_social(path: Path, layout: LibraryLayout) -> ContentCase | None:
     relative = path.relative_to(layout.social_cases)
     if len(relative.parts) != 3:
         raise CaseError("案例必须放在“成品形态/内容类型/文件”三级路径")
@@ -390,14 +274,6 @@ def _parse_social(path: Path, layout: LibraryLayout) -> LibraryResource | None:
     metadata, body = _parse_case_index(path.read_text(encoding="utf-8-sig"))
     if _case_status(metadata) == "history-only":
         return None
-    if asset == "hook":
-        return _parse_hook_pattern(
-            path,
-            layout=layout,
-            content_type=content_type,
-            metadata=metadata,
-            body=body,
-        )
     title, _ = _title(body)
     source, original = _source_from_social_body(_section(body, "原帖全文"))
     _check_text(original)
@@ -473,11 +349,10 @@ def _case_paths(layout: LibraryLayout) -> list[Path]:
     return sorted([*social, *articles])
 
 
-def load_library(layout: LibraryLayout) -> tuple[list[LibraryResource], list[str]]:
-    cases: list[LibraryResource] = []
+def load_library(layout: LibraryLayout) -> tuple[list[ContentCase], list[str]]:
+    cases: list[ContentCase] = []
     issues: list[str] = []
     source_paths: dict[str, Path] = {}
-    pattern_ids: dict[str, Path] = {}
     for path in _case_paths(layout):
         try:
             case = (
@@ -490,15 +365,7 @@ def load_library(layout: LibraryLayout) -> tuple[list[LibraryResource], list[str
             continue
         if case is None:
             continue
-        if isinstance(case, HookPattern):
-            previous_pattern = pattern_ids.get(case.pattern_id)
-            if previous_pattern is not None:
-                issues.append(
-                    f"{path}: hook_pattern_id 与 {previous_pattern} 重复"
-                )
-                continue
-            pattern_ids[case.pattern_id] = path
-        elif re.match(r"https?://", case.source):
+        if re.match(r"https?://", case.source):
             previous = source_paths.get(case.source)
             if previous is not None:
                 issues.append(f"{path}: 来源链接与 {previous} 重复")
@@ -508,13 +375,11 @@ def load_library(layout: LibraryLayout) -> tuple[list[LibraryResource], list[str
     return cases, issues
 
 
-def _supports_asset(case: LibraryResource, asset: str) -> bool:
-    if isinstance(case, HookPattern):
-        return asset == "hook"
+def _supports_asset(case: ContentCase, asset: str) -> bool:
     return case.asset == asset
 
 
-def build_index(cases: Sequence[LibraryResource], layout: LibraryLayout) -> str:
+def build_index(cases: Sequence[ContentCase], layout: LibraryLayout) -> str:
     counts = {
         asset: sum(_supports_asset(case, asset) for case in cases)
         for asset in ASSET_LABELS
@@ -525,28 +390,24 @@ def build_index(cases: Sequence[LibraryResource], layout: LibraryLayout) -> str:
         "",
         "这是给人浏览的统一索引。目录、成品类型、主题和技巧都只负责帮助定位原文，不限制案例的表达方法可以迁移到什么题材。",
         "",
-        f"当前共有 {len(cases)} 条案例：{counts['hook']} 条钩子与开头，{counts['short']} 条完整短内容，{counts['article']} 篇完整文章。",
+        f"当前共有 {len(cases)} 条完整案例：{counts['short']} 条完整短内容，{counts['article']} 篇完整文章。",
         f"其中 {promotion_count} 条带有宣发角色；用于宣发时，只打开利益领取者与当前任务一致的原文。",
-        "",
-        "完整案例与钩子技巧是两种资源：完整内容保留全文；`钩子与开头` 保存可迁移技巧及其来源示例。技巧可以引用完整案例的开头，但不会把完整案例再次当作钩子资源，也不复制完整正文。",
         "",
         "文章库不等于文章案例库。只有正文写法本身提供了现有案例没有的可复用方法，才标记为案例；其它文章继续留在原目录作为归档。",
         "",
-        "写作时先浏览本索引，再按标题、主题、任务或写法用普通文本检索缩小范围，然后打开多个完整原文和多个钩子文件。索引只负责定位，不能替代原文；参考数量由内容差异和上下文容量决定，不预设唯一模仿对象。",
+        "写作时先浏览本索引，再按标题、主题、任务或写法用普通文本检索缩小范围，然后打开多个完整原文。索引只负责定位，不能替代原文；参考数量由内容差异和上下文容量决定，不预设唯一模仿对象。",
         "下面只是定位示例。找不到更贴合的案例时，可以根据现有事实和作者判断继续写，不为满足数量强行加入无关参考。",
         "",
         "```powershell",
         'rg -n -i "项目|结果|痛点" "20-Sources/Social Posts/Content Cases/完整短内容"',
-        'rg -n -i "结果|痛点|问题|反常识" "20-Sources/Social Posts/Content Cases/钩子与开头"',
         "```",
         "",
     ]
-    groups: dict[tuple[str, str], list[LibraryResource]] = {}
+    groups: dict[tuple[str, str], list[ContentCase]] = {}
     for case in cases:
-        asset = "hook" if isinstance(case, HookPattern) else case.asset
-        groups.setdefault((asset, case.content_type), []).append(case)
+        groups.setdefault((case.asset, case.content_type), []).append(case)
 
-    for asset in ("hook", "short", "article"):
+    for asset in ("short", "article"):
         lines.extend([f"## {ASSET_LABELS[asset]}", ""])
         content_types = {
             content_type
@@ -658,7 +519,7 @@ def _writing_index_fields(
 
 def add_case(
     layout: LibraryLayout,
-    existing: Sequence[LibraryResource],
+    existing: Sequence[ContentCase],
     *,
     kind: str,
     input_path: Path,
@@ -682,10 +543,7 @@ def add_case(
     source = source.strip()
     if not source:
         raise CaseError("source 不能为空")
-    if any(
-        isinstance(item, ContentCase) and item.source == source
-        for item in existing
-    ):
+    if any(item.source == source for item in existing):
         raise CaseError(f"这个来源已经存在于内容案例库：{source}")
     try:
         original = input_path.read_text(encoding="utf-8-sig").strip()
@@ -771,78 +629,9 @@ def add_case(
     return path
 
 
-def add_hook(
-    layout: LibraryLayout,
-    existing: Sequence[LibraryResource],
-    *,
-    title: str,
-    pattern_id: str,
-    content_type: str,
-    source_case: str,
-    index_task: str,
-    topics: Sequence[str],
-    moves: Sequence[str],
-    techniques: Sequence[str],
-    reader_effects: Sequence[str],
-    index_roles: Sequence[str] = (),
-    promotion_stages: Sequence[str] = (),
-    audience_actions: Sequence[str] = (),
-    benefit_recipients: Sequence[str] = (),
-    config_path: Path | None = None,
-) -> Path:
-    title = _safe_segment(title, "title")
-    content_type = _safe_segment(content_type, "content_type")
-    pattern_id = pattern_id.strip()
-    if not pattern_id:
-        raise CaseError("pattern_id 不能为空")
-    if any(
-        isinstance(item, HookPattern) and item.pattern_id == pattern_id
-        for item in existing
-    ):
-        raise CaseError(f"hook_pattern_id 已经存在：{pattern_id}")
-    source_case_path = Path(source_case)
-    if source_case_path.is_absolute() or ".." in source_case_path.parts:
-        raise CaseError("source_case 必须是私人知识库根目录下的相对路径")
-    _resolve_source_case(source_case_path.as_posix(), layout)
-    promotion_fields = _promotion_index_fields(
-        roles=index_roles,
-        stages=promotion_stages,
-        actions=audience_actions,
-        recipients=benefit_recipients,
-    )
-
-    path = layout.social_cases / "钩子与开头" / content_type / f"{title}.md"
-    if path.exists():
-        raise CaseError(f"钩子技巧已经存在：{path}")
-    body = "\n\n".join(
-        [
-            f"# {title}",
-            "## 来源示例\n\n完整原文见引用案例。",
-            _case_index_block(
-                index_task=index_task,
-                topics=topics,
-                moves=moves,
-                extra=(
-                    ("hook_pattern_id", _quoted(pattern_id)),
-                    ("hook_techniques", _list_value(techniques)),
-                    ("reader_effects", _list_value(reader_effects)),
-                    ("source_case_file", _quoted(source_case_path.as_posix())),
-                    *promotion_fields,
-                ),
-            ),
-        ]
-    ) + "\n"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    managed_write_text(layout.root, path, body, config_path=config_path)
-    parsed = _parse_social(path, layout)
-    if not isinstance(parsed, HookPattern):
-        raise CaseError(f"没有生成钩子技巧：{path}")
-    return path
-
-
 def write_index(
     layout: LibraryLayout,
-    cases: Sequence[LibraryResource],
+    cases: Sequence[ContentCase],
     config_path: Path | None = None,
 ) -> Path:
     layout.case_index_root.mkdir(parents=True, exist_ok=True)
@@ -887,22 +676,6 @@ def _parser() -> argparse.ArgumentParser:
         choices=("true", "false"),
     )
 
-    add_hook_parser = commands.add_parser(
-        "add-hook", help="引用完整案例建立钩子技巧并更新索引"
-    )
-    add_hook_parser.add_argument("--title", required=True)
-    add_hook_parser.add_argument("--pattern-id", required=True)
-    add_hook_parser.add_argument("--content-type", required=True)
-    add_hook_parser.add_argument("--source-case", required=True)
-    add_hook_parser.add_argument("--index-task", required=True)
-    add_hook_parser.add_argument("--topic", action="append", required=True)
-    add_hook_parser.add_argument("--move", action="append", required=True)
-    add_hook_parser.add_argument("--technique", action="append", required=True)
-    add_hook_parser.add_argument("--reader-effect", action="append", required=True)
-    add_hook_parser.add_argument("--index-role", action="append", default=[])
-    add_hook_parser.add_argument("--promotion-stage", action="append", default=[])
-    add_hook_parser.add_argument("--audience-action", action="append", default=[])
-    add_hook_parser.add_argument("--benefit-recipient", action="append", default=[])
     return parser
 
 
@@ -947,32 +720,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"内容案例已保存：{created}\n索引已更新：{index_path}")
             return 0
 
-        if args.command == "add-hook":
-            created = add_hook(
-                layout,
-                cases,
-                title=args.title,
-                pattern_id=args.pattern_id,
-                content_type=args.content_type,
-                source_case=args.source_case,
-                index_task=args.index_task,
-                topics=args.topic,
-                moves=args.move,
-                techniques=args.technique,
-                reader_effects=args.reader_effect,
-                index_roles=args.index_role,
-                promotion_stages=args.promotion_stage,
-                audience_actions=args.audience_action,
-                benefit_recipients=args.benefit_recipient,
-                config_path=args.config,
-            )
-            cases, issues = load_library(layout)
-            if issues:
-                raise CaseError("\n".join(issues))
-            index_path = write_index(layout, cases, args.config)
-            print(f"钩子技巧已保存：{created}\n索引已更新：{index_path}")
-            return 0
-
         counts = {
             asset: sum(_supports_asset(case, asset) for case in cases)
             for asset in ASSET_LABELS
@@ -984,8 +731,8 @@ def main(argv: list[str] | None = None) -> int:
             if layout.case_index.read_text(encoding="utf-8") != expected:
                 raise CaseError(f"索引需要更新：{layout.case_index}")
             print(
-                f"案例库有效：{len(cases)} 条；钩子 {counts['hook']} 条，"
-                f"完整短内容 {counts['short']} 条，完整文章 {counts['article']} 篇。"
+                f"案例库有效：{len(cases)} 条；完整短内容 {counts['short']} 条，"
+                f"完整文章 {counts['article']} 篇。"
             )
             return 0
 

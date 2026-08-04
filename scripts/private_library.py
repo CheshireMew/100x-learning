@@ -19,7 +19,7 @@ TOPIC_PORTFOLIO_TEMPLATE = ASSET_ROOT / "topic-portfolio.md"
 PUBLISHED_REVIEW_TEMPLATE = ASSET_ROOT / "published-content-review.md"
 
 LIBRARY_SCHEMA = "100x-learning-private-library"
-LIBRARY_VERSION = 1
+LIBRARY_VERSION = 2
 MANIFEST_RELATIVE = Path(".100x-learning/library.json")
 DEFAULT_CONFIG_RELATIVE = Path(".100x-learning/config.json")
 
@@ -30,7 +30,7 @@ REQUIRED_DIRECTORIES = (
     Path("20-Sources/Articles"),
     Path("20-Sources/Content Cases"),
     Path("20-Sources/Social Posts/Content Cases/完整短内容"),
-    Path("20-Sources/Social Posts/Content Cases/钩子与开头"),
+    Path("20-Sources/Hook Library"),
     Path("30-Projects"),
     Path("40-Outputs/Writing"),
     Path("50-Areas"),
@@ -78,6 +78,14 @@ class LibraryLayout:
     @property
     def case_index(self) -> Path:
         return self.case_index_root / "内容案例索引.md"
+
+    @property
+    def hook_root(self) -> Path:
+        return self.sources / "Hook Library"
+
+    @property
+    def hook_index(self) -> Path:
+        return self.hook_root / "开头钩子索引.md"
 
     @property
     def writing_outputs(self) -> Path:

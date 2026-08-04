@@ -8,9 +8,7 @@ from pathlib import Path
 
 from scripts.content_case_library import (
     ContentCase,
-    HookPattern,
     add_case,
-    add_hook,
     build_index,
     load_library,
     main,
@@ -29,7 +27,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
             self.config_path,
         )
         write_index(self.layout, [])
-        self.short, self.article, self.hook = self._seed_library()
+        self.short, self.article = self._seed_library()
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
@@ -39,7 +37,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
         path.write_text(text, encoding="utf-8")
         return path
 
-    def _seed_library(self) -> tuple[Path, Path, Path]:
+    def _seed_library(self) -> tuple[Path, Path]:
         existing, issues = load_library(self.layout)
         self.assertFalse(issues)
         short = add_case(
@@ -78,32 +76,15 @@ class ContentCaseLibraryTests(unittest.TestCase):
             topics=("知识库",),
             moves=("先区分消费者",),
         )
-        existing, issues = load_library(self.layout)
-        self.assertFalse(issues)
-        source_relative = short.relative_to(self.layout.root).as_posix()
-        hook = add_hook(
-            self.layout,
-            existing,
-            title="输入直接变成可见结果",
-            pattern_id="result-visible-output",
-            content_type="结果钩子",
-            source_case=source_relative,
-            index_task="从结果进入",
-            topics=("学习",),
-            moves=("结果前置",),
-            techniques=("直接展示输入到结果",),
-            reader_effects=("迅速理解变化",),
-        )
         cases, issues = load_library(self.layout)
         self.assertFalse(issues)
         write_index(self.layout, cases)
-        return short, article, hook
+        return short, article
 
-    def test_library_loads_all_three_resource_types(self) -> None:
+    def test_library_loads_only_complete_case_types(self) -> None:
         cases, issues = load_library(self.layout)
 
         self.assertFalse(issues)
-        self.assertTrue(any(isinstance(case, HookPattern) for case in cases))
         self.assertTrue(
             any(
                 isinstance(case, ContentCase) and case.asset == "short"
@@ -116,44 +97,6 @@ class ContentCaseLibraryTests(unittest.TestCase):
                 for case in cases
             )
         )
-
-    def test_hook_pattern_can_reference_a_full_case_without_mixing_resources(self) -> None:
-        cases, issues = load_library(self.layout)
-        self.assertFalse(issues)
-        pattern = next(
-            item
-            for item in cases
-            if isinstance(item, HookPattern) and item.source_case_file is not None
-        )
-        source = next(
-            item
-            for item in cases
-            if isinstance(item, ContentCase) and item.path == pattern.source_case_file
-        )
-
-        self.assertEqual(pattern.source_text, source.original_text)
-        self.assertIn("钩子与开头", pattern.path.parts)
-        self.assertNotIn("钩子与开头", source.path.parts)
-
-    def test_all_hook_patterns_have_lightweight_creative_metadata(self) -> None:
-        cases, issues = load_library(self.layout)
-        self.assertFalse(issues)
-        hook_cases = [case for case in cases if isinstance(case, HookPattern)]
-
-        self.assertTrue(hook_cases)
-        self.assertTrue(all(case.pattern_id for case in hook_cases))
-        self.assertTrue(all(case.hook_techniques for case in hook_cases))
-        self.assertTrue(all(case.reader_effects for case in hook_cases))
-        for case in hook_cases:
-            text = case.path.read_text(encoding="utf-8-sig")
-            for retired_field in (
-                "required_material:",
-                "required_relations:",
-                "optional_amplifiers:",
-                "hook_context_blocks:",
-                "hook_family:",
-            ):
-                self.assertNotIn(retired_field, text, case.path)
 
     def test_all_promotion_resources_name_the_actor_and_action(self) -> None:
         cases, issues = load_library(self.layout)
@@ -186,10 +129,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
             self.assertNotIn("## 可以参考什么", text, case.path)
             self.assertNotIn("## 适用场景", text, case.path)
             self.assertNotIn("<!-- content-case-notes -->", text, case.path)
-            if isinstance(case, HookPattern) and case.source_case_file is not None:
-                self.assertIn("## 来源示例", text)
-                self.assertIn("source_case_file:", text)
-            elif not isinstance(case, ContentCase) or case.asset != "article":
+            if case.asset != "article":
                 self.assertTrue(text.startswith("# "), case.path)
                 self.assertLess(
                     text.index("## 原帖全文"),

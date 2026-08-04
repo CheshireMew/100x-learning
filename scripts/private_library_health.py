@@ -10,7 +10,14 @@ from pathlib import Path
 from typing import Iterable
 
 try:
-    from scripts.content_case_library import build_index, load_library
+    from scripts.content_case_library import (
+        build_index as build_case_index,
+        load_library as load_case_library,
+    )
+    from scripts.hook_library import (
+        build_index as build_hook_index,
+        load_library as load_hook_library,
+    )
     from scripts.private_library import (
         LibraryError,
         LibraryLayout,
@@ -19,7 +26,14 @@ try:
     )
     from scripts.writing_memory import discover_records, index_is_current
 except ModuleNotFoundError:
-    from content_case_library import build_index, load_library
+    from content_case_library import (
+        build_index as build_case_index,
+        load_library as load_case_library,
+    )
+    from hook_library import (
+        build_index as build_hook_index,
+        load_library as load_hook_library,
+    )
     from private_library import (
         LibraryError,
         LibraryLayout,
@@ -171,18 +185,18 @@ def _resolve_markdown_link(value: str, current: Path, root: Path) -> Path | None
     return (root / candidate).resolve()
 
 
-def _is_case_source(path: Path, layout: LibraryLayout) -> bool:
+def _is_reference_source(path: Path, layout: LibraryLayout) -> bool:
     relative = _relative(path, layout.root)
-    return "Content Cases/" in relative
+    return "Content Cases/" in relative or relative.startswith("20-Sources/Hook Library/")
 
 
 def _index_issues(layout: LibraryLayout) -> list[Issue]:
     issues: list[Issue] = []
-    cases, case_errors = load_library(layout)
+    cases, case_errors = load_case_library(layout)
     for error in case_errors:
         issues.append(Issue("error", "content_case_invalid", "20-Sources", error))
     if cases and not case_errors:
-        expected = build_index(cases, layout)
+        expected = build_case_index(cases, layout)
         current = _read(layout.case_index) if layout.case_index.exists() else ""
         if current != expected:
             issues.append(
@@ -191,6 +205,22 @@ def _index_issues(layout: LibraryLayout) -> list[Issue]:
                     "content_case_index_stale",
                     _relative(layout.case_index, layout.root),
                     "内容案例索引缺失或与当前案例原文不一致。",
+                )
+            )
+
+    hooks, hook_errors = load_hook_library(layout)
+    for error in hook_errors:
+        issues.append(Issue("error", "hook_invalid", "20-Sources/Hook Library", error))
+    if not hook_errors:
+        expected = build_hook_index(hooks, layout)
+        current = _read(layout.hook_index) if layout.hook_index.exists() else ""
+        if current != expected:
+            issues.append(
+                Issue(
+                    "warning",
+                    "hook_index_stale",
+                    _relative(layout.hook_index, layout.root),
+                    "开头钩子索引缺失或与当前独立钩子原文不一致。",
                 )
             )
 
@@ -340,7 +370,7 @@ def scan_library(root: Path) -> dict[str, object]:
 
     source_paths = sorted(layout.sources.rglob("*.md"))
     for path in source_paths:
-        if _is_case_source(path, layout) or path.resolve() in referenced_sources:
+        if _is_reference_source(path, layout) or path.resolve() in referenced_sources:
             continue
         issues.append(
             Issue(

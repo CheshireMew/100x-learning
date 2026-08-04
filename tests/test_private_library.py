@@ -159,11 +159,12 @@ class PrivateLibraryTests(unittest.TestCase):
         self.assertIn("Agent Skills 是开放格式", readme)
         self.assertIn("~/.100x-learning/config.json", reference)
         self.assertIn("用户明确要求保存、沉淀、更新", home)
-        self.assertIn("同一内容只保留一个全文真源", home)
+        self.assertIn("完整案例与独立钩子按不同的用户保存动作进入各自真源", home)
         self.assertNotIn("Codex", home)
         for path in (
             PROJECT_ROOT / "scripts" / "private_library.py",
             PROJECT_ROOT / "scripts" / "content_case_library.py",
+            PROJECT_ROOT / "scripts" / "hook_library.py",
             PROJECT_ROOT / "scripts" / "writing_memory.py",
         ):
             self.assertNotIn(

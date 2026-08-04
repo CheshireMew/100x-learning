@@ -143,7 +143,7 @@ published_url: ""
 python scripts/marktree_integration.py write --path "10-Knowledge/主题.md"
 ```
 
-一次任务需要共同更新来源、知识和综合入口时，把最终内容组成 `{"writes":[{"path":"相对路径","content":"完整正文"}]}`，通过标准输入交给 `write-batch`。适配器会从真实文件计算预期哈希，让 Marktree 拒绝覆盖外部新改动；写后再按实际字节核对。内容案例索引和个人写作索引脚本也使用同一个写入适配器。未配置 Marktree 时保持现有独立文件工作流，不为了集成阻断知识库操作。
+一次任务需要共同更新来源、知识和综合入口时，把最终内容组成 `{"writes":[{"path":"相对路径","content":"完整正文"}]}`，通过标准输入交给 `write-batch`。适配器会从真实文件计算预期哈希，让 Marktree 拒绝覆盖外部新改动；写后再按实际字节核对。内容案例索引、独立钩子索引和个人写作索引脚本也使用同一个写入适配器，但案例与钩子仍由各自生产入口和数据类型管理。未配置 Marktree 时保持现有独立文件工作流，不为了集成阻断知识库操作。
 
 写完后可运行 `python scripts/marktree_integration.py changes` 或 `sync-plan` 核对精确路径。只有用户明确要求同步远端时才运行 `sync`；普通保存不会自动提交或推送。
 

@@ -38,7 +38,7 @@ class PromotionalWritingContractTests(unittest.TestCase):
         self.assertIn("先选择成品身份，再判断是否叠加宣发要求", skill)
         self.assertIn("“病毒式传播”“更有传播力”“爆款”等效果要求", skill)
         self.assertIn("不触发宣发方案", skill)
-        self.assertIn("这是效果目标，不是模板", content)
+        self.assertIn("是效果目标，不是修辞模板", content)
 
     def test_offer_owner_trigger_and_dates_are_locked(self) -> None:
         skill = _read("SKILL.md")
@@ -83,7 +83,7 @@ class PromotionalWritingContractTests(unittest.TestCase):
     def test_promotional_copy_uses_shared_creative_flow(self) -> None:
         skill = _read("SKILL.md")
         self.assertIn("多个完整案例", skill)
-        self.assertIn("多个钩子示例", skill)
+        self.assertIn("多个独立钩子原文", skill)
         self.assertIn("先交付正文或大纲", skill)
         self.assertNotIn("scripts/writing_delivery.py", skill)
 
