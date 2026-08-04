@@ -28,7 +28,7 @@ updated: {{DATE}}
 ## 内容案例与钩子
 
 - 完整短内容保存在 `20-Sources/Social Posts/Content Cases/完整短内容`。
-- 独立钩子保存在 `20-Sources/Hook Library/<写作格式>`，只保存原始开头、紧接内容、来源和最少定位字段。
+- 独立钩子保存在 `20-Sources/Hook Library/<写作格式>/<开头手法>`，只保存原始开头、紧接内容、来源和最少定位字段；统一索引按开头手法定位，不按题材标签分组。
 - 完整文章保存在 `20-Sources/Articles`；只有带活动案例标记的文章才进入内容案例索引。
 - 完整案例索引保存在 `20-Sources/Content Cases/内容案例索引.md`；钩子索引保存在 `20-Sources/Hook Library/开头钩子索引.md`。两个索引只帮助找到各自原文。
 

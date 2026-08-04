@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from dataclasses import asdict, dataclass
@@ -74,9 +75,19 @@ def _relative(path: Path, root: Path) -> str:
     return path.resolve().relative_to(root.resolve()).as_posix()
 
 
+def _io_path(path: Path) -> Path:
+    """Return a Windows extended-length path without changing its identity."""
+    resolved = str(path.resolve())
+    if os.name != "nt" or resolved.startswith("\\\\?\\"):
+        return Path(resolved)
+    if resolved.startswith("\\\\"):
+        return Path("\\\\?\\UNC\\" + resolved[2:])
+    return Path("\\\\?\\" + resolved)
+
+
 def _read(path: Path) -> str:
     try:
-        return path.read_text(encoding="utf-8-sig")
+        return _io_path(path).read_text(encoding="utf-8-sig")
     except (OSError, UnicodeError) as exc:
         raise HealthError(f"无法读取 {path}：{exc}") from exc
 

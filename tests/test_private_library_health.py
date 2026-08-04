@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 from scripts.private_library import initialize_library
-from scripts.private_library_health import REPORT_SCHEMA, scan_library
+from scripts.private_library_health import REPORT_SCHEMA, _io_path, scan_library
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -131,6 +131,12 @@ An unsupported claim.
         self.assertEqual(REPORT_SCHEMA, payload["schema"])
         self.assertGreaterEqual(payload["summary"]["error"], 2)
         self.assertEqual(str(self.library_root.resolve()), payload["library_root"])
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows extended paths only")
+    def test_io_path_uses_windows_extended_length_prefix(self) -> None:
+        io_path = _io_path(self.library_root / "10-Knowledge" / "one.md")
+
+        self.assertTrue(str(io_path).startswith("\\\\?\\"))
 
 
 if __name__ == "__main__":

@@ -63,8 +63,8 @@ class HookLibraryTests(unittest.TestCase):
                     "material-to-next-step",
                     "--writing-format",
                     "短帖",
-                    "--context",
-                    "项目介绍",
+                    "--technique",
+                    "结果钩子",
                     "--source",
                     "https://example.com/hook",
                 ]
@@ -80,9 +80,12 @@ class HookLibraryTests(unittest.TestCase):
         self.assertIsInstance(hooks[0], HookExample)
         self.assertEqual(hook_text, hooks[0].text)
         self.assertTrue(hooks[0].path.is_relative_to(self.layout.hook_root))
+        self.assertEqual("结果钩子", hooks[0].technique)
         self.assertFalse(case_path.is_relative_to(self.layout.hook_root))
-        self.assertIn("材料直接变成下一步", self.layout.hook_index.read_text(encoding="utf-8"))
-        self.assertNotIn("完整案例", self.layout.hook_index.read_text(encoding="utf-8"))
+        index = self.layout.hook_index.read_text(encoding="utf-8")
+        self.assertIn("### 结果钩子", index)
+        self.assertIn("材料直接变成下一步", index)
+        self.assertNotIn("完整案例", index)
 
     def test_hook_resource_contains_only_raw_text_source_and_addressing_metadata(self) -> None:
         raw = self._input("raw.md", "第一句原文。\n这是紧接着的第二句。")
@@ -101,8 +104,8 @@ class HookLibraryTests(unittest.TestCase):
                     "contiguous-original",
                     "--writing-format",
                     "文章",
-                    "--context",
-                    "开篇",
+                    "--technique",
+                    "问题钩子",
                     "--source",
                     "https://example.com/original",
                 ]
@@ -114,9 +117,10 @@ class HookLibraryTests(unittest.TestCase):
         metadata_text = text.split("<!-- hook-library-index\n", 1)[1].split("\n-->", 1)[0]
         metadata = json.loads(metadata_text)
         self.assertEqual(
-            {"resource_type", "hook_id", "writing_format", "contexts"},
+            {"resource_type", "hook_id", "writing_format"},
             set(metadata),
         )
+        self.assertEqual("问题钩子", hooks[0].path.parent.name)
         for polluted in (
             "source_case",
             "source_case_file",
@@ -128,6 +132,34 @@ class HookLibraryTests(unittest.TestCase):
             "formula",
         ):
             self.assertNotIn(polluted, text)
+
+    def test_index_expands_a_generic_original_first_line_without_adding_analysis(self) -> None:
+        raw = self._input("news.md", "重磅消息！\n某产品刚刚发布了可直接使用的新功能。")
+        self.assertEqual(
+            0,
+            hook_main(
+                [
+                    "--library-root",
+                    str(self.library_root),
+                    "add-hook",
+                    "--input",
+                    str(raw),
+                    "--title",
+                    "重磅消息！",
+                    "--hook-id",
+                    "breaking-product-update",
+                    "--writing-format",
+                    "短帖",
+                    "--technique",
+                    "热点钩子",
+                    "--source",
+                    "https://example.com/news",
+                ]
+            ),
+        )
+        index = self.layout.hook_index.read_text(encoding="utf-8")
+        self.assertIn("重磅消息！ 某产品刚刚发布了可直接使用的新功能。", index)
+        self.assertNotIn("为什么有效", index)
 
     def test_case_cli_cannot_create_hooks_and_hook_cli_cannot_reference_cases(self) -> None:
         stderr = StringIO()

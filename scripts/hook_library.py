@@ -32,6 +32,21 @@ METADATA_PATTERN = re.compile(
     re.DOTALL,
 )
 
+TECHNIQUE_ORDER = (
+    "结果钩子",
+    "痛点钩子",
+    "问题钩子",
+    "反常识钩子",
+    "冲突钩子",
+    "故事钩子",
+    "信息缺口钩子",
+    "对象亮相钩子",
+    "数字钩子",
+    "清单钩子",
+    "亲历钩子",
+    "热点钩子",
+)
+
 
 class HookError(ValueError):
     pass
@@ -43,7 +58,7 @@ class HookExample:
     hook_id: str
     title: str
     writing_format: str
-    contexts: tuple[str, ...]
+    technique: str
     text: str
     source: str
 
@@ -56,18 +71,6 @@ def _safe_segment(value: str, field: str) -> str:
         or any(character in cleaned for character in '<>:"/\\|?*')
     ):
         raise HookError(f"{field} 不能作为目录或文件名：{value}")
-    return cleaned
-
-
-def _clean_values(
-    values: Sequence[str],
-    field: str,
-    *,
-    required: bool,
-) -> tuple[str, ...]:
-    cleaned = tuple(dict.fromkeys(value.strip() for value in values if value.strip()))
-    if required and not cleaned:
-        raise HookError(f"{field} 不能为空")
     return cleaned
 
 
@@ -99,13 +102,6 @@ def _required_string(metadata: dict[str, Any], key: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise HookError(f"缺少 {key}")
     return value.strip()
-
-
-def _string_list(metadata: dict[str, Any], key: str) -> tuple[str, ...]:
-    value = metadata.get(key)
-    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise HookError(f"{key} 必须是字符串数组")
-    return _clean_values(value, key, required=True)
 
 
 def _title(body: str) -> str:
@@ -143,10 +139,10 @@ def _parse_hook(path: Path, layout: LibraryLayout) -> HookExample:
         relative = path.relative_to(layout.hook_root)
     except ValueError as exc:
         raise HookError("钩子必须位于独立 Hook Library 目录") from exc
-    if len(relative.parts) != 2:
-        raise HookError("钩子必须使用“成品形态/文件”两级路径")
+    if len(relative.parts) != 3:
+        raise HookError("钩子必须使用“成品形态/开头手法/文件”三级路径")
     metadata, body = _parse_metadata(path.read_text(encoding="utf-8-sig"))
-    allowed = {"resource_type", "hook_id", "writing_format", "contexts"}
+    allowed = {"resource_type", "hook_id", "writing_format"}
     unknown = sorted(set(metadata) - allowed)
     if unknown:
         raise HookError("钩子元数据含有非寻址字段：" + "、".join(unknown))
@@ -161,7 +157,7 @@ def _parse_hook(path: Path, layout: LibraryLayout) -> HookExample:
         hook_id=_required_string(metadata, "hook_id"),
         title=_title(body),
         writing_format=writing_format,
-        contexts=_string_list(metadata, "contexts"),
+        technique=relative.parts[1],
         text=text,
         source=source,
     )
@@ -192,25 +188,57 @@ def load_library(layout: LibraryLayout) -> tuple[list[HookExample], list[str]]:
     return hooks, issues
 
 
+def _index_label(hook: HookExample) -> str:
+    first = re.split(r"[。！？!?\n]", hook.text, maxsplit=1)[0].strip()
+    title_key = hook.title.rstrip("。！？!?：:… ")
+    first_key = first.rstrip("。！？!?：:… ")
+    if title_key != first_key or len(first) >= 24:
+        return hook.title
+    collapsed = re.sub(r"\s+", " ", hook.text).strip()
+    if len(collapsed) > 90:
+        collapsed = collapsed[:89].rstrip() + "…"
+    return collapsed
+
+
 def build_index(hooks: Sequence[HookExample], layout: LibraryLayout) -> str:
     lines = [
         "# 开头钩子索引",
         "",
-        "本索引只按成品形态和使用语境定位独立钩子。写作时打开实际文件；索引不能替代原文。",
+        "本索引先按成品形态、再按开头手法定位独立钩子。主题不参与分组；写作时打开实际文件，索引不能替代原文。",
         "",
         f"当前共有 {len(hooks)} 条独立钩子。",
         "",
     ]
-    groups: dict[str, list[HookExample]] = {}
+    groups: dict[tuple[str, str], list[HookExample]] = {}
     for hook in hooks:
-        groups.setdefault(hook.writing_format, []).append(hook)
-    for writing_format in sorted(groups):
+        groups.setdefault((hook.writing_format, hook.technique), []).append(hook)
+    writing_formats = sorted({writing_format for writing_format, _ in groups})
+    for writing_format in writing_formats:
         lines.extend([f"## {writing_format}", ""])
-        for hook in sorted(groups[writing_format], key=lambda item: item.title):
-            relative = Path(os.path.relpath(hook.path, layout.hook_root)).as_posix()
-            contexts = "、".join(hook.contexts)
-            lines.append(f"- [{hook.title}](<{relative}>) — {contexts}")
-        lines.append("")
+        technique_order = {
+            technique: index for index, technique in enumerate(TECHNIQUE_ORDER)
+        }
+        techniques = sorted(
+            (
+                technique
+                for group_format, technique in groups
+                if group_format == writing_format
+            ),
+            key=lambda technique: (
+                technique_order.get(technique, len(technique_order)),
+                technique,
+            ),
+        )
+        for technique in techniques:
+            lines.extend([f"### {technique}", ""])
+            for hook in sorted(
+                groups[(writing_format, technique)], key=lambda item: item.title
+            ):
+                relative = Path(
+                    os.path.relpath(hook.path, layout.hook_root)
+                ).as_posix()
+                lines.append(f"- [{_index_label(hook)}](<{relative}>)")
+            lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -237,12 +265,13 @@ def add_hook(
     title: str,
     hook_id: str,
     writing_format: str,
-    contexts: Sequence[str],
+    technique: str,
     source: str,
     config_path: Path | None = None,
 ) -> Path:
     title = _safe_segment(title, "title")
     writing_format = _safe_segment(writing_format, "writing_format")
+    technique = _safe_segment(technique, "technique")
     hook_id = hook_id.strip()
     source = source.strip()
     if not hook_id:
@@ -263,9 +292,8 @@ def add_hook(
         "resource_type": "hook-example",
         "hook_id": hook_id,
         "writing_format": writing_format,
-        "contexts": list(_clean_values(contexts, "contexts", required=True)),
     }
-    path = layout.hook_root / writing_format / f"{title}.md"
+    path = layout.hook_root / writing_format / technique / f"{title}.md"
     if path.exists():
         raise HookError(f"钩子已经存在：{path}")
     body = "\n\n".join(
@@ -296,7 +324,7 @@ def _parser() -> argparse.ArgumentParser:
     add.add_argument("--title", required=True)
     add.add_argument("--hook-id", required=True)
     add.add_argument("--writing-format", required=True)
-    add.add_argument("--context", action="append", required=True)
+    add.add_argument("--technique", required=True)
     add.add_argument("--source", required=True)
     return parser
 
@@ -317,7 +345,7 @@ def main(argv: list[str] | None = None) -> int:
                 title=args.title,
                 hook_id=args.hook_id,
                 writing_format=args.writing_format,
-                contexts=args.context,
+                technique=args.technique,
                 source=args.source,
                 config_path=args.config,
             )
