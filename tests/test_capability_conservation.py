@@ -49,13 +49,15 @@ class CapabilityConservationTests(unittest.TestCase):
     def test_practice_and_article_keep_user_authority_and_truth_boundaries(self) -> None:
         practice = _read("references/practice-led-learning.md")
         article = _read("references/article-from-practice.md")
+        content = _read("references/content-writing.md")
+        natural = _read("references/natural-writing.md")
 
         self.assertIn("模拟用于降低风险，结果明确标记为模拟结果", practice)
         self.assertIn("用共同操作、演示和选择代替闭卷回答", practice)
-        self.assertIn("具体个人经历、使用时长、测试结果和感受只有在当前作者材料明确提供时进入草稿", article)
-        self.assertIn("案例中的第一人称和经历不能转移给当前作者", article)
+        self.assertIn("案例中的个人经历仍属于原作者", content)
+        self.assertIn("第一人称具体经历只有在当前材料确实提供", natural)
         self.assertIn("用户同时要求大纲和全文时", article)
-        self.assertIn("每一部分说明", article)
+        self.assertIn("每一部分准备处理什么问题", article)
 
     def test_voice_migration_keeps_previous_voice_contract(self) -> None:
         memory = _read("references/personal-writing-memory.md")
@@ -94,8 +96,9 @@ class CapabilityConservationTests(unittest.TestCase):
 
         for marker in ("翻译", "普通计划", "广告投放", "销售页与落地页"):
             self.assertIn(marker, skill)
-        self.assertIn("上层已经确定写作动作、精确成品形态、表达任务", article)
-        self.assertIn("达到用户要求且由上层选定的大纲、局部、草稿或终稿层级后停止", article)
+        self.assertIn("上层交来写作动作", article)
+        self.assertIn("达到可以直接继续写的程度后停止", article)
+        self.assertIn("只有用户明确要求长期保存", article)
 
 
 if __name__ == "__main__":
