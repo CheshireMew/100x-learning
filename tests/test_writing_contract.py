@@ -103,17 +103,18 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("读者熟悉的名字时直接使用", natural)
         self.assertIn("不把普通交互改写成临时分类", natural)
 
-    def test_unfamiliar_object_is_defined_before_workflow_details(self) -> None:
+    def test_unfamiliar_subject_is_identified_before_related_content(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
         natural = _read("references/natural-writing.md")
 
         for text in (skill, content, natural):
             self.assertIn("第一次遇到", text)
-            self.assertIn("它是什么", text)
-            self.assertIn("直接能做什么", text)
-        self.assertIn("再展开组件、工作流、功能和例子", content)
-        self.assertIn("直接从组件、功能或工作流开始", natural)
+            self.assertIn("人、事、概念、产品或组织", text)
+            self.assertIn("它是什么或是谁", text)
+            self.assertIn("和眼前内容有什么关系", text)
+        self.assertIn("再展开本篇真正需要讲的信息", content)
+        self.assertIn("如果正文越过这一步直接往下讲", natural)
 
     def test_delivery_lists_only_actually_read_creative_references_by_default(self) -> None:
         skill = _read("SKILL.md")
