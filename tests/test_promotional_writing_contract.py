@@ -64,12 +64,16 @@ class PromotionalWritingContractTests(unittest.TestCase):
         self.assertIn("多个卖点和角度只是选材，不自动拆成多篇", skill)
         self.assertIn("单篇只生成一个完整正文", content)
 
-    def test_promotion_reference_selection_keeps_role_and_recipient_boundaries(self) -> None:
+    def test_promotion_reference_selection_keeps_general_cases_available(self) -> None:
         skill = _read("SKILL.md")
         cases = _read("references/content-case-library.md")
-        self.assertIn("`index_roles` 包含 `promotion`", skill)
+        self.assertIn("内容型宣发仍可读取普通案例", skill)
+        self.assertIn("不构成阅读门槛", skill)
         self.assertIn("`index_roles` 包含 `promotion`", cases)
         self.assertIn("`benefit_recipients`", cases)
+        self.assertIn("不能因此排除普通案例", cases)
+        self.assertNotIn("内容型宣发只打开", skill)
+        self.assertNotIn("内容型宣发只查看", cases)
 
     def test_evidence_and_real_entry_reach_copy(self) -> None:
         method = _read("references/promotional-content-writing.md")

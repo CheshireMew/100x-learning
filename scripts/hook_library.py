@@ -204,7 +204,7 @@ def build_index(hooks: Sequence[HookExample], layout: LibraryLayout) -> str:
     lines = [
         "# 开头钩子索引",
         "",
-        "本索引先按成品形态、再按开头手法定位独立钩子。主题不参与分组；写作时打开实际文件，索引不能替代原文。",
+        "本索引先按开头手法、再按原始成品形态定位独立钩子。主题不参与分组；成品形态只标明来源，不限制文章、短帖或 Thread 跨形态使用。写作时打开实际文件，索引不能替代原文。",
         "",
         f"当前共有 {len(hooks)} 条独立钩子。",
         "",
@@ -212,25 +212,25 @@ def build_index(hooks: Sequence[HookExample], layout: LibraryLayout) -> str:
     groups: dict[tuple[str, str], list[HookExample]] = {}
     for hook in hooks:
         groups.setdefault((hook.writing_format, hook.technique), []).append(hook)
-    writing_formats = sorted({writing_format for writing_format, _ in groups})
-    for writing_format in writing_formats:
-        lines.extend([f"## {writing_format}", ""])
-        technique_order = {
-            technique: index for index, technique in enumerate(TECHNIQUE_ORDER)
-        }
-        techniques = sorted(
-            (
-                technique
-                for group_format, technique in groups
-                if group_format == writing_format
-            ),
-            key=lambda technique: (
-                technique_order.get(technique, len(technique_order)),
-                technique,
-            ),
+    technique_order = {
+        technique: index for index, technique in enumerate(TECHNIQUE_ORDER)
+    }
+    techniques = sorted(
+        {technique for _, technique in groups},
+        key=lambda technique: (
+            technique_order.get(technique, len(technique_order)),
+            technique,
+        ),
+    )
+    for technique in techniques:
+        lines.extend([f"## {technique}", ""])
+        writing_formats = sorted(
+            writing_format
+            for writing_format, group_technique in groups
+            if group_technique == technique
         )
-        for technique in techniques:
-            lines.extend([f"### {technique}", ""])
+        for writing_format in writing_formats:
+            lines.extend([f"### {writing_format}", ""])
             for hook in sorted(
                 groups[(writing_format, technique)], key=lambda item: item.title
             ):

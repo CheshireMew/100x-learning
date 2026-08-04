@@ -83,6 +83,16 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("不同目录、脚本、数据类型与索引", skill)
         self.assertIn("多个完整案例与多个独立钩子原文共同参与写作", content)
 
+    def test_hooks_are_selected_by_technique_across_output_formats(self) -> None:
+        skill = _read("SKILL.md")
+        hooks = _read("references/hook-library.md")
+        article = _read("references/article-from-practice.md")
+
+        self.assertIn("按开头手法跨成品形态定位", skill)
+        self.assertIn("先按开头手法、再按原始成品形态", hooks)
+        self.assertIn("不能把 `writing_format` 当成阅读资格", hooks)
+        self.assertIn("多个独立钩子原文", article)
+
     def test_creative_flow_has_no_compiler_or_adoption_ledger(self) -> None:
         active_text = "\n".join(
             [_read("SKILL.md")]

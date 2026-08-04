@@ -83,9 +83,57 @@ class HookLibraryTests(unittest.TestCase):
         self.assertEqual("结果钩子", hooks[0].technique)
         self.assertFalse(case_path.is_relative_to(self.layout.hook_root))
         index = self.layout.hook_index.read_text(encoding="utf-8")
-        self.assertIn("### 结果钩子", index)
+        self.assertIn("## 结果钩子", index)
+        self.assertIn("### 短帖", index)
         self.assertIn("材料直接变成下一步", index)
         self.assertNotIn("完整案例", index)
+
+    def test_index_groups_by_technique_before_source_format(self) -> None:
+        inputs = (
+            (
+                "thread.md",
+                "短帖开头原文。\n这是紧接着的短帖内容。",
+                "短帖来源",
+                "contrast-thread",
+                "Thread",
+            ),
+            (
+                "article.md",
+                "文章开头原文。\n这是紧接着的文章内容。",
+                "文章来源",
+                "contrast-article",
+                "文章",
+            ),
+        )
+        for filename, body, title, hook_id, writing_format in inputs:
+            with redirect_stdout(StringIO()):
+                result = hook_main(
+                    [
+                        "--library-root",
+                        str(self.library_root),
+                        "add-hook",
+                        "--input",
+                        str(self._input(filename, body)),
+                        "--title",
+                        title,
+                        "--hook-id",
+                        hook_id,
+                        "--writing-format",
+                        writing_format,
+                        "--technique",
+                        "反常识钩子",
+                        "--source",
+                        f"https://example.com/{hook_id}",
+                    ]
+                )
+            self.assertEqual(0, result)
+
+        index = self.layout.hook_index.read_text(encoding="utf-8")
+        technique = index.index("## 反常识钩子")
+        self.assertLess(technique, index.index("### Thread", technique))
+        self.assertLess(technique, index.index("### 文章", technique))
+        self.assertNotIn("\n## Thread\n", index)
+        self.assertIn("不限制文章、短帖或 Thread 跨形态使用", index)
 
     def test_hook_resource_contains_only_raw_text_source_and_addressing_metadata(self) -> None:
         raw = self._input("raw.md", "第一句原文。\n这是紧接着的第二句。")

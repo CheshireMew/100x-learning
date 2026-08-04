@@ -181,6 +181,8 @@ class ContentCaseLibraryTests(unittest.TestCase):
         generated = build_index(cases, self.layout)
 
         self.assertEqual(self.layout.case_index.read_text(encoding="utf-8"), generated)
+        self.assertIn("不限制宣传内容读取其它相关案例", generated)
+        self.assertNotIn("用于宣发时，只打开", generated)
         for case in cases:
             self.assertIn(case.title, generated)
 
