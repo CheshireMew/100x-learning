@@ -136,6 +136,40 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("材料提供内容，不表示沿用材料的措辞、顺序和结论", content)
         self.assertIn("模型看到完整材料后自行决定讲什么", prewrite)
 
+    def test_user_content_priority_reaches_material_and_writing_consumers(self) -> None:
+        skill = _read("SKILL.md")
+        prewrite = _read("references/prewriting-research.md")
+        content = _read("references/content-writing.md")
+        natural = _read("references/natural-writing.md")
+
+        self.assertIn("只要求提到、带到、顺带说明或不要漏掉", skill)
+        self.assertIn("只要求提到或带到的信息只作为配角材料", prewrite)
+        self.assertIn("不能单独决定开头、主线、篇幅和展开深度", content)
+        self.assertIn("已经接管开头、主要篇幅或项目定位", natural)
+
+    def test_github_project_identity_is_not_narrowed_by_one_example(self) -> None:
+        project = _read("references/github-project-short-content.md")
+
+        self.assertIn("项目的总定位与完整能力范围", project)
+        self.assertIn("不能用它们重新定义整个项目", project)
+        self.assertIn("不能因为它们更容易证明严谨就挤占传播重点", project)
+
+    def test_research_execution_does_not_replace_product_first_delivery(self) -> None:
+        skill = _read("SKILL.md")
+
+        self.assertIn("执行上先完成那个独立结果", skill)
+        self.assertIn("最终回复仍先交付用户要直接使用的文字", skill)
+
+    def test_delivery_container_has_one_decision_and_one_consumer(self) -> None:
+        skill = _read("SKILL.md")
+
+        requirement = skill.index("### 1. 锁定必要的成品要求")
+        delivery = skill.index("### 7. 直接交付")
+        self.assertLess(requirement, delivery)
+        self.assertEqual(1, skill.count("单个代码块仍便于通读和整段复制"))
+        self.assertIn("执行第 1 步已经确定的交付载体", skill)
+        self.assertIn("没有在最终输出时被链接渲染或临时排版偏好覆盖", skill)
+
     def test_action_entry_has_one_reader_goal_based_owner(self) -> None:
         content = _read("references/content-writing.md")
         publication = _read("references/publication-requirements.md")
