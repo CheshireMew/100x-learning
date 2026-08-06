@@ -60,7 +60,6 @@ class HookExample:
     writing_format: str
     technique: str
     text: str
-    source: str
 
 
 def _safe_segment(value: str, field: str) -> str:
@@ -118,20 +117,11 @@ def _section(body: str, heading: str) -> str:
     return body[match.end() :].strip()
 
 
-def _text_and_source(section: str) -> tuple[str, str]:
-    matches = list(re.finditer(r"^来源：\s*(.+?)\s*$", section, re.MULTILINE))
-    if not matches:
-        raise HookError("缺少来源")
-    match = matches[-1]
-    if section[match.end() :].strip():
-        raise HookError("来源必须位于钩子原文末尾")
-    text = section[: match.start()].strip()
-    source = match.group(1).strip()
+def _hook_text(section: str) -> str:
+    text = section.strip()
     if not text:
         raise HookError("钩子原文不能为空")
-    if not source:
-        raise HookError("来源不能为空")
-    return text, source
+    return text
 
 
 def _parse_hook(path: Path, layout: LibraryLayout) -> HookExample:
@@ -151,7 +141,7 @@ def _parse_hook(path: Path, layout: LibraryLayout) -> HookExample:
     writing_format = _required_string(metadata, "writing_format")
     if writing_format != relative.parts[0]:
         raise HookError("writing_format 必须与钩子目录一致")
-    text, source = _text_and_source(_section(body, "钩子原文"))
+    text = _hook_text(_section(body, "钩子原文"))
     return HookExample(
         path=path,
         hook_id=_required_string(metadata, "hook_id"),
@@ -159,7 +149,6 @@ def _parse_hook(path: Path, layout: LibraryLayout) -> HookExample:
         writing_format=writing_format,
         technique=relative.parts[1],
         text=text,
-        source=source,
     )
 
 
@@ -266,18 +255,14 @@ def add_hook(
     hook_id: str,
     writing_format: str,
     technique: str,
-    source: str,
     config_path: Path | None = None,
 ) -> Path:
     title = _safe_segment(title, "title")
     writing_format = _safe_segment(writing_format, "writing_format")
     technique = _safe_segment(technique, "technique")
     hook_id = hook_id.strip()
-    source = source.strip()
     if not hook_id:
         raise HookError("hook_id 不能为空")
-    if not source:
-        raise HookError("source 不能为空")
     if any(item.hook_id == hook_id for item in existing):
         raise HookError(f"hook_id 已经存在：{hook_id}")
     try:
@@ -301,7 +286,6 @@ def add_hook(
             f"# {title}",
             "## 钩子原文",
             text,
-            f"来源：{source}",
             _metadata_block(metadata),
         ]
     ) + "\n"
@@ -325,7 +309,6 @@ def _parser() -> argparse.ArgumentParser:
     add.add_argument("--hook-id", required=True)
     add.add_argument("--writing-format", required=True)
     add.add_argument("--technique", required=True)
-    add.add_argument("--source", required=True)
     return parser
 
 
@@ -346,7 +329,6 @@ def main(argv: list[str] | None = None) -> int:
                 hook_id=args.hook_id,
                 writing_format=args.writing_format,
                 technique=args.technique,
-                source=args.source,
                 config_path=args.config,
             )
             hooks, issues = load_library(layout)

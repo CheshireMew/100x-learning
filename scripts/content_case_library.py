@@ -73,7 +73,6 @@ class ContentCase:
     index_topics: tuple[str, ...]
     index_moves: tuple[str, ...]
     original_text: str
-    source: str
     index_roles: tuple[str, ...] = ()
     promotion_stages: tuple[str, ...] = ()
     audience_actions: tuple[str, ...] = ()
@@ -250,18 +249,6 @@ def _check_text(original: str) -> None:
         raise CaseError("正文全文不能为空")
 
 
-def _source_from_social_body(body: str) -> tuple[str, str]:
-    source_matches = list(
-        re.finditer(r"^(?:原帖链接|来源)：\s*(.+?)\s*$", body, re.MULTILINE)
-    )
-    if not source_matches:
-        raise CaseError("缺少原帖链接或来源说明")
-    match = source_matches[-1]
-    source = match.group(1).strip()
-    visible = (body[: match.start()] + body[match.end() :]).strip()
-    return source, visible
-
-
 def _parse_social(path: Path, layout: LibraryLayout) -> ContentCase | None:
     relative = path.relative_to(layout.social_cases)
     if len(relative.parts) != 3:
@@ -275,7 +262,7 @@ def _parse_social(path: Path, layout: LibraryLayout) -> ContentCase | None:
     if _case_status(metadata) == "history-only":
         return None
     title, _ = _title(body)
-    source, original = _source_from_social_body(_section(body, "原帖全文"))
+    original = _section(body, "原帖全文")
     _check_text(original)
     _reject_hook_metadata(metadata)
     index_roles, promotion_stages, audience_actions, benefit_recipients = (
@@ -291,7 +278,6 @@ def _parse_social(path: Path, layout: LibraryLayout) -> ContentCase | None:
         index_topics=_metadata_list(metadata, "index_topics"),
         index_moves=_metadata_list(metadata, "index_moves"),
         original_text=original,
-        source=source,
         index_roles=index_roles,
         promotion_stages=promotion_stages,
         audience_actions=audience_actions,
@@ -323,7 +309,6 @@ def _parse_article(path: Path) -> ContentCase:
         index_topics=_metadata_list(metadata, "index_topics"),
         index_moves=_metadata_list(metadata, "index_moves"),
         original_text=original,
-        source=_required(article_metadata, "source_url"),
         index_roles=index_roles,
         promotion_stages=promotion_stages,
         audience_actions=audience_actions,
@@ -352,7 +337,7 @@ def _case_paths(layout: LibraryLayout) -> list[Path]:
 def load_library(layout: LibraryLayout) -> tuple[list[ContentCase], list[str]]:
     cases: list[ContentCase] = []
     issues: list[str] = []
-    source_paths: dict[str, Path] = {}
+    text_paths: dict[str, Path] = {}
     for path in _case_paths(layout):
         try:
             case = (
@@ -365,12 +350,11 @@ def load_library(layout: LibraryLayout) -> tuple[list[ContentCase], list[str]]:
             continue
         if case is None:
             continue
-        if re.match(r"https?://", case.source):
-            previous = source_paths.get(case.source)
-            if previous is not None:
-                issues.append(f"{path}: 来源链接与 {previous} 重复")
-                continue
-            source_paths[case.source] = path
+        previous = text_paths.get(case.original_text)
+        if previous is not None:
+            issues.append(f"{path}: 案例全文与 {previous} 重复")
+            continue
+        text_paths[case.original_text] = path
         cases.append(case)
     return cases, issues
 
@@ -525,7 +509,6 @@ def add_case(
     input_path: Path,
     title: str,
     content_type: str,
-    source: str,
     index_task: str,
     topics: Sequence[str],
     moves: Sequence[str],
@@ -540,16 +523,13 @@ def add_case(
 ) -> Path:
     title = _safe_segment(title, "title")
     content_type = _safe_segment(content_type, "content_type")
-    source = source.strip()
-    if not source:
-        raise CaseError("source 不能为空")
-    if any(item.source == source for item in existing):
-        raise CaseError(f"这个来源已经存在于内容案例库：{source}")
     try:
         original = input_path.read_text(encoding="utf-8-sig").strip()
     except FileNotFoundError as exc:
         raise CaseError(f"输入文件不存在：{input_path}") from exc
     _check_text(original)
+    if any(item.original_text == original for item in existing):
+        raise CaseError("这份案例全文已经存在")
     promotion_fields = _promotion_index_fields(
         roles=index_roles,
         stages=promotion_stages,
@@ -571,7 +551,6 @@ def add_case(
                 f"# {title}",
                 "## 原帖全文",
                 original,
-                f"来源：{source}",
                 _case_index_block(
                     index_task=index_task,
                     topics=topics,
@@ -592,9 +571,8 @@ def add_case(
                 "\n".join(
                     [
                         "---",
-                        "type: source-article",
+                        "type: content-case",
                         "status: active",
-                        f"source_url: {_quoted(source)}",
                         f"content_type: {_quoted(content_type)}",
                         "---",
                     ]
@@ -661,7 +639,6 @@ def _parser() -> argparse.ArgumentParser:
     add_case_parser.add_argument("--input", type=Path, required=True)
     add_case_parser.add_argument("--title", required=True)
     add_case_parser.add_argument("--content-type", required=True)
-    add_case_parser.add_argument("--source", required=True)
     add_case_parser.add_argument("--index-task", required=True)
     add_case_parser.add_argument("--topic", action="append", required=True)
     add_case_parser.add_argument("--move", action="append", required=True)
@@ -696,7 +673,6 @@ def main(argv: list[str] | None = None) -> int:
                 input_path=args.input,
                 title=args.title,
                 content_type=args.content_type,
-                source=args.source,
                 index_task=args.index_task,
                 topics=args.topic,
                 moves=args.move,

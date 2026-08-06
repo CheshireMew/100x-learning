@@ -7,7 +7,6 @@ import re
 import sys
 import unicodedata
 from dataclasses import asdict, dataclass, replace
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -30,15 +29,14 @@ except ModuleNotFoundError:
 
 
 OUTPUT_RELATIVE = Path("40-Outputs/Writing")
-SOCIAL_CASE_RELATIVE = Path(
+WRITING_CASE_RELATIVE = Path(
     "20-Sources/Social Posts/Content Cases/完整短内容"
 )
 CONFIG_RELATIVE = Path("60-Systems/Writing/writing-memory.json")
 INDEX_RELATIVE = Path("60-Systems/Writing/published-content-index.jsonl")
-X_SNOWFLAKE_EPOCH_MS = 1_288_834_974_657
 
 FINAL_OUTPUT_STATUS = {"final", "published"}
-FIRST_PARTY_OUTPUT_SOURCE = {
+SAVED_OUTPUT_SOURCES = {
     "user-confirmed",
     "published-article",
     "published-post",
@@ -91,7 +89,6 @@ class WritingRecord:
     title: str
     format: str
     content_type: str
-    publisher: str
     writing_origin: str
     voice_eligible: bool
     status: str
@@ -105,10 +102,10 @@ class WritingRecord:
 class DiscoveryReceipt:
     scanned_blog: int
     scanned_outputs: int
-    scanned_social: int
+    scanned_cases: int
     accepted_blog: int
     accepted_outputs: int
-    accepted_social: int
+    accepted_cases: int
     merged_by_url: int
     merged_by_text: int
 
@@ -200,15 +197,9 @@ def _section(value: str, heading: str, next_heading: str | None = None) -> str:
 def _authored_body(value: str, source_kind: str) -> str:
     if source_kind == "published-source":
         value = value.split("<!-- content-case-index", 1)[0]
-    elif source_kind == "published-social":
+    elif source_kind == "writing-case":
         value = _section(value, "原帖全文")
         value = value.split("<!-- content-case-index", 1)[0]
-        value = re.sub(
-            r"^(?:原帖链接|来源)：\s*.+?\s*$",
-            "",
-            value,
-            flags=re.MULTILINE,
-        )
     return _normalize_text(value)
 
 
@@ -271,22 +262,7 @@ def _voice_eligible(
     return eligible
 
 
-def _x_status_date(source_url: str) -> str:
-    match = re.fullmatch(
-        r"https://x\.com/[^/]+/status/(\d+)",
-        source_url,
-        re.IGNORECASE,
-    )
-    if not match:
-        return ""
-    milliseconds = (int(match.group(1)) >> 22) + X_SNOWFLAKE_EPOCH_MS
-    return datetime.fromtimestamp(
-        milliseconds / 1000,
-        tz=timezone.utc,
-    ).date().isoformat()
-
-
-def _load_config(library_root: Path) -> tuple[tuple[str, ...], tuple[Path, ...]]:
+def _load_config(library_root: Path) -> tuple[Path, ...]:
     config_path = library_root.resolve() / CONFIG_RELATIVE
     if not config_path.exists():
         raise MemoryError(f"写作记忆配置不存在：{config_path}")
@@ -294,20 +270,13 @@ def _load_config(library_root: Path) -> tuple[tuple[str, ...], tuple[Path, ...]]
         values = json.loads(config_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         raise MemoryError(f"{config_path} 不是有效 JSON：{exc}") from exc
-    prefixes = values.get("verified_first_party_url_prefixes")
-    if not isinstance(prefixes, list) or not all(
-        isinstance(prefix, str) and prefix.strip() for prefix in prefixes
-    ):
+    if not isinstance(values, dict):
+        raise MemoryError(f"{config_path} 必须是 JSON 对象")
+    allowed = {"published_article_roots"}
+    unknown = sorted(set(values) - allowed)
+    if unknown:
         raise MemoryError(
-            f"{config_path}: verified_first_party_url_prefixes 必须是字符串数组"
-        )
-    normalized_prefixes = tuple(prefix.strip().lower() for prefix in prefixes)
-    if not all(
-        re.fullmatch(r"https://x\.com/[a-z0-9_]+/status/", prefix)
-        for prefix in normalized_prefixes
-    ):
-        raise MemoryError(
-            f"{config_path}: 每个本人入口必须是 https://x.com/<账号>/status/"
+            f"{config_path}: 含有不受支持的字段：" + "、".join(unknown)
         )
     article_roots = values.get("published_article_roots")
     if not isinstance(article_roots, list) or not all(
@@ -333,7 +302,7 @@ def _load_config(library_root: Path) -> tuple[tuple[str, ...], tuple[Path, ...]]
         if not resolved.is_dir():
             raise MemoryError(f"已配置的文章根目录不存在：{resolved}")
         normalized_roots.append(relative)
-    return normalized_prefixes, tuple(normalized_roots)
+    return tuple(normalized_roots)
 
 
 def _relative(path: Path, library_root: Path) -> str:
@@ -366,7 +335,6 @@ def _record_from_blog(path: Path, library_root: Path) -> WritingRecord | None:
         title=_title(normalized_body, path),
         format=_normalize_format(metadata.get("format", ""), path),
         content_type=metadata.get("content_type", "").strip(),
-        publisher="Cheshire Blog",
         writing_origin=writing_origin,
         voice_eligible=voice_eligible,
         status="published",
@@ -383,7 +351,7 @@ def _record_from_output(path: Path, library_root: Path) -> WritingRecord | None:
         return None
     status = metadata.get("status", "").lower()
     source = metadata.get("source", "").lower()
-    if status not in FINAL_OUTPUT_STATUS or source not in FIRST_PARTY_OUTPUT_SOURCE:
+    if status not in FINAL_OUTPUT_STATUS or source not in SAVED_OUTPUT_SOURCES:
         return None
     normalized_body = _authored_body(body, "writing-output")
     if not normalized_body:
@@ -408,9 +376,6 @@ def _record_from_output(path: Path, library_root: Path) -> WritingRecord | None:
         title=_title(normalized_body, path),
         format=_normalize_format(metadata.get("format", ""), path),
         content_type=metadata.get("content_type", "").strip(),
-        publisher=metadata.get("published_by", "").strip()
-        or metadata.get("author", "").strip()
-        or source,
         writing_origin=writing_origin,
         voice_eligible=voice_eligible,
         status=status,
@@ -421,32 +386,18 @@ def _record_from_output(path: Path, library_root: Path) -> WritingRecord | None:
     )
 
 
-def _record_from_social_case(
+def _record_from_writing_case(
     path: Path,
     library_root: Path,
-    verified_prefixes: Sequence[str],
 ) -> WritingRecord | None:
-    if not verified_prefixes:
-        return None
     body = path.read_text(encoding="utf-8-sig")
-    source_match = re.search(
-        r"^(?:原帖链接|来源)：\s*(https?://\S+)\s*$",
-        body,
-        re.MULTILINE,
-    )
-    if not source_match:
-        return None
-    source_url = source_match.group(1).strip()
-    if not any(
-        source_url.lower().startswith(prefix)
-        for prefix in verified_prefixes
-    ):
-        return None
-
     case_metadata = _parse_case_index_metadata(body, path)
+    writing_fields = {"writing_format", "writing_origin", "voice_eligible"}
+    if not writing_fields.intersection(case_metadata):
+        return None
     writing_format = case_metadata.get("writing_format", "").strip()
     if not writing_format:
-        raise MemoryError(f"{path}: 本人发布案例缺少 writing_format")
+        raise MemoryError(f"{path}: 写作记录案例缺少 writing_format")
     writing_origin = _writing_origin(
         case_metadata.get("writing_origin", "unknown"),
         path,
@@ -457,28 +408,22 @@ def _record_from_social_case(
         path=path,
     )
 
-    normalized_body = _authored_body(body, "published-social")
+    normalized_body = _authored_body(body, "writing-case")
     if not normalized_body:
         raise MemoryError(f"{path}: 原帖全文为空")
     relative = _relative(path, library_root)
-    handle_match = re.match(
-        r"https://x\.com/([^/]+)/status/",
-        source_url,
-        re.IGNORECASE,
-    )
     return WritingRecord(
-        id=source_url,
+        id=f"path:{relative}",
         path=relative,
         title=_title(body, path),
         format=_normalize_format(writing_format, path),
         content_type=path.parent.name,
-        publisher=handle_match.group(1) if handle_match else "本人发布",
         writing_origin=writing_origin,
         voice_eligible=voice_eligible,
         status="published",
-        updated=_x_status_date(source_url),
-        source_url=source_url,
-        source_kind="published-social",
+        updated="",
+        source_url="",
+        source_kind="writing-case",
         text_hash=_text_hash(normalized_body),
     )
 
@@ -487,7 +432,6 @@ def _merge_record(preferred: WritingRecord, fallback: WritingRecord) -> WritingR
     return replace(
         preferred,
         content_type=preferred.content_type or fallback.content_type,
-        publisher=preferred.publisher or fallback.publisher,
         updated=preferred.updated or fallback.updated,
         source_url=preferred.source_url or fallback.source_url,
     )
@@ -498,8 +442,8 @@ def discover_records(
 ) -> tuple[list[WritingRecord], DiscoveryReceipt]:
     library_root = library_root.resolve()
     output_root = library_root / OUTPUT_RELATIVE
-    social_root = library_root / SOCIAL_CASE_RELATIVE
-    verified_prefixes, published_article_roots = _load_config(library_root)
+    case_root = library_root / WRITING_CASE_RELATIVE
+    published_article_roots = _load_config(library_root)
     blog_paths = sorted(
         {
             path
@@ -510,8 +454,8 @@ def discover_records(
     output_paths = (
         sorted(output_root.rglob("*.md")) if output_root.exists() else []
     )
-    social_paths = (
-        sorted(social_root.rglob("*.md")) if social_root.exists() else []
+    case_paths = (
+        sorted(case_root.rglob("*.md")) if case_root.exists() else []
     )
 
     blog_records = [
@@ -524,17 +468,10 @@ def discover_records(
         for path in output_paths
         if (record := _record_from_output(path, library_root)) is not None
     ]
-    social_records = [
+    case_records = [
         record
-        for path in social_paths
-        if (
-            record := _record_from_social_case(
-                path,
-                library_root,
-                verified_prefixes,
-            )
-        )
-        is not None
+        for path in case_paths
+        if (record := _record_from_writing_case(path, library_root)) is not None
     ]
 
     selected: list[WritingRecord] = []
@@ -545,7 +482,7 @@ def discover_records(
 
     # Outputs are the final user-facing truth when the same published URL also
     # exists in the source archive.
-    candidates = [*output_records, *social_records, *blog_records]
+    candidates = [*output_records, *case_records, *blog_records]
     for candidate in candidates:
         existing_index = (
             by_url.get(candidate.source_url) if candidate.source_url else None
@@ -580,10 +517,10 @@ def discover_records(
     receipt = DiscoveryReceipt(
         scanned_blog=len(blog_paths),
         scanned_outputs=len(output_paths),
-        scanned_social=len(social_paths),
+        scanned_cases=len(case_paths),
         accepted_blog=len(blog_records),
         accepted_outputs=len(output_records),
-        accepted_social=len(social_records),
+        accepted_cases=len(case_records),
         merged_by_url=merged_by_url,
         merged_by_text=merged_by_text,
     )
@@ -812,7 +749,6 @@ def render_search_results(
                 f"- 本地路径：{record.path}",
                 f"- 成品形态：{record.format}",
                 f"- 内容类型：{record.content_type or '未标注'}",
-                f"- 发布归属：{record.publisher}",
                 f"- 写作来源：{record.writing_origin}",
                 f"- 声音资格：{'可用' if record.voice_eligible else '不可用'}",
                 f"- 日期：{record.updated or '未标注'}",
@@ -867,14 +803,17 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", type=Path, help="本机私人库指针配置")
     commands = parser.add_subparsers(dest="command", required=True)
 
-    build = commands.add_parser("build-index", help="从正式成果和来源重建发布记录")
+    build = commands.add_parser(
+        "build-index",
+        help="从正式成果、正式文章和明确标记的写作案例重建记录",
+    )
     build.add_argument(
         "--check",
         action="store_true",
         help="只检查现有索引是否与正文一致",
     )
 
-    commands.add_parser("validate", help="检查正式来源与发布记录索引")
+    commands.add_parser("validate", help="检查正式作品、写作案例与记录索引")
 
     search = commands.add_parser("search", help="按明确用途检索发布记录")
     search.add_argument(
@@ -906,7 +845,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"发布记录索引有效：{len(current)} 条；"
                     f"博客发布 {receipt.accepted_blog} 篇，"
                     f"确认成果 {receipt.accepted_outputs} 篇，"
-                    f"社交发布 {receipt.accepted_social} 条。"
+                    f"写作案例 {receipt.accepted_cases} 条。"
                 )
                 return 0
             index_path = write_index(library_root, current, args.config)
