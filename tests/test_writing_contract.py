@@ -134,23 +134,54 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("不把它解释成忠实摘要合同", skill)
         self.assertIn("不联网只限制信息来源", skill)
         self.assertIn("材料提供内容，不表示沿用材料的措辞、顺序和结论", content)
-        self.assertIn("模型看到完整材料后自行决定讲什么", prewrite)
+        self.assertIn("下一阶段阅读全部上下文后，再决定这篇实际讲什么", prewrite)
 
-    def test_plain_reader_material_is_processed_before_writing(self) -> None:
+    def test_plain_reader_material_preserves_complete_relations_before_writing(self) -> None:
         skill = _read("SKILL.md")
         prewrite = _read("references/prewriting-research.md")
         content = _read("references/content-writing.md")
 
-        preparation = skill.index("### 2. 发现并净化有现实感的写作材料")
-        writing = skill.index("### 5. 把完整上下文交给模型成文")
+        preparation = skill.index("### 2. 发现并准备有现实感的写作材料")
+        writing = skill.index("### 5. 先形成这篇内容，再写成文字")
 
         self.assertLess(preparation, writing)
-        self.assertIn("读者能够看见的麻烦、动作和变化", prewrite)
-        self.assertIn("谁会遇到什么麻烦", prewrite)
-        self.assertIn("前后发生什么可观察变化", prewrite)
-        self.assertIn("不要求把每项材料填进固定结构", prewrite)
-        self.assertIn("原始事实、必要术语、数字、限制和来源链接继续留在任务内部", prewrite)
-        self.assertIn("按当前读者处理好的对象材料", content)
+        self.assertIn("事实、上下文、行动者、动作、先后关系、原因、结果", prewrite)
+        self.assertIn("不先把材料压成预设栏目", prewrite)
+        self.assertIn("不要只留下对整段材料的概括", prewrite)
+        self.assertIn("必要的原始说法与解释可以一起交给成文者", prewrite)
+        self.assertIn("不能把推演写成作者经历、用户案例或已经发生的结果", prewrite)
+        self.assertIn("仍保留完整事实关系、具体细节和必要上下文", content)
+
+        active_writing = "\n".join((skill, prewrite, content))
+        self.assertNotIn("读者能够看见的麻烦、动作和变化", active_writing)
+        self.assertNotIn("谁会遇到什么麻烦", active_writing)
+
+    def test_content_is_formed_before_language_and_reviews_return_upstream(self) -> None:
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+        natural = _read("references/natural-writing.md")
+
+        formation = skill.index("### 5. 先形成这篇内容，再写成文字")
+        review = skill.index("### 6. 回读内容与表达")
+        self.assertLess(formation, review)
+        self.assertIn("先确定这篇实际在讲什么", content)
+        self.assertIn("哪些完整关系能把它讲成立", content)
+        self.assertIn("参考暴露出当前角度缺少关键事实", content)
+        self.assertIn("把这个缺口交回上层材料阶段补充", content)
+        self.assertIn("把问题交回内容形成阶段重新选择和组织", natural)
+        self.assertIn("把缺口交回材料准备阶段", natural)
+
+    def test_creative_references_amplify_supported_content(self) -> None:
+        skill = _read("SKILL.md")
+        cases = _read("references/content-case-library.md")
+        hooks = _read("references/hook-library.md")
+        content = _read("references/content-writing.md")
+
+        self.assertIn("完整案例让当前内容暴露出缺少场景", skill)
+        self.assertIn("发现缺口时返回当前对象的来源补材料", cases)
+        self.assertIn("根据当前已经能够由材料讲成立的内容选择开头作用", hooks)
+        self.assertIn("强钩子可以放大已经成立的内容", content)
+        self.assertIn("不能由钩子补出", content)
 
     def test_user_content_priority_reaches_material_and_writing_consumers(self) -> None:
         skill = _read("SKILL.md")
