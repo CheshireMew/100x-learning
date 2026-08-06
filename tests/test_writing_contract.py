@@ -46,7 +46,7 @@ class WritingContractTests(unittest.TestCase):
 
         self.assertIn("多个完整案例", skill)
         self.assertIn("多个独立钩子原文", skill)
-        self.assertIn("多份方向不同且真正相关的完整案例", skill)
+        self.assertIn("多份方向不同且可能相关的完整案例", skill)
         self.assertIn("多份钩子和多份完整案例", hooks)
         self.assertIn("它不管理钩子", cases)
         self.assertIn("多个相关完整案例与多个独立钩子的原文", content)
@@ -116,15 +116,48 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("再展开本篇真正需要讲的信息", content)
         self.assertIn("如果正文越过这一步直接往下讲", natural)
 
-    def test_delivery_lists_only_actually_read_creative_references_by_default(self) -> None:
+    def test_delivery_lists_only_production_references_by_default(self) -> None:
         skill = _read("SKILL.md")
+        cases = _read("references/content-case-library.md")
+        hooks = _read("references/hook-library.md")
         natural = _read("references/natural-writing.md")
 
         self.assertIn("本次创作参考", skill)
-        self.assertIn("只列真正阅读全文的完整案例和钩子", skill)
+        self.assertIn("只列真正进入第 5 步的完整案例和钩子", skill)
+        self.assertIn("读过但退出的候选不列", skill)
+        self.assertIn("搜索中打开的文件只是候选", cases)
+        self.assertIn("进入成文阶段和最终参考列表", hooks)
+        self.assertIn("实际进入成文阶段的案例与钩子文件", natural)
         self.assertIn("可点击的绝对文件路径", skill)
-        self.assertIn("本次实际阅读的案例与钩子文件", natural)
         self.assertNotIn("本次创作参考（实际阅读）", skill)
+
+    def test_same_model_has_an_explicit_reference_handoff(self) -> None:
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+
+        self.assertIn("默认仍由当前模型继续成文", skill)
+        self.assertIn("不另调子 Agent、API 或 CLI", skill)
+        self.assertIn("不创建生产包文件", skill)
+        self.assertIn("只有文件名或原文已因上下文压缩不可见时，重新读取", skill)
+        self.assertIn("明确切换到成文阶段", skill)
+        self.assertIn("必须参与内容选择、推进、节奏和表达", skill)
+        self.assertIn("默认由已经完成上游工作的同一模型继续写", content)
+        self.assertIn("生产参考只剩文件名、索引摘要或原文已经不可见时", content)
+        self.assertIn("不能只在最终结果中列出文件名", content)
+
+    def test_specific_feedback_and_upstream_rework_survive_the_contract(self) -> None:
+        skill = _read("SKILL.md")
+        prewrite = _read("references/prewriting-research.md")
+        natural = _read("references/natural-writing.md")
+
+        self.assertIn("按用户原意写进本轮任务合同", skill)
+        self.assertIn("不能把“像 AI、套产品文案", skill)
+        self.assertIn("压缩成“自然、通俗、有传播力”", skill)
+        self.assertIn("不为增强画面感补造人物、项目经历或使用场景", prewrite)
+        self.assertIn("不要把原文改造成另一套“麻烦、动作、变化”等摘要", prewrite)
+        self.assertIn("属于假具体", natural)
+        self.assertIn("制造痛点—解释痛点—亮相对象—罗列能力—给出入口", natural)
+        self.assertIn("退回内容形成阶段", natural)
 
     def test_material_based_writing_remains_creative(self) -> None:
         skill = _read("SKILL.md")
