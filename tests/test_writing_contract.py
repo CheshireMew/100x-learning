@@ -136,6 +136,22 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("材料提供内容，不表示沿用材料的措辞、顺序和结论", content)
         self.assertIn("模型看到完整材料后自行决定讲什么", prewrite)
 
+    def test_plain_reader_material_is_processed_before_writing(self) -> None:
+        skill = _read("SKILL.md")
+        prewrite = _read("references/prewriting-research.md")
+        content = _read("references/content-writing.md")
+
+        preparation = skill.index("### 2. 发现并净化有现实感的写作材料")
+        writing = skill.index("### 5. 把完整上下文交给模型成文")
+
+        self.assertLess(preparation, writing)
+        self.assertIn("读者能够看见的麻烦、动作和变化", prewrite)
+        self.assertIn("谁会遇到什么麻烦", prewrite)
+        self.assertIn("前后发生什么可观察变化", prewrite)
+        self.assertIn("不要求把每项材料填进固定结构", prewrite)
+        self.assertIn("原始事实、必要术语、数字、限制和来源链接继续留在任务内部", prewrite)
+        self.assertIn("按当前读者处理好的对象材料", content)
+
     def test_user_content_priority_reaches_material_and_writing_consumers(self) -> None:
         skill = _read("SKILL.md")
         prewrite = _read("references/prewriting-research.md")
