@@ -54,8 +54,9 @@ class CapabilityConservationTests(unittest.TestCase):
 
         self.assertIn("模拟用于降低风险，结果明确标记为模拟结果", practice)
         self.assertIn("用共同操作、演示和选择代替闭卷回答", practice)
-        self.assertIn("案例中的个人经历仍属于原作者", content)
+        self.assertNotIn("案例中的个人经历仍属于原作者", content)
         self.assertIn("第一人称具体经历只有在当前材料确实提供", natural)
+        self.assertIn("案例中的经历不能迁移给当前作者", natural)
         self.assertIn("用户同时要求大纲和全文时", article)
         self.assertIn("每一部分准备处理什么问题", article)
 

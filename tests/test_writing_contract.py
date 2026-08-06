@@ -85,13 +85,13 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("先建立一种期待再揭示真实制作方式", natural)
         self.assertIn("保持用户已经指定的说话身份", content)
 
-    def test_first_person_presentation_is_distinct_from_borrowed_experience(self) -> None:
-        skill = _read("SKILL.md")
+    def test_experience_boundaries_are_reviewed_after_draft_not_sent_to_writer(self) -> None:
         content = _read("references/content-writing.md")
         natural = _read("references/natural-writing.md")
 
-        self.assertIn("不等于从案例借来一段个人经历", skill)
-        self.assertIn("案例中的个人经历仍属于原作者", content)
+        self.assertNotIn("案例中的个人经历仍属于原作者", content)
+        self.assertNotIn("不能借给当前作者", content)
+        self.assertIn("第一人称具体经历只有在当前材料确实提供", natural)
         self.assertIn("案例中的经历不能迁移给当前作者", natural)
 
     def test_visible_actions_keep_familiar_names_without_invented_taxonomy(self) -> None:
@@ -120,11 +120,11 @@ class WritingContractTests(unittest.TestCase):
         skill = _read("SKILL.md")
         natural = _read("references/natural-writing.md")
 
-        self.assertIn("除非用户明确只要正文", skill)
-        self.assertIn("本次创作参考（实际阅读）", skill)
+        self.assertIn("本次创作参考", skill)
         self.assertIn("只列真正阅读全文的完整案例和钩子", skill)
         self.assertIn("可点击的绝对文件路径", skill)
         self.assertIn("本次实际阅读的案例与钩子文件", natural)
+        self.assertNotIn("本次创作参考（实际阅读）", skill)
 
     def test_material_based_writing_remains_creative(self) -> None:
         skill = _read("SKILL.md")
@@ -134,9 +134,10 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("不把它解释成忠实摘要合同", skill)
         self.assertIn("不联网只限制信息来源", skill)
         self.assertIn("材料提供内容，不表示沿用材料的措辞、顺序和结论", content)
-        self.assertIn("下一阶段阅读全部上下文后，再决定这篇实际讲什么", prewrite)
+        self.assertIn("下一阶段阅读全部生产输入后", prewrite)
+        self.assertIn("负责让正文通俗易懂、富有传播力", prewrite)
 
-    def test_plain_reader_material_preserves_complete_relations_before_writing(self) -> None:
+    def test_material_keeps_source_language_and_writing_owns_plain_expression(self) -> None:
         skill = _read("SKILL.md")
         prewrite = _read("references/prewriting-research.md")
         content = _read("references/content-writing.md")
@@ -146,15 +147,20 @@ class WritingContractTests(unittest.TestCase):
 
         self.assertLess(preparation, writing)
         self.assertIn("事实、上下文、行动者、动作、先后关系、原因、结果", prewrite)
-        self.assertIn("不先把材料压成预设栏目", prewrite)
+        self.assertIn("不解释专业词和内部说法", prewrite)
+        self.assertIn("材料准备阶段不为目标读者补解释", prewrite)
         self.assertIn("不要只留下对整段材料的概括", prewrite)
-        self.assertIn("必要的原始说法与解释可以一起交给成文者", prewrite)
-        self.assertIn("不能把推演写成作者经历、用户案例或已经发生的结果", prewrite)
-        self.assertIn("仍保留完整事实关系、具体细节和必要上下文", content)
+        self.assertIn("来源原始措辞、必要术语、完整事实关系", content)
+        self.assertIn("专业词、内部说法和复杂关系都在写正文时", content)
+        self.assertIn("传播力在写作阶段", content)
+        self.assertNotIn("保留完整关系并讲成人话", prewrite)
+        self.assertNotIn("必要的原始说法与解释可以一起交给成文者", prewrite)
+        self.assertNotIn("不能把推演写成作者经历、用户案例或已经发生的结果", prewrite)
 
         active_writing = "\n".join((skill, prewrite, content))
         self.assertNotIn("读者能够看见的麻烦、动作和变化", active_writing)
         self.assertNotIn("谁会遇到什么麻烦", active_writing)
+        self.assertNotIn("让当前读者能够理解的对象材料", active_writing)
 
     def test_content_is_formed_before_language_and_reviews_return_upstream(self) -> None:
         skill = _read("SKILL.md")
@@ -166,8 +172,9 @@ class WritingContractTests(unittest.TestCase):
         self.assertLess(formation, review)
         self.assertIn("先确定这篇实际在讲什么", content)
         self.assertIn("哪些完整关系能把它讲成立", content)
-        self.assertIn("参考暴露出当前角度缺少关键事实", content)
-        self.assertIn("把这个缺口交回上层材料阶段补充", content)
+        self.assertIn("完整案例让当前内容暴露出缺少场景", skill)
+        self.assertIn("回到第 2 步继续寻找当前对象的原始材料", skill)
+        self.assertIn("直接结合全部生产输入形成当前成品", content)
         self.assertIn("把问题交回内容形成阶段重新选择和组织", natural)
         self.assertIn("把缺口交回材料准备阶段", natural)
 
@@ -180,8 +187,8 @@ class WritingContractTests(unittest.TestCase):
         self.assertIn("完整案例让当前内容暴露出缺少场景", skill)
         self.assertIn("发现缺口时返回当前对象的来源补材料", cases)
         self.assertIn("根据当前已经能够由材料讲成立的内容选择开头作用", hooks)
-        self.assertIn("强钩子可以放大已经成立的内容", content)
-        self.assertIn("不能由钩子补出", content)
+        self.assertIn("结合完整案例与钩子决定揭示顺序", content)
+        self.assertIn("传播力在写作阶段", content)
 
     def test_user_content_priority_reaches_material_and_writing_consumers(self) -> None:
         skill = _read("SKILL.md")
@@ -205,17 +212,40 @@ class WritingContractTests(unittest.TestCase):
         skill = _read("SKILL.md")
 
         self.assertIn("执行上先完成那个独立结果", skill)
-        self.assertIn("最终回复仍先交付用户要直接使用的文字", skill)
+        self.assertIn("最终回复仍完整交付用户要直接使用的文字", skill)
 
-    def test_delivery_container_has_one_decision_and_one_consumer(self) -> None:
+    def test_every_writing_delivery_shows_contract_input_product_and_references(self) -> None:
         skill = _read("SKILL.md")
 
         requirement = skill.index("### 1. 锁定必要的成品要求")
-        delivery = skill.index("### 7. 直接交付")
+        delivery = skill.index("### 7. 展示完整写作结果")
         self.assertLess(requirement, delivery)
-        self.assertEqual(1, skill.count("单个代码块仍便于通读和整段复制"))
-        self.assertIn("执行第 1 步已经确定的交付载体", skill)
-        self.assertIn("没有在最终输出时被链接渲染或临时排版偏好覆盖", skill)
+        self.assertIn("任务合同", skill)
+        self.assertIn("传给写作 AI 的内容", skill)
+        self.assertIn("写作 AI 的成品内容", skill)
+        self.assertIn("分别放在独立代码块中", skill)
+        self.assertIn("正文自身含代码围栏时使用更长的外层围栏", skill)
+        self.assertIn("只在代码块外的“本次创作参考”", skill)
+
+    def test_writer_input_excludes_conservative_notes_and_anti_fabrication_prompt(self) -> None:
+        skill = _read("SKILL.md")
+        prewrite = _read("references/prewriting-research.md")
+        content = _read("references/content-writing.md")
+
+        self.assertIn("材料缺口、风险判断和核查提醒留在各自阶段", skill)
+        self.assertIn("核查说明和风险提醒不进入下一次写作输入", skill)
+        self.assertIn("以上五类内容构成本次完整写作输入", content)
+        for conservative_note in (
+            "不得虚构",
+            "公开仓库目前没有可用的 Issue",
+            "不能把推演写成作者经历、用户案例或已经发生的结果",
+            "材料缺口",
+            "保守判断",
+            "风险备注",
+            "成稿检查表",
+        ):
+            self.assertNotIn(conservative_note, content)
+        self.assertIn("材料缺口和风险判断继续留在任务内部", prewrite)
 
     def test_action_entry_has_one_reader_goal_based_owner(self) -> None:
         content = _read("references/content-writing.md")
