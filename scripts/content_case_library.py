@@ -247,6 +247,12 @@ def _section(body: str, heading: str, next_heading: str | None = None) -> str:
 def _check_text(original: str) -> None:
     if not original:
         raise CaseError("正文全文不能为空")
+    if re.search(
+        r"^(?:原帖链接|来源)：[^\r\n]+[ \t]*\Z",
+        original,
+        re.MULTILINE,
+    ):
+        raise CaseError("案例不保存原帖链接或来源字段")
 
 
 def _parse_social(path: Path, layout: LibraryLayout) -> ContentCase | None:
@@ -289,6 +295,13 @@ def _parse_article(path: Path) -> ContentCase:
     article_metadata, indexed_body = _parse_frontmatter(
         path.read_text(encoding="utf-8-sig")
     )
+    if _required(article_metadata, "type") != "content-case":
+        raise CaseError("文章案例 type 必须是 content-case")
+    if any(
+        key in article_metadata
+        for key in ("source", "source_url", "original_url")
+    ):
+        raise CaseError("文章案例不保存来源字段")
     metadata, body = _parse_case_index(indexed_body)
     if _strip_quotes(metadata.get("reference_value", "")) != "case":
         raise CaseError("这篇文章没有标记为活动案例")
@@ -316,21 +329,13 @@ def _parse_article(path: Path) -> ContentCase:
     )
 
 
-def _article_is_case(path: Path) -> bool:
-    return "<!-- content-case-index" in path.read_text(encoding="utf-8-sig")
-
-
 def _case_paths(layout: LibraryLayout) -> list[Path]:
     social = [
         path
         for directory in ASSET_DIRECTORIES
         for path in (layout.social_cases / directory).rglob("*.md")
     ]
-    articles = [
-        path
-        for path in layout.article_sources.rglob("*.md")
-        if _article_is_case(path)
-    ]
+    articles = list(layout.article_cases.rglob("*.md"))
     return sorted([*social, *articles])
 
 
@@ -380,7 +385,7 @@ def build_index(cases: Sequence[ContentCase], layout: LibraryLayout) -> str:
         "文章库不等于文章案例库。只有正文写法本身提供了现有案例没有的可复用方法，才标记为案例；其它文章继续留在原目录作为归档。",
         "",
         "写作时先浏览本索引，再按标题、主题、任务或写法用普通文本检索缩小范围，然后打开多个完整原文。索引只负责定位，不能替代原文；参考数量由内容差异和上下文容量决定，不预设唯一模仿对象。",
-        "下面只是定位示例。找不到更贴合的案例时，可以根据现有事实和作者判断继续写，不为满足数量强行加入无关参考。",
+        "下面只是定位示例。查询没有返回原文时，继续按写作任务、对象关系、读者处境和推进方式浏览索引与搜索正文；仍无可读结果时，把状态交回主流程并停止成文，不能据此跳过案例输入。",
         "",
         "```powershell",
         'rg -n -i "项目|结果|痛点" "20-Sources/Social Posts/Content Cases/完整短内容"',
@@ -561,8 +566,7 @@ def add_case(
         ) + "\n"
     elif kind == "article":
         path = (
-            layout.article_sources
-            / "Content Cases"
+            layout.article_cases
             / content_type
             / f"{title}.md"
         )

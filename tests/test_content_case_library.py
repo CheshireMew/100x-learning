@@ -50,7 +50,6 @@ class ContentCaseLibraryTests(unittest.TestCase):
             ),
             title="材料变成可复用知识",
             content_type="项目与产品介绍",
-            source="https://example.com/short",
             index_task="介绍项目结果",
             topics=("学习", "知识库"),
             moves=("输入变成结果",),
@@ -71,7 +70,6 @@ class ContentCaseLibraryTests(unittest.TestCase):
             ),
             title="私人知识库的四种内容",
             content_type="概念与机制解释",
-            source="https://example.com/article",
             index_task="解释知识库边界",
             topics=("知识库",),
             moves=("先区分消费者",),
@@ -97,6 +95,28 @@ class ContentCaseLibraryTests(unittest.TestCase):
                 for case in cases
             )
         )
+        self.assertTrue(self.article.is_relative_to(self.layout.article_cases))
+
+    def test_formal_article_is_not_a_case_without_an_independent_copy(self) -> None:
+        formal = self.layout.article_sources / "Published" / "formal.md"
+        formal.parent.mkdir(parents=True, exist_ok=True)
+        formal.write_text(
+            """---
+type: source-article
+content_type: "概念与机制解释"
+source_url: "https://example.com/formal"
+---
+# 正式文章
+
+正式文章正文。
+""",
+            encoding="utf-8",
+        )
+
+        cases, issues = load_library(self.layout)
+
+        self.assertFalse(issues)
+        self.assertNotIn(formal, [case.path for case in cases])
 
     def test_all_promotion_resources_name_the_actor_and_action(self) -> None:
         cases, issues = load_library(self.layout)
@@ -119,7 +139,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
             all("publisher" not in case.benefit_recipients for case in reader_cases)
         )
 
-    def test_case_files_are_source_first_without_editorial_limits(self) -> None:
+    def test_case_files_keep_complete_text_without_source_or_editorial_limits(self) -> None:
         cases, issues = load_library(self.layout)
         self.assertFalse(issues)
 
@@ -129,6 +149,9 @@ class ContentCaseLibraryTests(unittest.TestCase):
             self.assertNotIn("## 可以参考什么", text, case.path)
             self.assertNotIn("## 适用场景", text, case.path)
             self.assertNotIn("<!-- content-case-notes -->", text, case.path)
+            self.assertNotIn("来源：", text, case.path)
+            self.assertNotIn("原帖链接：", text, case.path)
+            self.assertNotIn("source_url:", text, case.path)
             if case.asset != "article":
                 self.assertTrue(text.startswith("# "), case.path)
                 self.assertLess(
@@ -157,8 +180,6 @@ class ContentCaseLibraryTests(unittest.TestCase):
                     "正式入口保存材料",
                     "--content-type",
                     "教程与操作指南",
-                    "--source",
-                    "https://example.com/another",
                     "--index-task",
                     "说明沉淀流程",
                     "--topic",
@@ -200,6 +221,20 @@ class ContentCaseLibraryTests(unittest.TestCase):
             main(["--library-root", str(self.library_root), "search"])
         self.assertEqual(2, error.exception.code)
         self.assertIn("invalid choice", stderr.getvalue())
+
+    def test_case_parser_rejects_source_metadata(self) -> None:
+        text = self.short.read_text(encoding="utf-8")
+        self.short.write_text(
+            text.replace(
+                "<!-- content-case-index",
+                "来源：https://example.com/source\n\n<!-- content-case-index",
+            ),
+            encoding="utf-8",
+        )
+
+        _, issues = load_library(self.layout)
+
+        self.assertTrue(any("不保存原帖链接或来源字段" in issue for issue in issues))
 
 
 if __name__ == "__main__":

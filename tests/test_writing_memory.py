@@ -43,7 +43,6 @@ class WritingMemoryTests(unittest.TestCase):
         (self.project_root / CONFIG_RELATIVE).write_text(
             json.dumps(
                 {
-                    "verified_first_party_url_prefixes": [],
                     "published_article_roots": ["20-Sources/Articles/Published"],
                 },
                 ensure_ascii=False,
@@ -65,13 +64,6 @@ source_url: "https://example.com/published/"
 # 已发布版本
 
 旧正文。
-
-<!-- content-case-index
-reference_value: "case"
-index_task: "教程"
-index_topics: ["写作"]
-index_moves: ["正文"]
--->
 """,
         )
         _write(
@@ -131,7 +123,7 @@ format: original
         self.assertEqual(2, receipt.accepted_blog)
         self.assertEqual(1, receipt.merged_by_url)
 
-    def test_hidden_case_index_is_not_part_of_authored_evidence(self) -> None:
+    def test_formal_article_body_is_consumed_as_authored_evidence(self) -> None:
         _write(
             self.blog_root / "case.md",
             """---
@@ -142,13 +134,6 @@ source_url: "https://example.com/case/"
 # 本人文章
 
 这是实际发布正文。
-
-<!-- content-case-index
-reference_value: "case"
-index_task: "分享观察"
-index_topics: ["观察"]
-index_moves: ["正文"]
--->
 """,
         )
         records, _ = discover_records(self.project_root)
@@ -164,22 +149,9 @@ index_moves: ["正文"]
             limit=1,
         )
         self.assertIn("实际发布正文", hits[0].opening)
-        self.assertNotIn("案例维护说明", hits[0].ending)
 
-    def test_verified_social_source_needs_explicit_voice_provenance(self) -> None:
-        _write(
-            self.project_root / CONFIG_RELATIVE,
-            json.dumps(
-                {
-                    "verified_first_party_url_prefixes": [
-                        "https://x.com/author/status/"
-                    ],
-                    "published_article_roots": ["20-Sources/Articles/Published"],
-                },
-                ensure_ascii=False,
-            ),
-        )
-        social_root = (
+    def test_explicit_writing_metadata_adds_a_case_without_account_or_source(self) -> None:
+        case_root = (
             self.project_root
             / "20-Sources"
             / "Social Posts"
@@ -187,14 +159,12 @@ index_moves: ["正文"]
             / "完整短内容"
         )
         _write(
-            social_root / "个人观察与实测" / "本人帖子.md",
-            """# 本人帖子
+            case_root / "个人观察与实测" / "写作案例.md",
+            """# 写作案例
 
 ## 原帖全文
 
 我真正想减少的是上下文切换，而不只是点击次数。
-
-原帖链接：https://x.com/author/status/2053104321668239801
 
 <!-- content-case-index
 writing_format: "product"
@@ -207,14 +177,12 @@ index_moves: ["观察", "机制"]
 """,
         )
         _write(
-            social_root / "个人观察与实测" / "来源未知.md",
-            """# 来源未知
+            case_root / "个人观察与实测" / "写法未知.md",
+            """# 写法未知
 
 ## 原帖全文
 
-这条内容由本人账号发布，但没有写作来源标注。
-
-原帖链接：https://x.com/author/status/2053104321668239804
+这条内容明确保存为写作记录，但没有标注写法来源。
 
 <!-- content-case-index
 writing_format: "product"
@@ -225,14 +193,12 @@ index_moves: ["介绍"]
 """,
         )
         _write(
-            social_root / "个人观察与实测" / "外部帖子.md",
-            """# 外部帖子
+            case_root / "个人观察与实测" / "普通案例.md",
+            """# 普通案例
 
 ## 原帖全文
 
-这不是本人写作。
-
-原帖链接：https://x.com/other/status/2053104321668239802
+这只是普通参考案例，不进入写作记忆。
 
 <!-- content-case-index
 index_task: "外部参考"
@@ -245,17 +211,19 @@ index_moves: ["观察"]
         records, receipt = discover_records(self.project_root)
 
         self.assertEqual(2, len(records))
-        eligible = next(record for record in records if record.title == "本人帖子")
-        unknown = next(record for record in records if record.title == "来源未知")
-        self.assertEqual("published-social", eligible.source_kind)
+        eligible = next(record for record in records if record.title == "写作案例")
+        unknown = next(record for record in records if record.title == "写法未知")
+        self.assertEqual("writing-case", eligible.source_kind)
         self.assertEqual("product", eligible.format)
         self.assertEqual("个人观察与实测", eligible.content_type)
-        self.assertEqual("2026-05-09", eligible.updated)
+        self.assertEqual("", eligible.updated)
+        self.assertEqual("", eligible.source_url)
         self.assertEqual("human-edited", eligible.writing_origin)
         self.assertTrue(eligible.voice_eligible)
         self.assertEqual("unknown", unknown.writing_origin)
         self.assertFalse(unknown.voice_eligible)
-        self.assertEqual(2, receipt.accepted_social)
+        self.assertEqual(3, receipt.scanned_cases)
+        self.assertEqual(2, receipt.accepted_cases)
         write_index(self.project_root, records)
         novelty_hits = search_memory(
             library_root=self.project_root,
@@ -277,21 +245,10 @@ index_moves: ["观察"]
             content_type="个人观察与实测",
             limit=3,
         )
-        self.assertEqual(["本人帖子"], [hit.record.title for hit in voice_hits])
+        self.assertEqual(["写作案例"], [hit.record.title for hit in voice_hits])
 
-    def test_verified_social_case_requires_its_actual_writing_format(self) -> None:
-        _write(
-            self.project_root / CONFIG_RELATIVE,
-            json.dumps(
-                {
-                    "verified_first_party_url_prefixes": [
-                        "https://x.com/author/status/"
-                    ],
-                    "published_article_roots": ["20-Sources/Articles/Published"],
-                }
-            ),
-        )
-        social = (
+    def test_marked_writing_case_requires_its_actual_writing_format(self) -> None:
+        case = (
             self.project_root
             / "20-Sources"
             / "Social Posts"
@@ -301,16 +258,15 @@ index_moves: ["观察"]
             / "缺少形态.md"
         )
         _write(
-            social,
+            case,
             """# 缺少形态
 
 ## 原帖全文
 
 这是本人发布的产品介绍。
 
-原帖链接：https://x.com/author/status/2053104321668239803
-
 <!-- content-case-index
+writing_origin: "human"
 index_task: "介绍产品"
 index_topics: ["产品"]
 index_moves: ["介绍"]
@@ -321,19 +277,17 @@ index_moves: ["介绍"]
         with self.assertRaisesRegex(MemoryError, "缺少 writing_format"):
             discover_records(self.project_root)
 
-    def test_first_party_social_prefix_must_name_one_account(self) -> None:
+    def test_unknown_writing_memory_configuration_is_rejected(self) -> None:
         _write(
             self.project_root / CONFIG_RELATIVE,
             json.dumps(
                 {
-                    "verified_first_party_url_prefixes": [
-                        "https://x.com/"
-                    ],
+                    "unexpected_field": [],
                     "published_article_roots": ["20-Sources/Articles/Published"],
                 }
             ),
         )
-        with self.assertRaisesRegex(ValueError, "每个本人入口"):
+        with self.assertRaisesRegex(ValueError, "不受支持的字段"):
             discover_records(self.project_root)
 
     def test_index_output_is_consumed_by_same_format_search(self) -> None:

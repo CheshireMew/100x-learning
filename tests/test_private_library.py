@@ -135,6 +135,25 @@ class PrivateLibraryTests(unittest.TestCase):
         self.assertIn("使用 adopt", result.stderr)
         self.assertFalse((self.library_root / MANIFEST_RELATIVE).exists())
 
+    def test_show_reports_missing_private_library_configuration(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT_PATH),
+                "--config",
+                str(self.config_path),
+                "show",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("没有配置私人库", result.stderr)
+        self.assertFalse(self.config_path.exists())
+
     def test_invalid_adopt_does_not_leave_a_library_manifest(self) -> None:
         self.library_root.mkdir(parents=True)
         (self.library_root / "Home.md").write_text("# Existing", encoding="utf-8")

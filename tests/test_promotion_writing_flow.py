@@ -22,9 +22,6 @@ class PromotionWritingFlowTests(unittest.TestCase):
             (layout.root / CONFIG_RELATIVE).write_text(
                 json.dumps(
                     {
-                        "verified_first_party_url_prefixes": [
-                            "https://x.com/author/status/"
-                        ],
                         "published_article_roots": [],
                     },
                     ensure_ascii=False,
@@ -43,7 +40,6 @@ class PromotionWritingFlowTests(unittest.TestCase):
                 input_path=raw,
                 title="私人知识库进入写作链",
                 content_type="项目与产品介绍",
-                source="https://x.com/author/status/2053104321668239801",
                 index_task="介绍私人知识库",
                 topics=("知识库", "写作"),
                 moves=("材料进入长期记忆",),
@@ -64,7 +60,7 @@ class PromotionWritingFlowTests(unittest.TestCase):
             self.assertEqual(("reader",), promotion.benefit_recipients)
 
             records, receipt = discover_records(layout.root)
-            self.assertEqual(1, receipt.accepted_social)
+            self.assertEqual(1, receipt.accepted_cases)
             self.assertEqual("product", records[0].format)
             self.assertTrue(records[0].voice_eligible)
 

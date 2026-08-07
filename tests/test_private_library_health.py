@@ -52,6 +52,7 @@ review_by: 2000-01-01
 
 Evidence: [[20-Sources/Articles/used]]
 Archive: [[90-Archive/old]]
+Archive markdown: [old](../90-Archive/old.md)
 Broken: [[10-Knowledge/missing]]
 """,
         )
@@ -70,6 +71,7 @@ An unsupported claim.
             path.relative_to(self.library_root).as_posix(): path.read_bytes()
             for path in self.library_root.rglob("*")
             if path.is_file()
+            and path.relative_to(self.library_root).parts[0] != "90-Archive"
         }
 
         report = scan_library(self.library_root)
@@ -80,9 +82,10 @@ An unsupported claim.
         self.assertIn("review_due", codes)
         self.assertIn("invalid_review_date", codes)
         self.assertIn("broken_wikilink", codes)
+        self.assertIn("inactive_local_link", codes)
         self.assertIn("knowledge_without_source", codes)
         self.assertIn("unprocessed_source", codes)
-        self.assertNotIn(
+        self.assertIn(
             "找不到内部链接目标：[[90-Archive/old]]。",
             [issue["message"] for issue in report["issues"]],
         )
@@ -98,8 +101,47 @@ An unsupported claim.
             path.relative_to(self.library_root).as_posix(): path.read_bytes()
             for path in self.library_root.rglob("*")
             if path.is_file()
+            and path.relative_to(self.library_root).parts[0] != "90-Archive"
         }
         self.assertEqual(before, after)
+
+    def test_short_wikilink_to_source_counts_as_visible_and_processed(self) -> None:
+        self._write(
+            "20-Sources/Articles/Source Note.md",
+            "# Source Note\n\nOriginal evidence.\n",
+        )
+        self._write(
+            "10-Knowledge/topic.md",
+            "# Topic\n\nEvidence: [[Source Note]]\n",
+        )
+
+        report = scan_library(self.library_root)
+
+        knowledge_issues = [
+            issue
+            for issue in report["issues"]
+            if issue["path"] == "10-Knowledge/topic.md"
+        ]
+        self.assertNotIn(
+            "knowledge_without_source",
+            [issue["code"] for issue in knowledge_issues],
+        )
+        self.assertNotIn(
+            "20-Sources/Articles/Source Note.md",
+            [
+                issue["path"]
+                for issue in report["issues"]
+                if issue["code"] == "unprocessed_source"
+            ],
+        )
+
+    def test_empty_producers_still_require_current_derived_indexes(self) -> None:
+        report = scan_library(self.library_root)
+        codes = {issue["code"] for issue in report["issues"]}
+
+        self.assertIn("content_case_index_stale", codes)
+        self.assertIn("hook_index_stale", codes)
+        self.assertIn("writing_index_stale", codes)
 
     def test_cli_resolves_config_and_returns_machine_readable_severity(self) -> None:
         self._write(

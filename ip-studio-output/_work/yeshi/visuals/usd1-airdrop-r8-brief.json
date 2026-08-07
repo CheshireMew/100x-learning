@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "visual_id": "usd1-airdrop-r8",
+  "kind": "explainer",
+  "language": "zh-CN",
+  "content": {
+    "source_label": "用户确认的 USD1 第八轮空投最终稿",
+    "source_text": "币安的 USD1 空投续期至第八轮。活动时间为 8 月 7 日至 9 月 4 日，持有 USD1 的合格用户按持仓瓜分 1.7 亿枚 WLFI，持续四周、每周发放，奖励进入现货账户。现货、资金、杠杆和 U 本位合约账户支持参与，理财账户不参与。基础参与可使用现货或资金账户；1.2 倍 APY 加成需要使用杠杆或 U 本位合约账户，并让每日 USD1 合约未平仓量不低于 300 USD1。当前参考年化约 5.3%，每次发放后更新。邀请注册可节省 20% 交易手续费，邀请码 SRXT5KUM，合约邀请码 416378774。"
+  },
+  "message": {
+    "core_object": "币安 USD1 第八轮 WLFI 空投",
+    "audience_gap": "读者需要在信息流中立即看出活动已经续期、能获得什么、持续多久，以及基础收益和 1.2 倍加成的差别",
+    "mechanism_or_change": "把 USD1 放在币安合格账户中，四周内按周获得 WLFI；满足每日 300 USD1 合约未平仓门槛可获得 1.2 倍加成",
+    "takeaway": "USD1 空投第八轮已开启，8 月 7 日至 9 月 4 日可参与瓜分 1.7 亿枚 WLFI"
+  },
+  "brand": {
+    "role": "core",
+    "name": "BINANCE 币安",
+    "visual_cues": "准确使用参考图中的币安菱形标志与 BINANCE 字标；纯黑底、币安黄与白色高对比、超大粗体标题、克制的金色金融科技线框和圆环"
+  },
+  "composition": {
+    "aspect_ratio": "16:9",
+    "structure": "process",
+    "title": "USD1 空投第八轮",
+    "subtitle": "8/7 — 9/4｜每周发放",
+    "labels": [
+      "1.7 亿枚 WLFI",
+      "约 5.3% APY",
+      "1.2× 加成",
+      "手续费省 20%",
+      "邀请码 SRXT5KUM｜合约 416378774"
+    ],
+    "conclusion": "持有 USD1，按周领取 WLFI 奖励",
+    "palette": ["#000000", "#0B0E11", "#F0B90B", "#FFFFFF", "#E83A4E"],
+    "style_notes": "横向社交海报。左侧约 55% 是品牌和信息区：左上角小尺寸币安标志，主标题使用白色与币安黄的超大无衬线粗体，1.7 亿枚 WLFI 是第一数字重点，日期和 APY 次之。右侧约 45% 是唯一主视觉：夜希与一枚清楚标注 USD1 的金色圆币、币安黄色奖励环和四个周发放节拍点构成连续机制。黑色背景带少量细线网格、圆环和柔和金色辉光，不使用卡片墙、伪造交易界面或无关币种。底部用一条克制的深灰信息带放手续费优惠和两个邀请码。保留宽松安全边距，中文必须端正可读。"
+  },
+  "character_action": {
+    "role": "活动引导者和机制执行者",
+    "action": "夜希站在画面右侧，以三分之四姿态双手托起一枚标有 USD1 的金色圆币，并把它推入币安黄色奖励环",
+    "affected_object": "USD1 持仓进入四周 WLFI 奖励路径",
+    "visible_result": "奖励环外出现四个连续发光节拍点与少量标有 WLFI 的金色代币，清楚表示每周发放一次；角色、圆币和环之间有真实接触、遮挡和共同黄色边缘光"
+  },
+  "references": [
+    {
+      "role": "binance-design-style-reference",
+      "path": "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\codex-clipboard-dea7153a-c06a-4bba-bf43-4f81142f4d70.png"
+    },
+    {
+      "role": "binance-logo-reference",
+      "path": "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\codex-clipboard-f16597a4-fe34-422a-b299-87f3a5415839.png"
+    }
+  ],
+  "decisions": [
+    {"path": "$.content", "source": "user_confirmed", "note": "活动时间、奖池、APY、加成条件、账户范围和邀请码来自用户最终稿"},
+    {"path": "$.brand", "source": "user_confirmed", "note": "用户要求采用前两张图中的币安 LOGO 与设计风格"},
+    {"path": "$.character_action", "source": "user_confirmed", "note": "用户要求把第三张图中的个人 IP 形象融入画面"},
+    {"path": "$.composition.aspect_ratio", "source": "agent_inferred", "note": "两张币安参考图均为 16:9 横版，选择同类社交配图画幅"},
+    {"path": "$.composition.structure", "source": "agent_inferred", "note": "用 USD1 进入奖励环并形成四次周发放的单一过程，比罗列全部规则更适合一张信息流配图"},
+    {"path": "$.composition.labels", "source": "agent_inferred", "note": "只把奖池、时间、APY、加成和邀请码放进图片，详细账户条件由正文承接，避免画面拥挤"}
+  ]
+}

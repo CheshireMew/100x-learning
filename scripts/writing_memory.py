@@ -195,9 +195,7 @@ def _section(value: str, heading: str, next_heading: str | None = None) -> str:
 
 
 def _authored_body(value: str, source_kind: str) -> str:
-    if source_kind == "published-source":
-        value = value.split("<!-- content-case-index", 1)[0]
-    elif source_kind == "writing-case":
+    if source_kind == "writing-case":
         value = _section(value, "原帖全文")
         value = value.split("<!-- content-case-index", 1)[0]
     return _normalize_text(value)

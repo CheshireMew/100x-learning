@@ -35,6 +35,32 @@ def _hash(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _artifact_identity(path: Path, label: str) -> dict[str, Any]:
+    if not path.is_file():
+        raise ProjectError(f"{label}不存在：{path}")
+    raw = path.read_bytes()
+    if not raw.strip():
+        raise ProjectError(f"{label}为空：{path}")
+    return {
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "size": len(raw),
+    }
+
+
+def _artifact_issue(
+    path: Path,
+    expected_sha256: str,
+    label: str,
+) -> str | None:
+    try:
+        identity = _artifact_identity(path, label)
+    except ProjectError as exc:
+        return str(exc)
+    if identity["sha256"] != expected_sha256:
+        return f"{label}已经变化：{path}"
+    return None
+
+
 def _file_identity(path: Path) -> dict[str, Any]:
     path = _absolute(path)
     if not path.is_file():
@@ -198,13 +224,11 @@ def record_unit(root: Path, unit_id: str, output: Path) -> dict[str, Any]:
     if source_issue:
         raise ProjectError(source_issue)
     output_path = _inside(root, output)
-    if not output_path.is_file():
-        raise ProjectError(f"工作单元输出不存在：{output_path}")
+    identity = _artifact_identity(output_path, "工作单元输出")
     unit["status"] = "complete"
     unit["output"] = {
         "path": output_path.relative_to(root).as_posix(),
-        "sha256": _hash(output_path),
-        "size": output_path.stat().st_size,
+        **identity,
     }
     unit["completed_at"] = _now()
     value["updated_at"] = unit["completed_at"]
@@ -228,26 +252,27 @@ def project_status(root: Path) -> dict[str, Any]:
         if unit.get("status") != "complete":
             continue
         output = unit.get("output")
-        if not isinstance(output, dict):
+        if (
+            not isinstance(output, dict)
+            or not isinstance(output.get("path"), str)
+            or not isinstance(output.get("sha256"), str)
+        ):
             unit_issues.append(
                 {"unit": unit["id"], "kind": "output", "message": "完成单元缺少输出记录"}
             )
             continue
         output_path = _inside(root, Path(output["path"]))
-        if not output_path.is_file():
+        output_issue = _artifact_issue(
+            output_path,
+            output["sha256"],
+            "工作单元输出",
+        )
+        if output_issue:
             unit_issues.append(
                 {
                     "unit": unit["id"],
                     "kind": "output",
-                    "message": f"工作单元输出不存在：{output_path}",
-                }
-            )
-        elif _hash(output_path) != output.get("sha256"):
-            unit_issues.append(
-                {
-                    "unit": unit["id"],
-                    "kind": "output",
-                    "message": f"工作单元输出已经变化：{output_path}",
+                    "message": output_issue,
                 }
             )
         else:
@@ -258,7 +283,11 @@ def project_status(root: Path) -> dict[str, Any]:
     final = value.get("final")
     final_valid = False
     if final is not None:
-        if not isinstance(final, dict) or not isinstance(final.get("path"), str):
+        if (
+            not isinstance(final, dict)
+            or not isinstance(final.get("path"), str)
+            or not isinstance(final.get("sha256"), str)
+        ):
             issues.append(
                 {"unit": "final", "kind": "final", "message": "最终成品记录无效"}
             )
@@ -270,20 +299,17 @@ def project_status(root: Path) -> dict[str, Any]:
                     {"unit": "final", "kind": "final", "message": str(exc)}
                 )
             else:
-                if not final_path.is_file():
+                final_issue = _artifact_issue(
+                    final_path,
+                    final["sha256"],
+                    "最终成品",
+                )
+                if final_issue:
                     issues.append(
                         {
                             "unit": "final",
                             "kind": "final",
-                            "message": f"最终成品不存在：{final_path}",
-                        }
-                    )
-                elif _hash(final_path) != final.get("sha256"):
-                    issues.append(
-                        {
-                            "unit": "final",
-                            "kind": "final",
-                            "message": f"最终成品已经变化：{final_path}",
+                            "message": final_issue,
                         }
                     )
                 else:
@@ -311,13 +337,11 @@ def finalize_project(root: Path, aggregate: Path) -> dict[str, Any]:
     if not status["ready_to_finalize"]:
         raise ProjectError("仍有未完成、来源变化或输出失效的工作单元，不能完成项目")
     aggregate_path = _inside(root, aggregate)
-    if not aggregate_path.is_file():
-        raise ProjectError(f"汇总成品不存在：{aggregate_path}")
+    identity = _artifact_identity(aggregate_path, "汇总成品")
     value = _load_manifest(root)
     value["final"] = {
         "path": aggregate_path.relative_to(root).as_posix(),
-        "sha256": _hash(aggregate_path),
-        "size": aggregate_path.stat().st_size,
+        **identity,
         "finalized_at": _now(),
     }
     value["updated_at"] = value["final"]["finalized_at"]

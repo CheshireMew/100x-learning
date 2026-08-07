@@ -42,7 +42,6 @@ class HookLibraryTests(unittest.TestCase):
             input_path=self._input("case.md", "完整案例从第一句保留到最后一句。"),
             title="完整案例",
             content_type="项目与产品介绍",
-            source="https://example.com/case",
             index_task="介绍项目",
             topics=("项目",),
             moves=("说明结果",),
@@ -65,8 +64,6 @@ class HookLibraryTests(unittest.TestCase):
                     "短帖",
                     "--technique",
                     "结果钩子",
-                    "--source",
-                    "https://example.com/hook",
                 ]
             )
 
@@ -88,19 +85,19 @@ class HookLibraryTests(unittest.TestCase):
         self.assertIn("材料直接变成下一步", index)
         self.assertNotIn("完整案例", index)
 
-    def test_index_groups_by_technique_before_source_format(self) -> None:
+    def test_index_groups_by_technique_before_original_format(self) -> None:
         inputs = (
             (
                 "thread.md",
                 "短帖开头原文。\n这是紧接着的短帖内容。",
-                "短帖来源",
+                "短帖开头",
                 "contrast-thread",
                 "Thread",
             ),
             (
                 "article.md",
                 "文章开头原文。\n这是紧接着的文章内容。",
-                "文章来源",
+                "文章开头",
                 "contrast-article",
                 "文章",
             ),
@@ -120,10 +117,8 @@ class HookLibraryTests(unittest.TestCase):
                         hook_id,
                         "--writing-format",
                         writing_format,
-                        "--technique",
-                        "反常识钩子",
-                        "--source",
-                        f"https://example.com/{hook_id}",
+                    "--technique",
+                    "反常识钩子",
                     ]
                 )
             self.assertEqual(0, result)
@@ -135,7 +130,7 @@ class HookLibraryTests(unittest.TestCase):
         self.assertNotIn("\n## Thread\n", index)
         self.assertIn("不限制文章、短帖或 Thread 跨形态使用", index)
 
-    def test_hook_resource_contains_only_raw_text_source_and_addressing_metadata(self) -> None:
+    def test_hook_resource_contains_only_raw_text_and_addressing_metadata(self) -> None:
         raw = self._input("raw.md", "第一句原文。\n这是紧接着的第二句。")
         self.assertEqual(
             0,
@@ -154,8 +149,6 @@ class HookLibraryTests(unittest.TestCase):
                     "文章",
                     "--technique",
                     "问题钩子",
-                    "--source",
-                    "https://example.com/original",
                 ]
             ),
         )
@@ -169,6 +162,8 @@ class HookLibraryTests(unittest.TestCase):
             set(metadata),
         )
         self.assertEqual("问题钩子", hooks[0].path.parent.name)
+        self.assertNotIn("来源：", text)
+        self.assertNotIn("source_url", text)
         for polluted in (
             "source_case",
             "source_case_file",
@@ -200,8 +195,6 @@ class HookLibraryTests(unittest.TestCase):
                     "短帖",
                     "--technique",
                     "热点钩子",
-                    "--source",
-                    "https://example.com/news",
                 ]
             ),
         )
@@ -229,6 +222,45 @@ class HookLibraryTests(unittest.TestCase):
             )
         self.assertEqual(2, error.exception.code)
         self.assertIn("required", stderr.getvalue())
+
+    def test_hook_parser_rejects_source_metadata(self) -> None:
+        raw = self._input("source-field.md", "第一句原文。\n这是紧接着的第二句。")
+        with redirect_stdout(StringIO()):
+            self.assertEqual(
+                0,
+                hook_main(
+                    [
+                        "--library-root",
+                        str(self.library_root),
+                        "add-hook",
+                        "--input",
+                        str(raw),
+                        "--title",
+                        "来源字段",
+                        "--hook-id",
+                        "forbidden-source-field",
+                        "--writing-format",
+                        "短帖",
+                        "--technique",
+                        "结果钩子",
+                    ]
+                ),
+            )
+        hooks, issues = load_library(self.layout)
+        self.assertFalse(issues)
+        path = hooks[0].path
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text.replace(
+                "<!-- hook-library-index",
+                "来源：https://example.com/source\n\n<!-- hook-library-index",
+            ),
+            encoding="utf-8",
+        )
+
+        _, issues = load_library(self.layout)
+
+        self.assertTrue(any("钩子不保存来源字段" in issue for issue in issues))
 
 
 if __name__ == "__main__":

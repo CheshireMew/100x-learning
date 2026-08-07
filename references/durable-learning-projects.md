@@ -30,7 +30,7 @@ python scripts/durable_learning_project.py add-unit --project-root "<项目目�
 python scripts/durable_learning_project.py record-unit --project-root "<项目目录>" --unit unit-0001 --output "<项目内输出文件>"
 ```
 
-恢复任务时先运行 `status`。它重新核对来源和输出哈希；来源丢失、来源变化、输出丢失或输出变化都会成为显式问题。先解决这些问题，再处理下一个单元。
+恢复任务时先运行 `status`。它重新核对来源和输出哈希；来源丢失、来源变化、输出丢失、输出为空或输出变化都会成为显式问题。只有含有非空白实际内容的文件才算输出。先解决这些问题，再处理下一个单元。
 
 ## 四、汇总不取代单元验收
 
@@ -40,7 +40,7 @@ python scripts/durable_learning_project.py record-unit --project-root "<项目�
 python scripts/durable_learning_project.py finalize --project-root "<项目目录>" --aggregate "<项目内汇总文件>"
 ```
 
-完成报告要区分总单元、有效完成单元、待处理单元、漂移问题和最终成品。只建立清单叫“已初始化”，处理部分单元叫“部分完成”，只有脚本确认全部有效且汇总文件存在时才叫“项目完成”。
+完成报告要区分总单元、有效完成单元、待处理单元、漂移问题和最终成品。只建立清单叫“已初始化”，处理部分单元叫“部分完成”，只有脚本确认全部单元输出与汇总文件都含有实际内容、哈希仍一致时才叫“项目完成”。
 
 ## 五、持久化边界
 

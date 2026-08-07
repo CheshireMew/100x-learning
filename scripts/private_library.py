@@ -28,6 +28,7 @@ REQUIRED_DIRECTORIES = (
     Path("10-Knowledge"),
     Path("20-Sources"),
     Path("20-Sources/Articles"),
+    Path("20-Sources/Articles/Content Cases"),
     Path("20-Sources/Content Cases"),
     Path("20-Sources/Social Posts/Content Cases/完整短内容"),
     Path("20-Sources/Hook Library"),
@@ -66,6 +67,10 @@ class LibraryLayout:
     @property
     def article_sources(self) -> Path:
         return self.sources / "Articles"
+
+    @property
+    def article_cases(self) -> Path:
+        return self.article_sources / "Content Cases"
 
     @property
     def social_cases(self) -> Path:
@@ -144,6 +149,12 @@ def _json(path: Path) -> dict[str, Any]:
     return value
 
 
+def _config_json(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        raise LibraryError(f"没有配置私人库：{path}")
+    return _json(path)
+
+
 def _write_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
@@ -197,7 +208,7 @@ def configure_marktree_cli(
     config_path: Path | None = None,
 ) -> tuple[Path, Path]:
     config = _absolute(config_path or default_config_path())
-    value = _json(config)
+    value = _config_json(config)
     root = resolve_library_root(config_path=config)
     executable = _absolute(cli_path)
     if not executable.is_file():
@@ -226,7 +237,7 @@ def resolve_library_root(
         root = _absolute(library_root)
     else:
         config = _absolute(config_path or default_config_path())
-        value = _json(config)
+        value = _config_json(config)
         if value.get("schema") != LIBRARY_SCHEMA:
             raise LibraryError(f"不是 100x-learning 私人库配置：{config}")
         raw_root = value.get("library_root")
@@ -261,12 +272,19 @@ def _validate_structure(
     if not layout.writing_config.is_file():
         raise LibraryError(f"私人知识库缺少写作配置：{layout.writing_config}")
     writing = _json(layout.writing_config)
-    for key in ("verified_first_party_url_prefixes", "published_article_roots"):
-        value = writing.get(key)
-        if not isinstance(value, list) or not all(
-            isinstance(item, str) for item in value
-        ):
-            raise LibraryError(f"{layout.writing_config}: {key} 必须是字符串数组")
+    allowed = {"published_article_roots"}
+    unknown = sorted(set(writing) - allowed)
+    if unknown:
+        raise LibraryError(
+            f"{layout.writing_config}: 含有不受支持的字段：" + "、".join(unknown)
+        )
+    article_roots = writing.get("published_article_roots")
+    if not isinstance(article_roots, list) or not all(
+        isinstance(item, str) for item in article_roots
+    ):
+        raise LibraryError(
+            f"{layout.writing_config}: published_article_roots 必须是字符串数组"
+        )
 
 
 def validate_library(root: Path) -> LibraryLayout:

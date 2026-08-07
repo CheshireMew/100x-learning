@@ -121,6 +121,8 @@ def _hook_text(section: str) -> str:
     text = section.strip()
     if not text:
         raise HookError("钩子原文不能为空")
+    if re.search(r"^来源：[^\r\n]+[ \t]*\Z", text, re.MULTILINE):
+        raise HookError("钩子不保存来源字段")
     return text
 
 
@@ -193,7 +195,7 @@ def build_index(hooks: Sequence[HookExample], layout: LibraryLayout) -> str:
     lines = [
         "# 开头钩子索引",
         "",
-        "本索引先按开头手法、再按原始成品形态定位独立钩子。主题不参与分组；成品形态只标明来源，不限制文章、短帖或 Thread 跨形态使用。写作时打开实际文件，索引不能替代原文。",
+        "本索引先按开头手法、再按原始成品形态定位独立钩子。主题不参与分组；成品形态只用于定位，不限制文章、短帖或 Thread 跨形态使用。写作时打开实际文件，索引不能替代原文。",
         "",
         f"当前共有 {len(hooks)} 条独立钩子。",
         "",

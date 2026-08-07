@@ -161,6 +161,117 @@ class DurableLearningProjectTests(unittest.TestCase):
         )
         self.assertIn("不能完成项目", failed["stderr"])
 
+    def test_empty_outputs_never_count_as_completed_artifacts(self) -> None:
+        self._run(
+            "init",
+            "--project-root",
+            str(self.project_root),
+            "--type",
+            "long-material",
+            "--title",
+            "Artifact validation",
+        )
+        self._run(
+            "add-unit",
+            "--project-root",
+            str(self.project_root),
+            "--source",
+            str(self.source),
+            "--label",
+            "Document",
+            "--locator",
+            "whole file",
+        )
+        output = self.project_root / "units" / "unit-0001.md"
+        output.parent.mkdir(parents=True)
+        output.write_text("   \n\t", encoding="utf-8")
+
+        rejected = self._run(
+            "record-unit",
+            "--project-root",
+            str(self.project_root),
+            "--unit",
+            "unit-0001",
+            "--output",
+            str(output),
+            expected=1,
+        )
+        self.assertIn("工作单元输出为空", rejected["stderr"])
+
+        output.write_text("# Actual result\n", encoding="utf-8")
+        self._run(
+            "record-unit",
+            "--project-root",
+            str(self.project_root),
+            "--unit",
+            "unit-0001",
+            "--output",
+            str(output),
+        )
+        output.write_text("", encoding="utf-8")
+        status = self._run("status", "--project-root", str(self.project_root))
+        self.assertEqual(0, status["complete_units"])
+        self.assertFalse(status["ready_to_finalize"])
+        self.assertIn("工作单元输出为空", status["issues"][0]["message"])
+
+    def test_empty_final_artifact_is_rejected_and_detected_after_recording(self) -> None:
+        self._run(
+            "init",
+            "--project-root",
+            str(self.project_root),
+            "--type",
+            "long-material",
+            "--title",
+            "Final validation",
+        )
+        self._run(
+            "add-unit",
+            "--project-root",
+            str(self.project_root),
+            "--source",
+            str(self.source),
+            "--label",
+            "Document",
+            "--locator",
+            "whole file",
+        )
+        output = self.project_root / "unit.md"
+        output.write_text("# Unit result\n", encoding="utf-8")
+        self._run(
+            "record-unit",
+            "--project-root",
+            str(self.project_root),
+            "--unit",
+            "unit-0001",
+            "--output",
+            str(output),
+        )
+        aggregate = self.project_root / "final.md"
+        aggregate.write_text("\n", encoding="utf-8")
+        rejected = self._run(
+            "finalize",
+            "--project-root",
+            str(self.project_root),
+            "--aggregate",
+            str(aggregate),
+            expected=1,
+        )
+        self.assertIn("汇总成品为空", rejected["stderr"])
+
+        aggregate.write_text("# Final result\n", encoding="utf-8")
+        self._run(
+            "finalize",
+            "--project-root",
+            str(self.project_root),
+            "--aggregate",
+            str(aggregate),
+        )
+        aggregate.write_text("", encoding="utf-8")
+        status = self._run("status", "--project-root", str(self.project_root))
+        self.assertFalse(status["final_valid"])
+        self.assertFalse(status["project_complete"])
+        self.assertIn("最终成品为空", status["issues"][-1]["message"])
+
 
 if __name__ == "__main__":
     unittest.main()

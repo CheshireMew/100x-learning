@@ -127,12 +127,23 @@ def _active_markdown(layout: LibraryLayout) -> list[Path]:
     return sorted({path.resolve() for path in paths})
 
 
-def _link_targets(layout: LibraryLayout) -> list[Path]:
-    return sorted(
-        path.resolve()
-        for path in layout.root.rglob("*.md")
-        if ".git" not in path.relative_to(layout.root).parts
-    )
+def _active_resources(layout: LibraryLayout) -> list[Path]:
+    paths: set[Path] = set()
+    for relative in ACTIVE_ROOTS:
+        root = layout.root / relative
+        if root.exists():
+            paths.add(root.resolve())
+            paths.update(path.resolve() for path in root.rglob("*"))
+    if layout.home.is_file():
+        paths.add(layout.home.resolve())
+    return sorted(paths)
+
+
+def _active_link_targets(layout: LibraryLayout) -> list[Path]:
+    paths = set(_active_markdown(layout))
+    if layout.home.is_file():
+        paths.add(layout.home.resolve())
+    return sorted(paths)
 
 
 def _maps(paths: Iterable[Path], root: Path) -> tuple[dict[str, Path], dict[str, list[Path]]]:
@@ -183,17 +194,40 @@ def _resolve_wikilink(
     return "missing", None
 
 
-def _resolve_markdown_link(value: str, current: Path, root: Path) -> Path | None:
+def _resolve_markdown_link(
+    value: str,
+    current: Path,
+    root: Path,
+    active_resources: set[Path],
+) -> tuple[str, Path | None]:
     target = _clean_link(value)
     if not target or re.match(r"^[a-z][a-z0-9+.-]*://", target, re.I):
-        return None
+        return "ignored", None
     candidate = Path(target)
     if candidate.is_absolute():
-        return candidate.resolve()
-    local = (current.parent / candidate).resolve()
-    if local.exists():
-        return local
-    return (root / candidate).resolve()
+        candidates = (candidate.resolve(),)
+    else:
+        candidates = (
+            (current.parent / candidate).resolve(),
+            (root / candidate).resolve(),
+        )
+    inside_library = False
+    inside_active_root = False
+    for resolved in candidates:
+        try:
+            relative = resolved.relative_to(root.resolve())
+        except ValueError:
+            continue
+        inside_library = True
+        if relative.parts and relative.parts[0] in ACTIVE_ROOTS:
+            inside_active_root = True
+        if resolved in active_resources:
+            return "resolved", resolved
+    if inside_active_root:
+        return "missing", None
+    if inside_library:
+        return "inactive", None
+    return "ignored", None
 
 
 def _is_reference_source(path: Path, layout: LibraryLayout) -> bool:
@@ -206,7 +240,7 @@ def _index_issues(layout: LibraryLayout) -> list[Issue]:
     cases, case_errors = load_case_library(layout)
     for error in case_errors:
         issues.append(Issue("error", "content_case_invalid", "20-Sources", error))
-    if cases and not case_errors:
+    if not case_errors:
         expected = build_case_index(cases, layout)
         current = _read(layout.case_index) if layout.case_index.exists() else ""
         if current != expected:
@@ -236,7 +270,7 @@ def _index_issues(layout: LibraryLayout) -> list[Issue]:
             )
 
     records, _ = discover_records(layout.root)
-    if records and not index_is_current(layout.root, records):
+    if not index_is_current(layout.root, records):
         issues.append(
             Issue(
                 "warning",
@@ -251,10 +285,13 @@ def _index_issues(layout: LibraryLayout) -> list[Issue]:
 def scan_library(root: Path) -> dict[str, object]:
     layout = validate_library(root)
     paths = _active_markdown(layout)
-    by_relative, by_stem = _maps(_link_targets(layout), layout.root)
+    active_resources = set(_active_resources(layout))
+    active_targets = set(_active_link_targets(layout))
+    by_relative, by_stem = _maps(active_targets, layout.root)
     issues: list[Issue] = []
     texts: dict[Path, str] = {}
     referenced_sources: set[Path] = set()
+    knowledge_sources: set[Path] = set()
     topics: dict[str, list[Path]] = {}
     today = date.today()
 
@@ -324,16 +361,17 @@ def scan_library(root: Path) -> dict[str, object]:
                 )
             elif resolved and _relative(resolved, layout.root).startswith("20-Sources/"):
                 referenced_sources.add(resolved.resolve())
+                if relative.startswith("10-Knowledge/"):
+                    knowledge_sources.add(path.resolve())
 
         for raw_link in MARKDOWN_LINK_RE.findall(text):
-            resolved = _resolve_markdown_link(raw_link, path, layout.root)
-            if resolved is None:
-                continue
-            try:
-                resolved.relative_to(layout.root.resolve())
-            except ValueError:
-                continue
-            if not resolved.exists():
+            state, resolved = _resolve_markdown_link(
+                raw_link,
+                path,
+                layout.root,
+                active_resources,
+            )
+            if state == "missing":
                 issues.append(
                     Issue(
                         "warning",
@@ -342,13 +380,30 @@ def scan_library(root: Path) -> dict[str, object]:
                         f"找不到本地链接目标：{raw_link}。",
                     )
                 )
-            elif _relative(resolved, layout.root).startswith("20-Sources/"):
+            elif state == "inactive":
+                issues.append(
+                    Issue(
+                        "warning",
+                        "inactive_local_link",
+                        relative,
+                        f"本地链接目标不属于活动资源：{raw_link}。",
+                    )
+                )
+            elif (
+                state == "resolved"
+                and resolved is not None
+                and _relative(resolved, layout.root).startswith("20-Sources/")
+            ):
                 referenced_sources.add(resolved.resolve())
+                if relative.startswith("10-Knowledge/"):
+                    knowledge_sources.add(path.resolve())
 
         for raw_source in PLAIN_SOURCE_RE.findall(text):
             candidate = (layout.root / _clean_link(raw_source)).resolve()
             if candidate.exists() and candidate.is_file():
                 referenced_sources.add(candidate)
+                if relative.startswith("10-Knowledge/"):
+                    knowledge_sources.add(path.resolve())
 
     for identity, duplicates in topics.items():
         if identity and len(duplicates) > 1:
@@ -368,8 +423,7 @@ def scan_library(root: Path) -> dict[str, object]:
         if not relative.startswith("10-Knowledge/"):
             continue
         has_external = bool(re.search(r"https?://", text))
-        has_source_path = "20-Sources/" in text.replace("\\", "/")
-        if not has_external and not has_source_path:
+        if not has_external and path.resolve() not in knowledge_sources:
             issues.append(
                 Issue(
                     "info",
