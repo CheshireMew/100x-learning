@@ -13,17 +13,17 @@ def _read(relative: str) -> str:
 
 
 class SkillStructureTests(unittest.TestCase):
-    def test_skill_routes_every_active_reference_to_an_existing_file(self) -> None:
+    def test_skill_references_every_active_reference(self) -> None:
         skill = _read("SKILL.md")
-        routed = set(re.findall(r"`(references/[^`]+\.md)`", skill))
+        referenced = set(re.findall(r"`(references/[^`]+\.md)`", skill))
         active = {
             path.relative_to(PROJECT_ROOT).as_posix()
             for path in (PROJECT_ROOT / "references").glob("*.md")
         }
-        self.assertEqual(active, routed)
-        self.assertTrue(all((PROJECT_ROOT / path).is_file() for path in routed))
+        self.assertEqual(active, referenced)
+        self.assertTrue(all((PROJECT_ROOT / path).is_file() for path in referenced))
 
-    def test_references_do_not_select_sibling_references(self) -> None:
+    def test_references_do_not_route_to_sibling_references(self) -> None:
         paths = sorted((PROJECT_ROOT / "references").glob("*.md"))
         active_names = {path.name for path in paths}
         for path in paths:
@@ -33,142 +33,188 @@ class SkillStructureTests(unittest.TestCase):
             )
             self.assertEqual([], mentioned, path)
 
-    def test_new_writing_uses_private_references_but_local_edits_do_not(self) -> None:
+    def test_writing_has_one_direct_chain_without_old_routes(self) -> None:
+        contract = "\n".join(
+            (
+                _read("SKILL.md"),
+                _read("references/prewriting-research.md"),
+                _read("references/content-writing.md"),
+                _read("references/private-knowledge-library.md"),
+                _read("references/content-case-library.md"),
+                _read("references/hook-library.md"),
+            )
+        )
+        for retired in (
+            "材料完备短内容",
+            "发现式新写",
+            "局部修改路线",
+            "一份合格主案例",
+            "至少一份、最多两份",
+            "固定两份",
+        ):
+            self.assertNotIn(retired, contract)
+
+        skill = _read("SKILL.md")
+        self.assertIn("默认搜索外部资料", skill)
+        self.assertIn("删除式净化", skill)
+        self.assertIn("读取当前可用的完整案例和钩子原文", skill)
+        self.assertIn("再把同一份准备材料原样放一次", _read("references/content-writing.md"))
+        self.assertIn("使用 `references/content-writing.md` 直接写成正文", skill)
+
+    def test_search_is_default_except_explicit_local_edits(self) -> None:
+        skill = _read("SKILL.md")
+        prewriting = _read("references/prewriting-research.md")
+        contract = "\n".join((skill, prewriting))
+        self.assertIn("新写、扩写、改写和实质重组默认搜索外部资料", contract)
+        self.assertIn("明确禁止联网", contract)
+        self.assertIn("只使用给定材料", contract)
+        self.assertIn("只改错字、格式和等义措辞", contract)
+        self.assertNotIn("材料已经足以", prewriting)
+        self.assertNotIn("内容缺口", prewriting)
+
+    def test_material_purification_only_deletes_and_is_repeated_verbatim(self) -> None:
+        skill = _read("SKILL.md")
+        prewriting = _read("references/prewriting-research.md")
+        content = _read("references/content-writing.md")
+        contract = "\n".join((skill, prewriting, content))
+        self.assertIn("净化只删除", prewriting)
+        self.assertIn("来源原文、原有顺序、来源边界和必要上下文", contract)
+        self.assertIn("不摘要、转述、重排、拼接、统一改写", prewriting)
+        self.assertIn("唯一一份“写作准备材料”", contract)
+        self.assertIn("两次内容必须完全相同", contract)
+        self.assertIn("最终回答只展示一次完整版本", prewriting)
+        self.assertIn("【本次写作要求】", content)
+        self.assertIn("【通用写作注意】", content)
+        self.assertIn("【净化后材料】", content)
+        self.assertIn("通用写作注意只从该文件原样取得", skill)
+        self.assertIn("不维护另一份同义要求", content)
+        self.assertNotIn("写作简报", content)
+
+    def test_general_writing_guidance_has_one_runtime_owner(self) -> None:
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+        self.assertEqual(1, content.count("【通用写作注意】"))
+        self.assertNotIn("【通用写作注意】", skill)
+        self.assertIn("这里是通用写作要求的唯一真源", content)
+        self.assertIn("陌生对象第一次出现时", content)
+        self.assertIn("篇幅跟随真实信息量，内容说完即停", content)
+
+        runtime = "\n".join(
+            _read(path)
+            for path in (
+                "SKILL.md",
+                "references/content-writing.md",
+                "references/natural-writing.md",
+                "references/content-audit.md",
+                "references/article-from-practice.md",
+                "references/github-project-list.md",
+                "references/github-project-short-content.md",
+                "references/publication-requirements.md",
+            )
+        )
+        for priming_example in (
+            "以为……其实……",
+            "不是……而是……",
+            "不只是……而是……",
+        ):
+            self.assertNotIn(priming_example, runtime)
+
+    def test_reference_libraries_are_optional_full_inputs(self) -> None:
+        skill = _read("SKILL.md")
+        cases = _read("references/content-case-library.md")
+        hooks = _read("references/hook-library.md")
+        self.assertIn("索引只帮助找到全文，不能代替全文", cases)
+        self.assertIn("索引只帮助找到全文，不能代替全文", hooks)
+        self.assertIn("不运行 `validate`", cases)
+        self.assertIn("不运行 `validate`", hooks)
+        self.assertIn("配置、索引或案例不可用时继续写作", cases)
+        self.assertIn("配置、索引或钩子不可用时继续写作", hooks)
+        self.assertIn("短内容浏览可用的短内容案例", cases)
+        self.assertIn("文章和 Newsletter 浏览可用的文章案例", cases)
+        self.assertIn("模型自行决定读哪些、读多少和怎样综合", skill)
+        self.assertIn("读哪些、读多少和怎样综合", skill)
+
+    def test_private_library_is_not_a_writing_gate(self) -> None:
         skill = _read("SKILL.md")
         private_library = _read("references/private-knowledge-library.md")
-        self.assertIn("材料完备短内容", skill)
-        self.assertIn("发现式新写", skill)
-        self.assertIn("scripts/private_library.py show", skill)
-        self.assertIn("不联网补材料，但仍读取私人案例与钩子", skill)
-        self.assertIn("本人现稿", skill)
-        self.assertIn("等义压缩", skill)
-        self.assertIn("没有配置私人库", private_library)
+        self.assertIn("普通写作不运行私人库、案例库或钩子库的健康检查", skill)
+        self.assertIn("位置、索引或参考不可用时直接根据现有材料继续", skill)
+        self.assertIn("普通写作只在准备读取现有案例", private_library)
+        self.assertIn("不运行 `validate`", private_library)
+        self.assertIn("继续写作", private_library)
 
-    def test_reference_retrieval_is_split_by_form_and_only_by_technique(self) -> None:
+    def test_author_voice_defaults_do_not_inherit_source_identity(self) -> None:
         skill = _read("SKILL.md")
-        cases = _read("references/content-case-library.md")
-        hooks = _read("references/hook-library.md")
-        contract = "\n".join((skill, cases, hooks))
-
-        for name in (
-            "短内容案例索引.md",
-            "文章案例索引.md",
-            "短内容钩子索引.md",
-            "Thread钩子索引.md",
-            "文章钩子索引.md",
-        ):
-            self.assertIn(name, contract)
-        self.assertIn("只按", contract)
-        self.assertIn("写作技巧", contract)
-        self.assertIn("对象名、平台名、行业名和主题词不能用于案例检索", cases)
-        self.assertIn("对象名、平台名、行业名和主题词不能用于钩子检索", hooks)
-        self.assertIn("不能跨形态", skill)
-
-        for old_contract in (
-            "/内容案例索引.md",
-            "/开头钩子索引.md",
-            "index_task",
-            "index_topics",
-            "index_moves",
-            "promotion_stages",
-            "benefit_recipients",
-        ):
-            self.assertNotIn(old_contract, contract)
-
-    def test_references_are_complete_inputs_not_topic_templates(self) -> None:
-        skill = _read("SKILL.md")
+        memory = _read("references/personal-writing-memory.md")
         content = _read("references/content-writing.md")
-        cases = _read("references/content-case-library.md")
-        hooks = _read("references/hook-library.md")
-        self.assertIn("完整案例和钩子原文能在当前上下文直接阅读", skill)
-        self.assertIn("只有索引、标题、摘要或文件名不算完成交接", skill)
-        self.assertIn("阅读全文", cases)
-        self.assertIn("阅读全文", hooks)
-        self.assertIn("few-shot 写作输入", skill)
-        self.assertIn("读取原文后直接进入成文", skill)
-        self.assertIn("固定打开三份技巧组合不同的完整短内容案例", skill)
-        self.assertIn("两份开头技巧不同", skill)
-        self.assertIn("案例和钩子是 few-shot", content)
-        self.assertIn("不先归纳技巧、指定模板或证明用途", cases)
-        self.assertIn("不复制表面句型", hooks)
+        contract = "\n".join((skill, memory, content))
+        self.assertIn("用户给出的文字默认是来源材料，不是用户本人写的现稿", content)
+        self.assertIn("短内容默认不读取作者声音", contract)
+        self.assertIn("文章和 Newsletter 默认", contract)
+        self.assertIn("没有可用材料时直接继续", memory)
+        self.assertIn("不提供当前对象的事实、人物、经历、立场或作者身份", content)
 
-    def test_model_has_freedom_inside_real_hard_boundaries(self) -> None:
-        skill = _read("SKILL.md")
-        content = _read("references/content-writing.md")
-        self.assertIn(
-            "用户要求、事实、来源身份、目标语言、成品形式和明确长度是硬边界",
-            skill,
-        )
-        self.assertIn("自行决定写什么、从哪里开始、怎样推进和在哪里停", content)
-        self.assertIn("材料越多越需要取舍", content)
-        self.assertIn("不必逐项覆盖", content)
-        self.assertIn("不设字数上限或下限", content)
-        self.assertIn("不能把字数当作完成度", content)
-        self.assertNotIn("先看见最值得知道的变化，再用必要事实", skill)
-        self.assertNotIn("只使用对象亮相、主要利益、参与动作和结果收束", skill)
-        self.assertNotIn("临时删除最后一到两段", skill)
-
-    def test_writer_receives_full_references_without_precomputed_copy_plan(self) -> None:
+    def test_model_controls_creation_and_length_follows_information(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
         contract = "\n".join((skill, content))
-        self.assertIn("完整案例纯正文、完整钩子纯正文", skill)
-        self.assertIn("最后连续阅读三份完整短内容案例", content)
-        self.assertIn("不要先总结技巧", content)
-        self.assertIn("案例标题、路径、机器字段", skill)
-        self.assertIn("检索技巧名、选择理由、预写摘要、段落分工", skill)
-        self.assertNotIn("任务合同", contract)
-        self.assertNotIn("最该记住什么", contract)
-        self.assertNotIn("最有直接后果", contract)
+        self.assertIn("由它决定角度、取舍、结构、语言、篇幅和结束位置", skill)
+        self.assertIn("篇幅跟随真实信息量", contract)
+        self.assertIn("内容说完即停", contract)
+        self.assertIn("不先分类、制定结构、分析案例或规划结尾", content)
+        self.assertIn("必要的情绪、节奏、幽默和留白可以保留", content)
 
-    def test_source_material_does_not_become_user_voice(self) -> None:
+    def test_source_and_finished_languages_are_separate(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
-        natural = _read("references/natural-writing.md")
-        self.assertIn("粘贴的文字默认都是参考材料", skill)
-        self.assertIn("都属于来源作者", skill)
-        self.assertIn("不借用案例中的人物、经历、立场、第一人称", content)
-        self.assertIn("不能成为事实来源或用户长期声音", natural)
-        self.assertIn("来源作者被写成用户", natural)
+        self.assertIn("直接回复和可发布文字默认使用中文", skill)
+        self.assertIn("中文已有清楚说法时使用中文", content)
+        self.assertIn("识别、搜索或操作需要时保留外文", content)
 
-    def test_natural_review_judges_the_complete_draft_without_a_phrase_blacklist(self) -> None:
+    def test_delivery_exposes_prepared_material_result_and_references(self) -> None:
+        skill = _read("SKILL.md")
+        self.assertIn("每次写作固定展示四部分", skill)
+        for heading in (
+            "**写作要求**",
+            "**写作准备材料**",
+            "**结果**",
+            "**本次创作参考**",
+        ):
+            self.assertEqual(1, skill.count(heading))
+        self.assertIn("在独立代码块中完整展示", skill)
+        self.assertIn("与正式写作前重复使用的版本完全相同", skill)
+        self.assertNotIn("**修改前**", skill)
+        self.assertNotIn("**修改后**", skill)
+        self.assertNotIn("本次信息来源", skill)
+
+    def test_ai_flavor_audit_edits_only_confirmed_problems(self) -> None:
         skill = _read("SKILL.md")
         natural = _read("references/natural-writing.md")
-        self.assertIn("初稿已经冻结后使用", natural)
-        self.assertIn("逐句做一次删除测试", natural)
-        self.assertIn("如果没有新增事实、关系、动作或必要情绪，一律删除", natural)
-        self.assertIn("润色默认保留初稿，有明确问题才改", natural)
-        self.assertIn("如果新写法没有更准确、更具体、更清楚或更顺，保留原句", natural)
-        self.assertIn("润色不设字数上限或下限", natural)
-        self.assertIn("从最后一句开始倒序做唯一贡献测试", natural)
-        self.assertIn("只宣布“变化很大、规则变了、换玩法了、不是 A 而是 B”", natural)
-        self.assertIn("首句应使用当前材料独有的事实、动作、冲突或结果", natural)
-        self.assertIn("删完不再补结尾", skill)
-        self.assertIn("不要套固定的“AI 味词表”", natural)
-        self.assertIn("保留初稿里已经成立的具体感、节奏、留白和人的毛边", natural)
-        self.assertIn("同时展示修改前与修改后", natural)
+        audit = _read("references/content-audit.md")
+        self.assertEqual(1, skill.count("references/natural-writing.md"))
+        self.assertIn("用户要求检查或清理 AI 味时", skill)
+        self.assertIn("没有内容作用的句子可以删除", natural)
+        self.assertIn("删除后不补抽象总结", natural)
+        self.assertIn("不把失败句式和禁用示例重新放进创作输入", natural)
+        self.assertIn("只修改已经确认的问题", audit)
+        self.assertIn("不借审查重新设计全文", audit)
 
-    def test_finished_language_is_separate_from_source_language(self) -> None:
-        skill = _read("SKILL.md")
-        content = _read("references/content-writing.md")
-        natural = _read("references/natural-writing.md")
-        self.assertIn("成品语言与来源语言分开处理", skill)
-        self.assertIn("目标语言已有清楚说法时直接使用", content)
-        self.assertIn("目标语言受外文牵制", natural)
-        self.assertIn("需要识别、搜索或操作原名", content)
+    def test_publication_facts_do_not_prescribe_activity_copy_structure(self) -> None:
+        publication = _read("references/publication-requirements.md")
+        self.assertNotIn("活动发布型短内容使用同一条内容关系", publication)
+        self.assertNotIn("最后落在参与结果", publication)
+        self.assertIn("它只补充事实", publication)
 
-    def test_every_writing_delivery_shows_actual_references_and_sources(self) -> None:
-        skill = _read("SKILL.md")
-        self.assertIn("**写作要求**", skill)
-        self.assertIn("只写一句话", skill)
-        self.assertIn("材料事实、必写重点、来源身份、处理路线", skill)
-        self.assertIn("**修改前**", skill)
-        self.assertIn("**修改后**", skill)
-        self.assertIn("润色不是为了产生差异", skill)
-        self.assertIn("修改后没有更好时", skill)
-        self.assertNotIn("**写作使用的材料**", skill)
-        self.assertIn("本次创作参考", skill)
-        self.assertIn("本次信息来源", skill)
+    def test_reference_admission_keeps_quality_maintenance(self) -> None:
+        cases = _read("references/content-case-library.md")
+        hooks = _read("references/hook-library.md")
+        self.assertIn("信息量与篇幅相称", cases)
+        self.assertIn("空泛总结", cases)
+        self.assertIn("重新阅读全文", cases)
+        self.assertIn("可回查归档并重建索引", cases)
+        self.assertIn("具体事实、动作、冲突、结果、问题或真实情绪", hooks)
+        self.assertIn("自然接入后文", hooks)
+        self.assertIn("可回查归档并重建索引", hooks)
 
 
 if __name__ == "__main__":
