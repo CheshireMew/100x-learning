@@ -33,19 +33,23 @@ METADATA_PATTERN = re.compile(
 )
 
 TECHNIQUE_ORDER = (
-    "结果钩子",
-    "痛点钩子",
-    "问题钩子",
-    "反常识钩子",
-    "冲突钩子",
-    "故事钩子",
-    "信息缺口钩子",
-    "对象亮相钩子",
-    "数字钩子",
-    "清单钩子",
-    "亲历钩子",
-    "热点钩子",
+    "利益先行",
+    "结果先行",
+    "变化先行",
+    "问题切入",
+    "冲突切入",
+    "反常识切入",
+    "场景切入",
+    "故事切入",
+    "信息缺口",
+    "对象亮相",
+    "数字切入",
+    "清单承诺",
+    "亲历切入",
+    "观点先行",
 )
+SUPPORTED_TECHNIQUES = set(TECHNIQUE_ORDER)
+FORMAT_LABELS = {"short": "短内容", "thread": "Thread", "article": "文章"}
 
 
 class HookError(ValueError):
@@ -57,7 +61,7 @@ class HookExample:
     path: Path
     hook_id: str
     title: str
-    writing_format: str
+    writing_formats: tuple[str, ...]
     technique: str
     text: str
 
@@ -103,6 +107,19 @@ def _required_string(metadata: dict[str, Any], key: str) -> str:
     return value.strip()
 
 
+def _writing_formats(metadata: dict[str, Any]) -> tuple[str, ...]:
+    value = metadata.get("writing_formats")
+    if not isinstance(value, list) or not value:
+        raise HookError("writing_formats 必须是非空数组")
+    formats = tuple(item.strip() for item in value if isinstance(item, str) and item.strip())
+    if len(formats) != len(value):
+        raise HookError("writing_formats 只能包含非空字符串")
+    invalid = sorted(set(formats) - set(FORMAT_LABELS))
+    if invalid:
+        raise HookError("不支持的适用成品形式：" + "、".join(invalid))
+    return formats
+
+
 def _title(body: str) -> str:
     match = re.search(r"^# (.+?)\s*$", body, re.MULTILINE)
     if not match:
@@ -131,25 +148,28 @@ def _parse_hook(path: Path, layout: LibraryLayout) -> HookExample:
         relative = path.relative_to(layout.hook_root)
     except ValueError as exc:
         raise HookError("钩子必须位于独立 Hook Library 目录") from exc
-    if len(relative.parts) != 3:
-        raise HookError("钩子必须使用“成品形态/开头手法/文件”三级路径")
+    if len(relative.parts) != 3 or relative.parts[0] != "Examples":
+        raise HookError("钩子必须使用“Examples/写作技巧/文件”路径")
     metadata, body = _parse_metadata(path.read_text(encoding="utf-8-sig"))
-    allowed = {"resource_type", "hook_id", "writing_format"}
+    allowed = {"resource_type", "hook_id", "writing_formats"}
     unknown = sorted(set(metadata) - allowed)
     if unknown:
         raise HookError("钩子元数据含有非寻址字段：" + "、".join(unknown))
     if metadata.get("resource_type") != "hook-example":
         raise HookError("resource_type 必须是 hook-example")
-    writing_format = _required_string(metadata, "writing_format")
-    if writing_format != relative.parts[0]:
-        raise HookError("writing_format 必须与钩子目录一致")
+    technique = relative.parts[1]
+    if technique not in SUPPORTED_TECHNIQUES:
+        raise HookError(f"不支持的写作技巧：{technique}")
+    hook_id = _required_string(metadata, "hook_id")
+    if path.stem != hook_id:
+        raise HookError("钩子文件名必须与 hook_id 一致，不能暴露题材或对象")
     text = _hook_text(_section(body, "钩子原文"))
     return HookExample(
         path=path,
-        hook_id=_required_string(metadata, "hook_id"),
+        hook_id=hook_id,
         title=_title(body),
-        writing_format=writing_format,
-        technique=relative.parts[1],
+        writing_formats=_writing_formats(metadata),
+        technique=technique,
         text=text,
     )
 
@@ -159,10 +179,9 @@ def load_library(layout: LibraryLayout) -> tuple[list[HookExample], list[str]]:
     issues: list[str] = []
     ids: dict[str, Path] = {}
     texts: dict[str, Path] = {}
-    paths = sorted(layout.hook_root.rglob("*.md")) if layout.hook_root.is_dir() else []
+    example_root = layout.hook_root / "Examples"
+    paths = sorted(example_root.rglob("*.md")) if example_root.is_dir() else []
     for path in paths:
-        if path == layout.hook_index:
-            continue
         try:
             hook = _parse_hook(path, layout)
             previous_id = ids.get(hook.hook_id)
@@ -179,73 +198,57 @@ def load_library(layout: LibraryLayout) -> tuple[list[HookExample], list[str]]:
     return hooks, issues
 
 
-def _index_label(hook: HookExample) -> str:
-    first = re.split(r"[。！？!?\n]", hook.text, maxsplit=1)[0].strip()
-    title_key = hook.title.rstrip("。！？!?：:… ")
-    first_key = first.rstrip("。！？!?：:… ")
-    if title_key != first_key or len(first) >= 24:
-        return hook.title
-    collapsed = re.sub(r"\s+", " ", hook.text).strip()
-    if len(collapsed) > 90:
-        collapsed = collapsed[:89].rstrip() + "…"
-    return collapsed
+def _index_path(layout: LibraryLayout, writing_format: str) -> Path:
+    return {
+        "short": layout.short_hook_index,
+        "thread": layout.thread_hook_index,
+        "article": layout.article_hook_index,
+    }[writing_format]
 
 
-def build_index(hooks: Sequence[HookExample], layout: LibraryLayout) -> str:
+def build_index(
+    hooks: Sequence[HookExample], layout: LibraryLayout, writing_format: str
+) -> str:
+    if writing_format not in FORMAT_LABELS:
+        raise HookError("writing_format 必须是 short、thread 或 article")
+    selected = [hook for hook in hooks if writing_format in hook.writing_formats]
     lines = [
-        "# 开头钩子索引",
+        f"# {FORMAT_LABELS[writing_format]}钩子索引",
         "",
-        "本索引先按开头手法、再按原始成品形态定位独立钩子。主题不参与分组；成品形态只用于定位，不限制文章、短帖或 Thread 跨形态使用。写作时打开实际文件，索引不能替代原文。",
+        f"本索引只包含明确适用于{FORMAT_LABELS[writing_format]}的钩子，并且只按写作技巧分组。条目和文件名只显示不带题材含义的稳定编号；主题、行业和对象名称不参与选择。先按技巧选编号，再打开实际文件；索引不能替代原文。",
         "",
-        f"当前共有 {len(hooks)} 条独立钩子。",
+        f"当前共有 {len(selected)} 条独立钩子。",
         "",
     ]
-    groups: dict[tuple[str, str], list[HookExample]] = {}
-    for hook in hooks:
-        groups.setdefault((hook.writing_format, hook.technique), []).append(hook)
-    technique_order = {
-        technique: index for index, technique in enumerate(TECHNIQUE_ORDER)
-    }
-    techniques = sorted(
-        {technique for _, technique in groups},
-        key=lambda technique: (
-            technique_order.get(technique, len(technique_order)),
-            technique,
-        ),
-    )
-    for technique in techniques:
+    for technique in TECHNIQUE_ORDER:
+        group = [hook for hook in selected if hook.technique == technique]
+        if not group:
+            continue
         lines.extend([f"## {technique}", ""])
-        writing_formats = sorted(
-            writing_format
-            for writing_format, group_technique in groups
-            if group_technique == technique
-        )
-        for writing_format in writing_formats:
-            lines.extend([f"### {writing_format}", ""])
-            for hook in sorted(
-                groups[(writing_format, technique)], key=lambda item: item.title
-            ):
-                relative = Path(
-                    os.path.relpath(hook.path, layout.hook_root)
-                ).as_posix()
-                lines.append(f"- [{_index_label(hook)}](<{relative}>)")
-            lines.append("")
+        for hook in sorted(group, key=lambda item: item.hook_id):
+            relative = Path(os.path.relpath(hook.path, layout.hook_root)).as_posix()
+            lines.append(f"- [参考 {hook.hook_id}](<{relative}>)")
+        lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
 
-def write_index(
+def write_indexes(
     layout: LibraryLayout,
     hooks: Sequence[HookExample],
     config_path: Path | None = None,
-) -> Path:
+) -> tuple[Path, Path, Path]:
     layout.hook_root.mkdir(parents=True, exist_ok=True)
-    managed_write_text(
-        layout.root,
-        layout.hook_index,
-        build_index(hooks, layout),
-        config_path=config_path,
-    )
-    return layout.hook_index
+    paths: list[Path] = []
+    for writing_format in FORMAT_LABELS:
+        path = _index_path(layout, writing_format)
+        managed_write_text(
+            layout.root,
+            path,
+            build_index(hooks, layout, writing_format),
+            config_path=config_path,
+        )
+        paths.append(path)
+    return paths[0], paths[1], paths[2]
 
 
 def add_hook(
@@ -255,16 +258,26 @@ def add_hook(
     input_path: Path,
     title: str,
     hook_id: str,
-    writing_format: str,
+    writing_formats: Sequence[str],
     technique: str,
     config_path: Path | None = None,
 ) -> Path:
     title = _safe_segment(title, "title")
-    writing_format = _safe_segment(writing_format, "writing_format")
     technique = _safe_segment(technique, "technique")
+    if technique not in SUPPORTED_TECHNIQUES:
+        raise HookError(f"不支持的写作技巧：{technique}")
+    normalized_formats = tuple(
+        value.strip() for value in writing_formats if value.strip()
+    )
+    invalid_formats = sorted(set(normalized_formats) - set(FORMAT_LABELS))
+    if not normalized_formats:
+        raise HookError("至少提供一种适用成品形式")
+    if invalid_formats:
+        raise HookError("不支持的适用成品形式：" + "、".join(invalid_formats))
     hook_id = hook_id.strip()
     if not hook_id:
         raise HookError("hook_id 不能为空")
+    _safe_segment(hook_id, "hook_id")
     if any(item.hook_id == hook_id for item in existing):
         raise HookError(f"hook_id 已经存在：{hook_id}")
     try:
@@ -278,9 +291,9 @@ def add_hook(
     metadata = {
         "resource_type": "hook-example",
         "hook_id": hook_id,
-        "writing_format": writing_format,
+        "writing_formats": list(normalized_formats),
     }
-    path = layout.hook_root / writing_format / technique / f"{title}.md"
+    path = layout.hook_root / "Examples" / technique / f"{hook_id}.md"
     if path.exists():
         raise HookError(f"钩子已经存在：{path}")
     body = "\n\n".join(
@@ -309,8 +322,10 @@ def _parser() -> argparse.ArgumentParser:
     add.add_argument("--input", type=Path, required=True)
     add.add_argument("--title", required=True)
     add.add_argument("--hook-id", required=True)
-    add.add_argument("--writing-format", required=True)
-    add.add_argument("--technique", required=True)
+    add.add_argument(
+        "--format", action="append", required=True, choices=tuple(FORMAT_LABELS)
+    )
+    add.add_argument("--technique", required=True, choices=TECHNIQUE_ORDER)
     return parser
 
 
@@ -329,33 +344,42 @@ def main(argv: list[str] | None = None) -> int:
                 input_path=args.input,
                 title=args.title,
                 hook_id=args.hook_id,
-                writing_format=args.writing_format,
+                writing_formats=args.format,
                 technique=args.technique,
                 config_path=args.config,
             )
             hooks, issues = load_library(layout)
             if issues:
                 raise HookError("\n".join(issues))
-            index_path = write_index(layout, hooks, args.config)
-            print(f"钩子已保存：{created}\n索引已更新：{index_path}")
+            index_paths = write_indexes(layout, hooks, args.config)
+            print(
+                f"钩子已保存：{created}\n索引已更新："
+                + "、".join(str(path) for path in index_paths)
+            )
             return 0
-        expected = build_index(hooks, layout)
         if args.command == "validate":
-            if not layout.hook_index.is_file():
-                raise HookError(f"钩子索引不存在：{layout.hook_index}")
-            if layout.hook_index.read_text(encoding="utf-8") != expected:
-                raise HookError(f"钩子索引需要更新：{layout.hook_index}")
-            print(f"钩子库有效：{len(hooks)} 条；索引：{layout.hook_index}")
+            for writing_format in FORMAT_LABELS:
+                path = _index_path(layout, writing_format)
+                expected = build_index(hooks, layout, writing_format)
+                if not path.is_file():
+                    raise HookError(f"钩子索引不存在：{path}")
+                if path.read_text(encoding="utf-8") != expected:
+                    raise HookError(f"钩子索引需要更新：{path}")
+            print(f"钩子库有效：{len(hooks)} 条；三个索引按写作技巧独立生成。")
             return 0
         if args.check:
-            if not layout.hook_index.is_file():
-                raise HookError(f"钩子索引不存在：{layout.hook_index}")
-            if layout.hook_index.read_text(encoding="utf-8") != expected:
-                raise HookError(f"钩子索引需要更新：{layout.hook_index}")
-            print(f"钩子索引有效：{layout.hook_index}")
+            for writing_format in FORMAT_LABELS:
+                path = _index_path(layout, writing_format)
+                if not path.is_file():
+                    raise HookError(f"钩子索引不存在：{path}")
+                if path.read_text(encoding="utf-8") != build_index(
+                    hooks, layout, writing_format
+                ):
+                    raise HookError(f"钩子索引需要更新：{path}")
+            print("短内容、Thread 与文章钩子索引有效")
             return 0
-        index_path = write_index(layout, hooks, args.config)
-        print(f"钩子索引已更新：{index_path}")
+        index_paths = write_indexes(layout, hooks, args.config)
+        print("钩子索引已更新：" + "、".join(str(path) for path in index_paths))
         return 0
     except (HookError, LibraryError, OSError, UnicodeError) as exc:
         print(str(exc), file=sys.stderr)

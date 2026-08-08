@@ -109,16 +109,15 @@ published_url: ""
 
 ```markdown
 <!-- content-case-index
-writing_format: "product"
+writing_format: "short-post"
+writing_purpose: "product"
 writing_origin: "human-edited"
 voice_eligible: true
-index_task: "……"
-index_topics: ["……"]
-index_moves: ["……"]
+writing_techniques: ["结果先行", "因果推进"]
 -->
 ```
 
-只要出现任一写作字段，`writing_format` 就必须存在且位于支持列表中；否则记录校验失败并要求修正案例文件，不猜测，也不降级成 `short-post`。缺少声音字段的写作案例会以 `writing_origin: unknown`、`voice_eligible: false` 保存。
+`writing_techniques` 只供案例索引使用；`writing_format`、`writing_purpose`、`writing_origin` 和 `voice_eligible` 只供写作记忆使用，两组字段不能互相推导。只要出现任一写作记忆字段，`writing_format` 就必须存在且位于支持列表中；否则记录校验失败并要求修正案例文件，不猜测，也不降级成 `short-post`。缺少声音字段的写作案例会以 `writing_origin: unknown`、`voice_eligible: false` 保存。
 
 保存正文后运行：
 

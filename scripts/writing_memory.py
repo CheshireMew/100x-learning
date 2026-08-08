@@ -196,7 +196,7 @@ def _section(value: str, heading: str, next_heading: str | None = None) -> str:
 
 def _authored_body(value: str, source_kind: str) -> str:
     if source_kind == "writing-case":
-        value = _section(value, "原帖全文")
+        value = _section(value, "原文全文")
         value = value.split("<!-- content-case-index", 1)[0]
     return _normalize_text(value)
 
@@ -390,7 +390,12 @@ def _record_from_writing_case(
 ) -> WritingRecord | None:
     body = path.read_text(encoding="utf-8-sig")
     case_metadata = _parse_case_index_metadata(body, path)
-    writing_fields = {"writing_format", "writing_origin", "voice_eligible"}
+    writing_fields = {
+        "writing_format",
+        "writing_purpose",
+        "writing_origin",
+        "voice_eligible",
+    }
     if not writing_fields.intersection(case_metadata):
         return None
     writing_format = case_metadata.get("writing_format", "").strip()
@@ -408,14 +413,14 @@ def _record_from_writing_case(
 
     normalized_body = _authored_body(body, "writing-case")
     if not normalized_body:
-        raise MemoryError(f"{path}: 原帖全文为空")
+        raise MemoryError(f"{path}: 原文全文为空")
     relative = _relative(path, library_root)
     return WritingRecord(
         id=f"path:{relative}",
         path=relative,
         title=_title(body, path),
         format=_normalize_format(writing_format, path),
-        content_type=path.parent.name,
+        content_type=case_metadata.get("writing_purpose", "").strip(),
         writing_origin=writing_origin,
         voice_eligible=voice_eligible,
         status="published",

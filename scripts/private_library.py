@@ -19,7 +19,7 @@ TOPIC_PORTFOLIO_TEMPLATE = ASSET_ROOT / "topic-portfolio.md"
 PUBLISHED_REVIEW_TEMPLATE = ASSET_ROOT / "published-content-review.md"
 
 LIBRARY_SCHEMA = "100x-learning-private-library"
-LIBRARY_VERSION = 2
+LIBRARY_VERSION = 3
 MANIFEST_RELATIVE = Path(".100x-learning/library.json")
 DEFAULT_CONFIG_RELATIVE = Path(".100x-learning/config.json")
 
@@ -32,6 +32,7 @@ REQUIRED_DIRECTORIES = (
     Path("20-Sources/Content Cases"),
     Path("20-Sources/Social Posts/Content Cases/完整短内容"),
     Path("20-Sources/Hook Library"),
+    Path("20-Sources/Hook Library/Examples"),
     Path("30-Projects"),
     Path("40-Outputs/Writing"),
     Path("50-Areas"),
@@ -81,16 +82,28 @@ class LibraryLayout:
         return self.sources / "Content Cases"
 
     @property
-    def case_index(self) -> Path:
-        return self.case_index_root / "内容案例索引.md"
+    def short_case_index(self) -> Path:
+        return self.case_index_root / "短内容案例索引.md"
+
+    @property
+    def article_case_index(self) -> Path:
+        return self.case_index_root / "文章案例索引.md"
 
     @property
     def hook_root(self) -> Path:
         return self.sources / "Hook Library"
 
     @property
-    def hook_index(self) -> Path:
-        return self.hook_root / "开头钩子索引.md"
+    def short_hook_index(self) -> Path:
+        return self.hook_root / "短内容钩子索引.md"
+
+    @property
+    def thread_hook_index(self) -> Path:
+        return self.hook_root / "Thread钩子索引.md"
+
+    @property
+    def article_hook_index(self) -> Path:
+        return self.hook_root / "文章钩子索引.md"
 
     @property
     def writing_outputs(self) -> Path:

@@ -53,7 +53,7 @@ Those workflows cover source comprehension, research, explanation, practice, con
 - **Design launch content**: `Design the launch content for this project. Give me the plan first.` → A normal content plan; benefits, dates, and action links are verified only when the copy actually contains them.
 - **Use a private knowledge library**: `Save the confirmed conclusions to my private knowledge library.` → The unique library root is resolved first, then the existing topic source of truth is updated; files change only when explicitly requested.
 
-Different results stop at different points. A request for candidates does not silently become a post, and a review does not silently edit the draft. A promotional request that asks for copy receives finished copy directly; it stops at a plan only when the user explicitly asks for a plan. Saving files, producing media, and publishing are separate actions.
+Different results stop at different points. A request for candidates does not silently become a post, and a review does not silently edit the draft. A promotional request that asks for copy receives finished copy directly; it stops at a plan only when the user explicitly asks for a plan. Sufficient-material short copy does not re-check supplied facts through external search. Saving files, producing media, and publishing are separate actions.
 
 ## Quick start
 
@@ -93,7 +93,7 @@ Do not score topics to fill a quota, and do not turn a temporary request into lo
 The active routes stay separate:
 
 - Research establishes facts and keeps relevant unknowns visible.
-- Every publishable draft first serves communication: readers should quickly know what it is about, why it is worth continuing, and what they should understand, remember, or do. The task contract contains only the requested artifact and that communication result; numbers, rules, and fields from source material remain writing material instead of becoming additional content goals. A clear object or change can be stated directly; short copy completes one idea quickly, while articles and newsletters keep every section advancing the same center. New writing, expansion, and substantive restructuring search only for scenes, mechanisms, comparisons, reactions, and natural language missing from the user's material; they do not re-check supplied numbers, dates, conditions, or conclusions. Claims introduced by the writer or external material are verified only after a draft exists. These routes also resolve the private library first, select complete examples by the current public action and progression before narrowing by topic, read opening hooks that actually shape the draft, and always expose the task contract, material actually used, complete draft, creative references, and information sources in the delivery.
+- Every publishable draft first serves communication. Sufficient material skips external evidence gathering, not private creative references. Short-form and article cases have separate active indexes; short-form, thread, and article hooks also have separate indexes. All five indexes are grouped only by transferable writing techniques such as openings, progression, and endings. Entries and filenames use opaque stable IDs, so selection cannot fall back to a similar subject, product, industry, or task before the full reference is opened. The model reads complete references and synthesizes freely within the user request, facts, source identity, language, form, and length. References influence writing method only; they never supply the current subject’s facts, identity, or voice.
 - Publication review uses the real artifact and feedback to define the next testable improvement.
 
 Launch, recruitment, pre-launch, and promotional copy still use the normal writing flow. Benefits, dates, action links, or disclosure requirements are added only when ordinary readers need them to understand the main benefit or complete the next step.
@@ -122,14 +122,14 @@ The selected root is recorded in `~/.100x-learning/config.json`. A new library m
 
 `adopt` adds the 100x Learning marker and updates the local root pointer without moving, copying, or rewriting existing knowledge. The config stores the library version and root path, not private content.
 
-Once connected, the library can provide knowledge sources of truth, complete content examples, independent hooks, confirmed writing voice, publication history, long-term content direction, and durable topic state. Without a configured library, source comprehension and standalone research can still use the current input and external sources, but new writing, expansion, and substantive restructuring stop before any web or external-material discovery and tell the user to initialize or adopt a library. Only word-level, formatting, or meaning-preserving compression of a user-owned draft can continue as a local edit.
+Once connected, the library can provide knowledge sources of truth, complete content examples, independent hooks, confirmed writing voice, publication history, long-term content direction, and durable topic state. Without a configured library, source comprehension and standalone research can still use the current input, but both sufficient-material short copy and discovery-based writing stop before external-material discovery and ask the user to initialize or adopt a library. Word-level, formatting, or meaning-preserving compression of a user-owned draft continues as a local edit.
 
 | Material role | Private-library destination | Result |
 | --- | --- | --- |
 | Original web pages, courses, subtitles, interviews, or posts | `20-Sources` | Source, role, and necessary context are retained; full text is saved only when needed and allowed |
 | Digested concepts, mechanisms, conclusions, and boundaries | `10-Knowledge` | Existing topics and aliases are searched first; one topic keeps one source of truth |
-| A complete piece worth using as a writing reference | Complete short-form or article case directories | The full artifact and verifiable source are stored and indexed |
-| An original opening explicitly selected by the user | `20-Sources/Hook Library/<writing format>` | The continuous original passage, its continuation, source, and minimum locator are indexed separately |
+| A complete piece worth using as a writing reference | Complete short-form or article case directories | The full artifact and writing techniques are stored and added to the matching form index |
+| An original opening explicitly selected by the user | `20-Sources/Hook Library/Examples/<writing technique>` | The continuous original passage, its continuation, and applicable forms are added to the matching hook indexes |
 | A confirmed final or published work | `40-Outputs/Writing` | The final copy is saved; publication history or voice is updated only when the evidence qualifies |
 
 Long-term content direction and personal voice use separate sources of truth. A topic portfolio stores only the decision state for its series. Publication reviews link the final artifact and real feedback instead of copying another body or metric database.

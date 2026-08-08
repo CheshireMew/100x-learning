@@ -12,7 +12,7 @@ from scripts.content_case_library import (
     build_index,
     load_library,
     main,
-    write_index,
+    write_indexes,
 )
 from scripts.private_library import initialize_library
 
@@ -26,7 +26,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
             self.library_root,
             self.config_path,
         )
-        write_index(self.layout, [])
+        write_indexes(self.layout, [])
         self.short, self.article = self._seed_library()
 
     def tearDown(self) -> None:
@@ -49,14 +49,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
                 "把一份长材料交给工具，它会先恢复主线，再生成可以继续使用的知识。",
             ),
             title="材料变成可复用知识",
-            content_type="项目与产品介绍",
-            index_task="介绍项目结果",
-            topics=("学习", "知识库"),
-            moves=("输入变成结果",),
-            index_roles=("promotion",),
-            promotion_stages=("launch",),
-            audience_actions=("visit",),
-            benefit_recipients=("reader",),
+            techniques=("结果先行", "因果推进"),
         )
         existing, issues = load_library(self.layout)
         self.assertFalse(issues)
@@ -69,14 +62,11 @@ class ContentCaseLibraryTests(unittest.TestCase):
                 "这篇文章完整解释了材料、知识、案例和钩子为什么需要不同的保存边界。",
             ),
             title="私人知识库的四种内容",
-            content_type="概念与机制解释",
-            index_task="解释知识库边界",
-            topics=("知识库",),
-            moves=("先区分消费者",),
+            techniques=("问题切入", "机制拆解"),
         )
         cases, issues = load_library(self.layout)
         self.assertFalse(issues)
-        write_index(self.layout, cases)
+        write_indexes(self.layout, cases)
         return short, article
 
     def test_library_loads_only_complete_case_types(self) -> None:
@@ -118,26 +108,15 @@ source_url: "https://example.com/formal"
         self.assertFalse(issues)
         self.assertNotIn(formal, [case.path for case in cases])
 
-    def test_all_promotion_resources_name_the_actor_and_action(self) -> None:
+    def test_cases_expose_only_form_and_writing_techniques(self) -> None:
         cases, issues = load_library(self.layout)
         self.assertFalse(issues)
-        promotion_cases = [
-            case for case in cases if "promotion" in case.index_roles
-        ]
 
-        self.assertTrue(promotion_cases)
-        self.assertTrue(all(case.promotion_stages for case in promotion_cases))
-        self.assertTrue(all(case.audience_actions for case in promotion_cases))
-        self.assertTrue(all(case.benefit_recipients for case in promotion_cases))
-        reader_cases = [
-            case
-            for case in promotion_cases
-            if "reader" in case.benefit_recipients
-        ]
-        self.assertTrue(reader_cases)
-        self.assertTrue(
-            all("publisher" not in case.benefit_recipients for case in reader_cases)
-        )
+        short = next(case for case in cases if case.asset == "short")
+        self.assertEqual(("结果先行", "因果推进"), short.writing_techniques)
+        self.assertFalse(hasattr(short, "index_task"))
+        self.assertFalse(hasattr(short, "topics"))
+        self.assertFalse(hasattr(short, "promotion_stages"))
 
     def test_case_files_keep_complete_text_without_source_or_editorial_limits(self) -> None:
         cases, issues = load_library(self.layout)
@@ -152,13 +131,12 @@ source_url: "https://example.com/formal"
             self.assertNotIn("来源：", text, case.path)
             self.assertNotIn("原帖链接：", text, case.path)
             self.assertNotIn("source_url:", text, case.path)
-            if case.asset != "article":
-                self.assertTrue(text.startswith("# "), case.path)
-                self.assertLess(
-                    text.index("## 原帖全文"),
-                    text.index("<!-- content-case-index"),
-                    case.path,
-                )
+            self.assertTrue(text.startswith("# "), case.path)
+            self.assertLess(
+                text.index("## 原文全文"),
+                text.index("<!-- content-case-index"),
+                case.path,
+            )
 
     def test_cli_creates_a_case_from_real_input_and_updates_the_index(self) -> None:
         raw = self._input(
@@ -178,14 +156,8 @@ source_url: "https://example.com/formal"
                     str(raw),
                     "--title",
                     "正式入口保存材料",
-                    "--content-type",
-                    "教程与操作指南",
-                    "--index-task",
-                    "说明沉淀流程",
-                    "--topic",
-                    "私人知识库",
-                    "--move",
-                    "材料进入真源",
+                    "--technique",
+                    "步骤推进",
                 ]
             )
         self.assertEqual(0, result, stdout.getvalue())
@@ -194,18 +166,40 @@ source_url: "https://example.com/formal"
         self.assertFalse(issues)
         created = next(case for case in cases if case.title == "正式入口保存材料")
         self.assertIn("正式生产入口保存全文", created.original_text)
-        self.assertIn(created.title, self.layout.case_index.read_text(encoding="utf-8"))
+        short_index = self.layout.short_case_index.read_text(encoding="utf-8")
+        self.assertIn(created.case_id, short_index)
+        self.assertNotIn(created.title, short_index)
+        self.assertIn("## 步骤推进", short_index)
+        self.assertNotIn(
+            created.case_id,
+            self.layout.article_case_index.read_text(encoding="utf-8"),
+        )
 
     def test_generated_index_matches_every_active_resource(self) -> None:
         cases, issues = load_library(self.layout)
         self.assertFalse(issues)
-        generated = build_index(cases, self.layout)
+        short_generated = build_index(cases, self.layout, "short")
+        article_generated = build_index(cases, self.layout, "article")
 
-        self.assertEqual(self.layout.case_index.read_text(encoding="utf-8"), generated)
-        self.assertIn("不限制宣传内容读取其它相关案例", generated)
-        self.assertNotIn("用于宣发时，只打开", generated)
-        for case in cases:
-            self.assertIn(case.title, generated)
+        self.assertEqual(
+            self.layout.short_case_index.read_text(encoding="utf-8"),
+            short_generated,
+        )
+        self.assertEqual(
+            self.layout.article_case_index.read_text(encoding="utf-8"),
+            article_generated,
+        )
+        self.assertIn("只按可迁移的写作技巧分组", short_generated)
+        short_case = next(case for case in cases if case.asset == "short")
+        article_case = next(case for case in cases if case.asset == "article")
+        self.assertIn(short_case.case_id, short_generated)
+        self.assertNotIn(short_case.title, short_generated)
+        self.assertNotIn(article_case.case_id, short_generated)
+        self.assertIn(article_case.case_id, article_generated)
+        self.assertNotIn(article_case.title, article_generated)
+        self.assertNotIn(short_case.case_id, article_generated)
+        for forbidden in ("index_task", "topics", "promotion", "项目与产品介绍"):
+            self.assertNotIn(forbidden, short_generated + article_generated)
 
     def test_cli_only_maintains_and_validates_resources(self) -> None:
         stdout = StringIO()
@@ -235,6 +229,23 @@ source_url: "https://example.com/formal"
         _, issues = load_library(self.layout)
 
         self.assertTrue(any("不保存原帖链接或来源字段" in issue for issue in issues))
+
+    def test_parser_rejects_old_fields_and_nested_content_categories(self) -> None:
+        old = self.short.read_text(encoding="utf-8").replace(
+            "writing_techniques:", 'index_task: "旧任务"\nwriting_techniques:'
+        )
+        self.short.write_text(old, encoding="utf-8")
+        _, issues = load_library(self.layout)
+        self.assertTrue(any("旧检索字段或未知字段" in issue for issue in issues))
+
+        self.short.write_text(
+            old.replace('index_task: "旧任务"\n', ""), encoding="utf-8"
+        )
+        nested = self.layout.social_cases / "完整短内容" / "按题材" / "嵌套.md"
+        nested.parent.mkdir(parents=True)
+        nested.write_text(self.short.read_text(encoding="utf-8"), encoding="utf-8")
+        _, issues = load_library(self.layout)
+        self.assertTrue(any("不能再按题材或内容类别分层" in issue for issue in issues))
 
 
 if __name__ == "__main__":

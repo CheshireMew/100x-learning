@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from scripts.content_case_library import add_case, load_library as load_cases
 from scripts.private_library import initialize_library
 from scripts.writing_memory import (
     CONFIG_RELATIVE,
@@ -151,61 +152,47 @@ source_url: "https://example.com/case/"
         self.assertIn("实际发布正文", hits[0].opening)
 
     def test_explicit_writing_metadata_adds_a_case_without_account_or_source(self) -> None:
-        case_root = (
-            self.project_root
-            / "20-Sources"
-            / "Social Posts"
-            / "Content Cases"
-            / "完整短内容"
+        case_inputs = self.temp_root / "case-inputs"
+        eligible_input = case_inputs / "eligible.md"
+        unknown_input = case_inputs / "unknown.md"
+        ordinary_input = case_inputs / "ordinary.md"
+        _write(eligible_input, "我真正想减少的是上下文切换，而不只是点击次数。")
+        _write(unknown_input, "这条内容明确保存为写作记录，但没有标注写法来源。")
+        _write(ordinary_input, "这只是普通参考案例，不进入写作记忆。")
+        existing: list = []
+        add_case(
+            self.layout,
+            existing,
+            kind="short",
+            input_path=eligible_input,
+            title="写作案例",
+            techniques=("亲历切入", "机制拆解"),
+            writing_format="product",
+            writing_purpose="个人观察与实测",
+            writing_origin="human-edited",
+            voice_eligible=True,
         )
-        _write(
-            case_root / "个人观察与实测" / "写作案例.md",
-            """# 写作案例
-
-## 原帖全文
-
-我真正想减少的是上下文切换，而不只是点击次数。
-
-<!-- content-case-index
-writing_format: "product"
-writing_origin: "human-edited"
-voice_eligible: true
-index_task: "分享一次真实观察"
-index_topics: ["AI", "工作流"]
-index_moves: ["观察", "机制"]
--->
-""",
+        existing, issues = load_cases(self.layout)
+        self.assertFalse(issues)
+        add_case(
+            self.layout,
+            existing,
+            kind="short",
+            input_path=unknown_input,
+            title="写法未知",
+            techniques=("结果先行",),
+            writing_format="product",
+            writing_purpose="个人观察与实测",
         )
-        _write(
-            case_root / "个人观察与实测" / "写法未知.md",
-            """# 写法未知
-
-## 原帖全文
-
-这条内容明确保存为写作记录，但没有标注写法来源。
-
-<!-- content-case-index
-writing_format: "product"
-index_task: "介绍一个产品"
-index_topics: ["产品"]
-index_moves: ["介绍"]
--->
-""",
-        )
-        _write(
-            case_root / "个人观察与实测" / "普通案例.md",
-            """# 普通案例
-
-## 原帖全文
-
-这只是普通参考案例，不进入写作记忆。
-
-<!-- content-case-index
-index_task: "外部参考"
-index_topics: ["AI"]
-index_moves: ["观察"]
--->
-""",
+        existing, issues = load_cases(self.layout)
+        self.assertFalse(issues)
+        add_case(
+            self.layout,
+            existing,
+            kind="short",
+            input_path=ordinary_input,
+            title="普通案例",
+            techniques=("观点先行",),
         )
 
         records, receipt = discover_records(self.project_root)
@@ -254,22 +241,19 @@ index_moves: ["观察"]
             / "Social Posts"
             / "Content Cases"
             / "完整短内容"
-            / "项目与产品介绍"
             / "缺少形态.md"
         )
         _write(
             case,
             """# 缺少形态
 
-## 原帖全文
+## 原文全文
 
 这是本人发布的产品介绍。
 
 <!-- content-case-index
 writing_origin: "human"
-index_task: "介绍产品"
-index_topics: ["产品"]
-index_moves: ["介绍"]
+writing_techniques: ["结果先行"]
 -->
 """,
         )
