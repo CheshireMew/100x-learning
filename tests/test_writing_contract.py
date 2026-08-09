@@ -222,7 +222,9 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("所有成品从同一份钩子索引", skill)
         self.assertIn("分别从活动案例索引和钩子索引选择三个不同的写作技巧分组", skill)
         self.assertIn("从每个分组沿一个稳定编号链接打开完整原文", skill)
-        self.assertIn("只在原分组中换读另一份", skill)
+        self.assertIn("优先在原分组换读", skill)
+        self.assertIn("在承担相同或相邻表达作用的分组中换读", skill)
+        self.assertNotIn("只在原分组中换读另一份", skill)
         self.assertIn("索引标签只负责确定候选分组，完整原文决定最终取舍", skill)
         self.assertIn("题材、行业、对象、具体事件或邀请机制相同都不是前提", skill)
         self.assertIn("候选发现只通过索引分组及其中的稳定编号链接进行", skill)
@@ -244,6 +246,15 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("## 普通写作读取", hooks)
         self.assertNotIn("固定三份", skill)
         self.assertNotIn("至少三份", skill)
+
+    def test_explicit_rewrite_reuses_confirmed_material_without_reusing_the_previous_draft(self) -> None:
+        skill = _read("SKILL.md")
+        self.assertIn("“重新写”“重写”“从头写”或等义表达", skill)
+        self.assertIn("沿用已经确认的当前对象材料、表达边界和仍然适用的硬要求", skill)
+        self.assertIn("不再联网", skill)
+        self.assertIn("不把上一稿及其句子、结构或纠错过程放入成文输入", skill)
+        self.assertIn("重新选择案例与钩子，从零独立成文", skill)
+        self.assertIn("用户另有明确要求时，以当前要求为准", skill)
 
     def test_private_library_is_not_a_writing_gate(self) -> None:
         skill = _read("SKILL.md")
