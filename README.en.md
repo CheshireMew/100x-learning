@@ -93,7 +93,7 @@ Do not score topics to fill a quota, and do not turn a temporary request into lo
 The active routes stay separate:
 
 - Research establishes facts and keeps relevant unknowns visible.
-- Every publishable draft first serves communication. Sufficient material skips external evidence gathering, not private creative references. Short-form and article cases have separate active indexes; short-form, thread, and article hooks also have separate indexes. All five indexes are grouped only by transferable writing techniques such as openings, progression, and endings. Entries and filenames use opaque stable IDs, so selection cannot fall back to a similar subject, product, industry, or task before the full reference is opened. The model reads complete references and synthesizes freely within the user request, facts, source identity, language, form, and length. References influence writing method only; they never supply the current subject’s facts, identity, or voice.
+- Every publishable draft first serves communication. Sufficient material skips external evidence gathering, not private creative references. Standalone posts and threads share one social-content case index, while articles keep a separate case index. Short-form, thread, and article writing all use one hook index. Every index is grouped only by transferable writing techniques such as openings, progression, and endings. Entries and filenames use opaque stable IDs, so selection cannot fall back to a similar subject, product, industry, task, or output form before the full reference is opened. The model reads complete references and synthesizes freely within the user request, facts, source identity, language, form, and length. References influence writing method only; they never supply the current subject’s facts, identity, or voice.
 - Publication review uses the real artifact and feedback to define the next testable improvement.
 
 Launch, recruitment, pre-launch, and promotional copy still use the normal writing flow. Benefits, dates, action links, or disclosure requirements are added only when ordinary readers need them to understand the main benefit or complete the next step.
@@ -128,8 +128,8 @@ Once connected, the library can provide knowledge sources of truth, complete con
 | --- | --- | --- |
 | Original web pages, courses, subtitles, interviews, or posts | `20-Sources` | Source, role, and necessary context are retained; full text is saved only when needed and allowed |
 | Digested concepts, mechanisms, conclusions, and boundaries | `10-Knowledge` | Existing topics and aliases are searched first; one topic keeps one source of truth |
-| A complete piece worth using as a writing reference | Complete short-form or article case directories | The full artifact and writing techniques are stored and added to the matching form index |
-| An original opening explicitly selected by the user | `20-Sources/Hook Library/Examples/<writing technique>` | The continuous original passage, its continuation, and applicable forms are added to the matching hook indexes |
+| A complete piece worth using as a writing reference | Complete social-content or article case directories | The full artifact and writing techniques are stored; standalone posts and threads share one social-content case index |
+| An original opening explicitly selected by the user | `20-Sources/Hook Library/Examples/<writing technique>` | The continuous original passage and its continuation are stored without an applicable-form field and added to the unified hook index |
 | A confirmed final or published work | `40-Outputs/Writing` | The final copy is saved; publication history or voice is updated only when the evidence qualifies |
 
 Long-term content direction and personal voice use separate sources of truth. A topic portfolio stores only the decision state for its series. Publication reviews link the final artifact and real feedback instead of copying another body or metric database.

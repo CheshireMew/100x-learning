@@ -163,7 +163,7 @@ source_url: "https://example.com/case/"
         add_case(
             self.layout,
             existing,
-            kind="short",
+            kind="social",
             input_path=eligible_input,
             title="写作案例",
             techniques=("亲历切入", "机制拆解"),
@@ -177,7 +177,7 @@ source_url: "https://example.com/case/"
         add_case(
             self.layout,
             existing,
-            kind="short",
+            kind="social",
             input_path=unknown_input,
             title="写法未知",
             techniques=("结果先行",),
@@ -189,7 +189,7 @@ source_url: "https://example.com/case/"
         add_case(
             self.layout,
             existing,
-            kind="short",
+            kind="social",
             input_path=ordinary_input,
             title="普通案例",
             techniques=("观点先行",),
@@ -240,7 +240,7 @@ source_url: "https://example.com/case/"
             / "20-Sources"
             / "Social Posts"
             / "Content Cases"
-            / "完整短内容"
+            / "完整社交内容"
             / "缺少形态.md"
         )
         _write(

@@ -36,7 +36,7 @@ class PromotionWritingFlowTests(unittest.TestCase):
             created = add_case(
                 layout,
                 [],
-                kind="short",
+                kind="social",
                 input_path=raw,
                 title="私人知识库进入写作链",
                 techniques=("利益先行", "行动收束"),
@@ -51,11 +51,11 @@ class PromotionWritingFlowTests(unittest.TestCase):
 
             example = next(case for case in cases if case.path == created)
             self.assertEqual(("利益先行", "行动收束"), example.writing_techniques)
-            short_index = layout.short_case_index.read_text(encoding="utf-8")
-            self.assertIn("## 利益先行", short_index)
-            self.assertIn("## 行动收束", short_index)
-            self.assertIn(example.case_id, short_index)
-            self.assertNotIn(example.title, short_index)
+            social_index = layout.social_case_index.read_text(encoding="utf-8")
+            self.assertIn("## 利益先行", social_index)
+            self.assertIn("## 行动收束", social_index)
+            self.assertIn(example.case_id, social_index)
+            self.assertNotIn(example.title, social_index)
             self.assertNotIn(
                 example.case_id,
                 layout.article_case_index.read_text(encoding="utf-8"),

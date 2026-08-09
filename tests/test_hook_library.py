@@ -44,7 +44,7 @@ class HookLibraryTests(unittest.TestCase):
         case_path = add_case(
             self.layout,
             [],
-            kind="short",
+            kind="social",
             input_path=self._input("case.md", "完整案例从第一句保留到最后一句。"),
             title="完整案例",
             techniques=("结果先行",),
@@ -63,8 +63,6 @@ class HookLibraryTests(unittest.TestCase):
                     "材料直接变成下一步",
                     "--hook-id",
                     "material-to-next-step",
-                    "--format",
-                    "short",
                     "--technique",
                     "结果先行",
                 ]
@@ -81,36 +79,30 @@ class HookLibraryTests(unittest.TestCase):
         self.assertEqual(hook_text, hooks[0].text)
         self.assertTrue(hooks[0].path.is_relative_to(self.layout.hook_root))
         self.assertEqual("结果先行", hooks[0].technique)
-        self.assertEqual(("short",), hooks[0].writing_formats)
+        self.assertFalse(hasattr(hooks[0], "writing_formats"))
         self.assertFalse(case_path.is_relative_to(self.layout.hook_root))
-        index = self.layout.short_hook_index.read_text(encoding="utf-8")
+        index = self.layout.hook_index.read_text(encoding="utf-8")
         self.assertIn("## 结果先行", index)
         self.assertIn("material-to-next-step", index)
         self.assertNotIn("材料直接变成下一步", index)
         self.assertNotIn("完整案例", index)
-        self.assertNotIn(
-            "material-to-next-step",
-            self.layout.article_hook_index.read_text(encoding="utf-8"),
-        )
 
-    def test_each_format_has_an_independent_technique_index(self) -> None:
+    def test_one_technique_index_contains_hooks_for_every_output_shape(self) -> None:
         inputs = (
             (
                 "thread.md",
                 "短帖开头原文。\n这是紧接着的短帖内容。",
                 "短帖开头",
                 "contrast-thread",
-                "thread",
             ),
             (
                 "article.md",
                 "文章开头原文。\n这是紧接着的文章内容。",
                 "文章开头",
                 "contrast-article",
-                "article",
             ),
         )
-        for filename, body, title, hook_id, writing_format in inputs:
+        for filename, body, title, hook_id in inputs:
             with redirect_stdout(StringIO()):
                 result = hook_main(
                     [
@@ -123,29 +115,22 @@ class HookLibraryTests(unittest.TestCase):
                         title,
                         "--hook-id",
                         hook_id,
-                        "--format",
-                        writing_format,
                         "--technique",
                         "反常识切入",
                     ]
                 )
             self.assertEqual(0, result)
 
-        thread_index = self.layout.thread_hook_index.read_text(encoding="utf-8")
-        article_index = self.layout.article_hook_index.read_text(encoding="utf-8")
-        short_index = self.layout.short_hook_index.read_text(encoding="utf-8")
-        self.assertIn("## 反常识切入", thread_index)
-        self.assertIn("contrast-thread", thread_index)
-        self.assertNotIn("短帖开头", thread_index)
-        self.assertNotIn("contrast-article", thread_index)
-        self.assertIn("contrast-article", article_index)
-        self.assertNotIn("文章开头", article_index)
-        self.assertNotIn("contrast-thread", article_index)
-        self.assertNotIn("contrast-thread", short_index)
-        self.assertNotIn("contrast-article", short_index)
+        index = self.layout.hook_index.read_text(encoding="utf-8")
+        self.assertIn("## 反常识切入", index)
+        self.assertIn("contrast-thread", index)
+        self.assertIn("contrast-article", index)
+        self.assertNotIn("短帖开头", index)
+        self.assertNotIn("文章开头", index)
+        self.assertIn("不区分短内容、Thread 或文章", index)
         self.assertEqual(
-            build_index(load_library(self.layout)[0], self.layout, "thread"),
-            thread_index,
+            build_index(load_library(self.layout)[0], self.layout),
+            index,
         )
 
     def test_hook_resource_contains_only_raw_text_and_addressing_metadata(self) -> None:
@@ -163,8 +148,6 @@ class HookLibraryTests(unittest.TestCase):
                     "连续原文",
                     "--hook-id",
                     "contiguous-original",
-                    "--format",
-                    "article",
                     "--technique",
                     "问题切入",
                 ]
@@ -176,7 +159,7 @@ class HookLibraryTests(unittest.TestCase):
         metadata_text = text.split("<!-- hook-library-index\n", 1)[1].split("\n-->", 1)[0]
         metadata = json.loads(metadata_text)
         self.assertEqual(
-            {"resource_type", "hook_id", "writing_formats"},
+            {"resource_type", "hook_id"},
             set(metadata),
         )
         self.assertEqual("问题切入", hooks[0].path.parent.name)
@@ -195,7 +178,7 @@ class HookLibraryTests(unittest.TestCase):
         ):
             self.assertNotIn(polluted, text)
 
-    def test_one_hook_can_appear_in_multiple_explicit_format_indexes(self) -> None:
+    def test_one_hook_appears_once_in_the_unified_index(self) -> None:
         raw = self._input("news.md", "新功能已经可以用了。\n下面是最直接的使用方法。")
         self.assertEqual(
             0,
@@ -210,23 +193,18 @@ class HookLibraryTests(unittest.TestCase):
                     "新功能已经可以用了",
                     "--hook-id",
                     "breaking-product-update",
-                    "--format",
-                    "short",
-                    "--format",
-                    "thread",
                     "--technique",
                     "变化先行",
                 ]
             ),
         )
-        short_index = self.layout.short_hook_index.read_text(encoding="utf-8")
-        thread_index = self.layout.thread_hook_index.read_text(encoding="utf-8")
-        article_index = self.layout.article_hook_index.read_text(encoding="utf-8")
-        self.assertIn("breaking-product-update", short_index)
-        self.assertIn("breaking-product-update", thread_index)
-        self.assertNotIn("新功能已经可以用了", short_index + thread_index)
-        self.assertNotIn("breaking-product-update", article_index)
-        self.assertNotIn("为什么有效", short_index + thread_index)
+        index = self.layout.hook_index.read_text(encoding="utf-8")
+        self.assertEqual(1, index.count("[参考 breaking-product-update]"))
+        self.assertNotIn("新功能已经可以用了", index)
+        self.assertNotIn("为什么有效", index)
+        self.assertIn("每个条目指向一份完整原文", index)
+        self.assertNotIn("先按技巧选编号", index)
+        self.assertNotIn("浏览当前可用条目", index)
 
     def test_case_cli_cannot_create_hooks_and_hook_cli_cannot_reference_cases(self) -> None:
         stderr = StringIO()
@@ -249,6 +227,29 @@ class HookLibraryTests(unittest.TestCase):
         self.assertEqual(2, error.exception.code)
         self.assertIn("required", stderr.getvalue())
 
+    def test_retired_format_argument_is_rejected(self) -> None:
+        stderr = StringIO()
+        with redirect_stderr(stderr), self.assertRaises(SystemExit) as error:
+            hook_main(
+                [
+                    "--library-root",
+                    str(self.library_root),
+                    "add-hook",
+                    "--input",
+                    str(self._input("old-format.md", "旧格式参数不能继续生效。")),
+                    "--title",
+                    "旧格式参数",
+                    "--hook-id",
+                    "retired-format",
+                    "--technique",
+                    "结果先行",
+                    "--format",
+                    "short",
+                ]
+            )
+        self.assertEqual(2, error.exception.code)
+        self.assertIn("unrecognized arguments", stderr.getvalue())
+
     def test_hook_parser_rejects_source_metadata(self) -> None:
         raw = self._input("source-field.md", "第一句原文。\n这是紧接着的第二句。")
         with redirect_stdout(StringIO()):
@@ -265,8 +266,6 @@ class HookLibraryTests(unittest.TestCase):
                         "来源字段",
                         "--hook-id",
                         "forbidden-source-field",
-                        "--format",
-                        "short",
                         "--technique",
                         "结果先行",
                     ]

@@ -27,10 +27,10 @@ updated: {{DATE}}
 
 ## 内容案例与钩子
 
-- 完整短内容保存在 `20-Sources/Social Posts/Content Cases/完整短内容`。
-- 独立钩子保存在 `20-Sources/Hook Library/Examples/<写作技巧>`，只保存原始开头、紧接内容和最少定位字段，不附加来源；短内容、Thread 和文章各自的索引都只按写作技巧定位。
+- 完整社交内容保存在 `20-Sources/Social Posts/Content Cases/完整社交内容`，独立短帖与 Thread 不再分开。
+- 独立钩子保存在 `20-Sources/Hook Library/Examples/<写作技巧>`，只保存原始开头、紧接内容和最少定位字段，不附加来源，也不区分短内容、Thread 或文章。
 - 正式文章保存在 `20-Sources/Articles` 的其它目录；文章案例是复制到 `20-Sources/Articles/Content Cases` 的独立无来源副本，不能与正式文章共用同一文件。
-- 完整案例分别使用 `20-Sources/Content Cases/短内容案例索引.md` 与 `文章案例索引.md`；钩子分别使用 `20-Sources/Hook Library/短内容钩子索引.md`、`Thread钩子索引.md` 与 `文章钩子索引.md`。所有索引只按可迁移的写作技巧分组，不按题材、对象、行业或任务检索。
+- 完整案例分别使用 `20-Sources/Content Cases/社交内容案例索引.md` 与 `文章案例索引.md`；所有钩子共用 `20-Sources/Hook Library/钩子索引.md`。所有索引只按可迁移的写作技巧分组，不按题材、对象、行业、任务或成品形式检索。
 
 完整案例保存从第一句到最后一句的原文和必要定位字段，不附加来源；活动文件与索引条目使用不带题材含义的稳定编号，标题只在打开原文后出现。钩子保存经用户明确指定的一段连续原始开头、紧接内容和最少定位字段，同样使用稳定编号且不附加来源；案例导入不会自动建立钩子。
 

@@ -27,7 +27,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
             self.config_path,
         )
         write_indexes(self.layout, [])
-        self.short, self.article = self._seed_library()
+        self.social, self.article = self._seed_library()
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
@@ -40,12 +40,12 @@ class ContentCaseLibraryTests(unittest.TestCase):
     def _seed_library(self) -> tuple[Path, Path]:
         existing, issues = load_library(self.layout)
         self.assertFalse(issues)
-        short = add_case(
+        social = add_case(
             self.layout,
             existing,
-            kind="short",
+            kind="social",
             input_path=self._input(
-                "short.md",
+                "social.md",
                 "把一份长材料交给工具，它会先恢复主线，再生成可以继续使用的知识。",
             ),
             title="材料变成可复用知识",
@@ -67,7 +67,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
         cases, issues = load_library(self.layout)
         self.assertFalse(issues)
         write_indexes(self.layout, cases)
-        return short, article
+        return social, article
 
     def test_library_loads_only_complete_case_types(self) -> None:
         cases, issues = load_library(self.layout)
@@ -75,7 +75,7 @@ class ContentCaseLibraryTests(unittest.TestCase):
         self.assertFalse(issues)
         self.assertTrue(
             any(
-                isinstance(case, ContentCase) and case.asset == "short"
+                isinstance(case, ContentCase) and case.asset == "social"
                 for case in cases
             )
         )
@@ -112,11 +112,11 @@ source_url: "https://example.com/formal"
         cases, issues = load_library(self.layout)
         self.assertFalse(issues)
 
-        short = next(case for case in cases if case.asset == "short")
-        self.assertEqual(("结果先行", "因果推进"), short.writing_techniques)
-        self.assertFalse(hasattr(short, "index_task"))
-        self.assertFalse(hasattr(short, "topics"))
-        self.assertFalse(hasattr(short, "promotion_stages"))
+        social = next(case for case in cases if case.asset == "social")
+        self.assertEqual(("结果先行", "因果推进"), social.writing_techniques)
+        self.assertFalse(hasattr(social, "index_task"))
+        self.assertFalse(hasattr(social, "topics"))
+        self.assertFalse(hasattr(social, "promotion_stages"))
 
     def test_case_files_keep_complete_text_without_source_or_editorial_limits(self) -> None:
         cases, issues = load_library(self.layout)
@@ -151,7 +151,7 @@ source_url: "https://example.com/formal"
                     str(self.library_root),
                     "add-case",
                     "--kind",
-                    "short",
+                    "social",
                     "--input",
                     str(raw),
                     "--title",
@@ -166,10 +166,10 @@ source_url: "https://example.com/formal"
         self.assertFalse(issues)
         created = next(case for case in cases if case.title == "正式入口保存材料")
         self.assertIn("正式生产入口保存全文", created.original_text)
-        short_index = self.layout.short_case_index.read_text(encoding="utf-8")
-        self.assertIn(created.case_id, short_index)
-        self.assertNotIn(created.title, short_index)
-        self.assertIn("## 步骤推进", short_index)
+        social_index = self.layout.social_case_index.read_text(encoding="utf-8")
+        self.assertIn(created.case_id, social_index)
+        self.assertNotIn(created.title, social_index)
+        self.assertIn("## 步骤推进", social_index)
         self.assertNotIn(
             created.case_id,
             self.layout.article_case_index.read_text(encoding="utf-8"),
@@ -178,28 +178,31 @@ source_url: "https://example.com/formal"
     def test_generated_index_matches_every_active_resource(self) -> None:
         cases, issues = load_library(self.layout)
         self.assertFalse(issues)
-        short_generated = build_index(cases, self.layout, "short")
+        social_generated = build_index(cases, self.layout, "social")
         article_generated = build_index(cases, self.layout, "article")
 
         self.assertEqual(
-            self.layout.short_case_index.read_text(encoding="utf-8"),
-            short_generated,
+            self.layout.social_case_index.read_text(encoding="utf-8"),
+            social_generated,
         )
         self.assertEqual(
             self.layout.article_case_index.read_text(encoding="utf-8"),
             article_generated,
         )
-        self.assertIn("只按可迁移的写作技巧分组", short_generated)
-        short_case = next(case for case in cases if case.asset == "short")
+        self.assertIn("只按可迁移的写作技巧分组", social_generated)
+        self.assertIn("每个条目指向一份完整原文", social_generated)
+        self.assertNotIn("先按技巧选编号", social_generated + article_generated)
+        self.assertNotIn("浏览当前可用条目", social_generated + article_generated)
+        social_case = next(case for case in cases if case.asset == "social")
         article_case = next(case for case in cases if case.asset == "article")
-        self.assertIn(short_case.case_id, short_generated)
-        self.assertNotIn(short_case.title, short_generated)
-        self.assertNotIn(article_case.case_id, short_generated)
+        self.assertIn(social_case.case_id, social_generated)
+        self.assertNotIn(social_case.title, social_generated)
+        self.assertNotIn(article_case.case_id, social_generated)
         self.assertIn(article_case.case_id, article_generated)
         self.assertNotIn(article_case.title, article_generated)
-        self.assertNotIn(short_case.case_id, article_generated)
+        self.assertNotIn(social_case.case_id, article_generated)
         for forbidden in ("index_task", "topics", "promotion", "项目与产品介绍"):
-            self.assertNotIn(forbidden, short_generated + article_generated)
+            self.assertNotIn(forbidden, social_generated + article_generated)
 
     def test_cli_only_maintains_and_validates_resources(self) -> None:
         stdout = StringIO()
@@ -216,9 +219,30 @@ source_url: "https://example.com/formal"
         self.assertEqual(2, error.exception.code)
         self.assertIn("invalid choice", stderr.getvalue())
 
+    def test_retired_short_kind_is_rejected(self) -> None:
+        stderr = StringIO()
+        with redirect_stderr(stderr), self.assertRaises(SystemExit) as error:
+            main(
+                [
+                    "--library-root",
+                    str(self.library_root),
+                    "add-case",
+                    "--kind",
+                    "short",
+                    "--input",
+                    str(self._input("retired-short.md", "旧短内容类型不能继续生效。")),
+                    "--title",
+                    "旧短内容类型",
+                    "--technique",
+                    "结果先行",
+                ]
+            )
+        self.assertEqual(2, error.exception.code)
+        self.assertIn("invalid choice", stderr.getvalue())
+
     def test_case_parser_rejects_source_metadata(self) -> None:
-        text = self.short.read_text(encoding="utf-8")
-        self.short.write_text(
+        text = self.social.read_text(encoding="utf-8")
+        self.social.write_text(
             text.replace(
                 "<!-- content-case-index",
                 "来源：https://example.com/source\n\n<!-- content-case-index",
@@ -231,19 +255,19 @@ source_url: "https://example.com/formal"
         self.assertTrue(any("不保存原帖链接或来源字段" in issue for issue in issues))
 
     def test_parser_rejects_old_fields_and_nested_content_categories(self) -> None:
-        old = self.short.read_text(encoding="utf-8").replace(
+        old = self.social.read_text(encoding="utf-8").replace(
             "writing_techniques:", 'index_task: "旧任务"\nwriting_techniques:'
         )
-        self.short.write_text(old, encoding="utf-8")
+        self.social.write_text(old, encoding="utf-8")
         _, issues = load_library(self.layout)
         self.assertTrue(any("旧检索字段或未知字段" in issue for issue in issues))
 
-        self.short.write_text(
+        self.social.write_text(
             old.replace('index_task: "旧任务"\n', ""), encoding="utf-8"
         )
-        nested = self.layout.social_cases / "完整短内容" / "按题材" / "嵌套.md"
+        nested = self.layout.social_cases / "完整社交内容" / "按题材" / "嵌套.md"
         nested.parent.mkdir(parents=True)
-        nested.write_text(self.short.read_text(encoding="utf-8"), encoding="utf-8")
+        nested.write_text(self.social.read_text(encoding="utf-8"), encoding="utf-8")
         _, issues = load_library(self.layout)
         self.assertTrue(any("不能再按题材或内容类别分层" in issue for issue in issues))
 

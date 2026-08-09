@@ -28,7 +28,7 @@ except ModuleNotFoundError:
         validate_library,
     )
 
-ASSET_LABELS = {"short": "短内容", "article": "文章"}
+ASSET_LABELS = {"social": "社交内容", "article": "文章"}
 TECHNIQUE_ORDER = (
     "利益先行",
     "结果先行",
@@ -172,13 +172,13 @@ def _check_text(original: str) -> None:
 
 def _parse_case(path: Path, asset: str, layout: LibraryLayout) -> ContentCase:
     relative = path.relative_to(
-        layout.social_cases if asset == "short" else layout.article_cases
+        layout.social_cases if asset == "social" else layout.article_cases
     )
-    expected_parts = 2 if asset == "short" else 1
+    expected_parts = 2 if asset == "social" else 1
     if len(relative.parts) != expected_parts:
         raise CaseError("案例目录只能区分成品形式，不能再按题材或内容类别分层")
-    if asset == "short" and relative.parts[0] != "完整短内容":
-        raise CaseError("短内容案例必须位于“完整短内容”目录")
+    if asset == "social" and relative.parts[0] != "完整社交内容":
+        raise CaseError("社交内容案例必须位于“完整社交内容”目录")
 
     metadata, body = _parse_case_index(path.read_text(encoding="utf-8-sig"))
     unknown = sorted(
@@ -203,7 +203,7 @@ def _parse_case(path: Path, asset: str, layout: LibraryLayout) -> ContentCase:
 
 
 def _case_paths(layout: LibraryLayout) -> list[Path]:
-    social = list((layout.social_cases / "完整短内容").rglob("*.md"))
+    social = list((layout.social_cases / "完整社交内容").rglob("*.md"))
     articles = list(layout.article_cases.rglob("*.md"))
     return sorted([*social, *articles])
 
@@ -214,7 +214,7 @@ def load_library(layout: LibraryLayout) -> tuple[list[ContentCase], list[str]]:
     text_paths: dict[str, Path] = {}
     for path in _case_paths(layout):
         try:
-            asset = "article" if path.is_relative_to(layout.article_cases) else "short"
+            asset = "article" if path.is_relative_to(layout.article_cases) else "social"
             case = _parse_case(path, asset, layout)
         except (CaseError, OSError, UnicodeError) as exc:
             issues.append(f"{path}: {exc}")
@@ -229,19 +229,19 @@ def load_library(layout: LibraryLayout) -> tuple[list[ContentCase], list[str]]:
 
 
 def _index_path(layout: LibraryLayout, asset: str) -> Path:
-    return layout.short_case_index if asset == "short" else layout.article_case_index
+    return layout.social_case_index if asset == "social" else layout.article_case_index
 
 
 def build_index(
     cases: Sequence[ContentCase], layout: LibraryLayout, asset: str
 ) -> str:
     if asset not in ASSET_LABELS:
-        raise CaseError("asset 必须是 short 或 article")
+        raise CaseError("asset 必须是 social 或 article")
     selected = [case for case in cases if case.asset == asset]
     lines = [
         f"# {ASSET_LABELS[asset]}案例索引",
         "",
-        f"本索引只包含{ASSET_LABELS[asset]}，并且只按可迁移的写作技巧分组。条目和文件名只显示不带题材含义的稳定编号；当前对象、行业、主题和专名不参与案例选择。先按技巧选编号，再打开完整原文；索引不能替代正文。",
+        f"本索引只包含{ASSET_LABELS[asset]}，并且只按可迁移的写作技巧分组。条目和文件名只显示不带题材含义的稳定编号；每个条目指向一份完整原文，索引不能替代正文。",
         "",
         f"当前共有 {len(selected)} 条{ASSET_LABELS[asset]}案例。",
         "",
@@ -367,12 +367,12 @@ def add_case(
         voice_eligible=voice_eligible,
     )
 
-    if kind == "short":
-        path = layout.social_cases / "完整短内容" / f"{case_id}.md"
+    if kind == "social":
+        path = layout.social_cases / "完整社交内容" / f"{case_id}.md"
     elif kind == "article":
         path = layout.article_cases / f"{case_id}.md"
     else:
-        raise CaseError("kind 必须是 short 或 article")
+        raise CaseError("kind 必须是 social 或 article")
 
     body = "\n\n".join(
         [
@@ -402,7 +402,7 @@ def write_indexes(
 ) -> tuple[Path, Path]:
     layout.case_index_root.mkdir(parents=True, exist_ok=True)
     paths: list[Path] = []
-    for asset in ("short", "article"):
+    for asset in ("social", "article"):
         path = _index_path(layout, asset)
         managed_write_text(
             layout.root,
@@ -427,7 +427,7 @@ def _parser() -> argparse.ArgumentParser:
     add_case_parser = commands.add_parser(
         "add-case", help="从完整原文建立内容案例并更新索引"
     )
-    add_case_parser.add_argument("--kind", choices=("short", "article"), required=True)
+    add_case_parser.add_argument("--kind", choices=("social", "article"), required=True)
     add_case_parser.add_argument("--input", type=Path, required=True)
     add_case_parser.add_argument("--title", required=True)
     add_case_parser.add_argument(
@@ -486,7 +486,7 @@ def main(argv: list[str] | None = None) -> int:
             for asset in ASSET_LABELS
         }
         if args.command == "validate":
-            for asset in ("short", "article"):
+            for asset in ("social", "article"):
                 path = _index_path(layout, asset)
                 expected = build_index(cases, layout, asset)
                 if not path.exists():
@@ -494,13 +494,13 @@ def main(argv: list[str] | None = None) -> int:
                 if path.read_text(encoding="utf-8") != expected:
                     raise CaseError(f"索引需要更新：{path}")
             print(
-                f"案例库有效：{len(cases)} 条；短内容 {counts['short']} 条，"
+                f"案例库有效：{len(cases)} 条；社交内容 {counts['social']} 条，"
                 f"文章 {counts['article']} 篇；两个索引按写作技巧独立生成。"
             )
             return 0
 
         if args.check:
-            for asset in ("short", "article"):
+            for asset in ("social", "article"):
                 path = _index_path(layout, asset)
                 if not path.exists():
                     raise CaseError(f"索引不存在：{path}")
@@ -508,7 +508,7 @@ def main(argv: list[str] | None = None) -> int:
                     cases, layout, asset
                 ):
                     raise CaseError(f"索引需要更新：{path}")
-            print("短内容与文章案例索引有效")
+            print("社交内容与文章案例索引有效")
             return 0
         index_paths = write_indexes(layout, cases, args.config)
         print("索引已更新：" + "、".join(str(path) for path in index_paths))

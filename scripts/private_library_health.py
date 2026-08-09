@@ -242,7 +242,7 @@ def _index_issues(layout: LibraryLayout) -> list[Issue]:
         issues.append(Issue("error", "content_case_invalid", "20-Sources", error))
     if not case_errors:
         for asset, path in (
-            ("short", layout.short_case_index),
+            ("social", layout.social_case_index),
             ("article", layout.article_case_index),
         ):
             expected = build_case_index(cases, layout, asset)
@@ -261,22 +261,17 @@ def _index_issues(layout: LibraryLayout) -> list[Issue]:
     for error in hook_errors:
         issues.append(Issue("error", "hook_invalid", "20-Sources/Hook Library", error))
     if not hook_errors:
-        for writing_format, path in (
-            ("short", layout.short_hook_index),
-            ("thread", layout.thread_hook_index),
-            ("article", layout.article_hook_index),
-        ):
-            expected = build_hook_index(hooks, layout, writing_format)
-            current = _read(path) if path.exists() else ""
-            if current != expected:
-                issues.append(
-                    Issue(
-                        "warning",
-                        "hook_index_stale",
-                        _relative(path, layout.root),
-                        "对应成品形式的钩子索引缺失或与当前独立钩子原文不一致。",
-                    )
+        expected = build_hook_index(hooks, layout)
+        current = _read(layout.hook_index) if layout.hook_index.exists() else ""
+        if current != expected:
+            issues.append(
+                Issue(
+                    "warning",
+                    "hook_index_stale",
+                    _relative(layout.hook_index, layout.root),
+                    "钩子统一索引缺失或与当前独立钩子原文不一致。",
                 )
+            )
 
     records, _ = discover_records(layout.root)
     if not index_is_current(layout.root, records):

@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 from scripts.private_library import (
+    LIBRARY_VERSION,
     MANIFEST_RELATIVE,
     REQUIRED_DIRECTORIES,
     adopt_library,
@@ -50,6 +51,8 @@ class PrivateLibraryTests(unittest.TestCase):
         self.assertEqual(0, init.returncode, init.stderr)
         payload = json.loads(init.stdout)
         self.assertEqual("initialized", payload["action"])
+        self.assertEqual(4, LIBRARY_VERSION)
+        self.assertEqual(LIBRARY_VERSION, payload["version"])
         self.assertEqual(str(self.library_root.resolve()), payload["library_root"])
 
         validate = subprocess.run(
@@ -93,6 +96,14 @@ class PrivateLibraryTests(unittest.TestCase):
         self.assertNotIn("Codex", layout.home.read_text(encoding="utf-8"))
         for relative in REQUIRED_DIRECTORIES:
             self.assertTrue((layout.root / relative).is_dir(), relative)
+        self.assertIn(
+            Path("20-Sources/Social Posts/Content Cases/完整社交内容"),
+            REQUIRED_DIRECTORIES,
+        )
+        self.assertNotIn(
+            Path("20-Sources/Social Posts/Content Cases/完整短内容"),
+            REQUIRED_DIRECTORIES,
+        )
 
     def test_repeated_init_preserves_existing_content(self) -> None:
         layout, _, created = initialize_library(

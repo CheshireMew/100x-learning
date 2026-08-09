@@ -30,7 +30,7 @@ except ModuleNotFoundError:
 
 OUTPUT_RELATIVE = Path("40-Outputs/Writing")
 WRITING_CASE_RELATIVE = Path(
-    "20-Sources/Social Posts/Content Cases/完整短内容"
+    "20-Sources/Social Posts/Content Cases/完整社交内容"
 )
 CONFIG_RELATIVE = Path("60-Systems/Writing/writing-memory.json")
 INDEX_RELATIVE = Path("60-Systems/Writing/published-content-index.jsonl")
