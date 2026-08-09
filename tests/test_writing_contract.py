@@ -89,6 +89,27 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("research-context-reuse.md", writing)
         self.assertNotIn("research-led-learning.md", writing)
 
+    def test_plan_mode_supplements_before_interviewing_for_subjective_material(self) -> None:
+        skill = _read("SKILL.md")
+        plan = skill.split("### Plan 模式下先补充再访谈", 1)[1].split(
+            "### 默认模式下准备并直接成文", 1
+        )[0]
+
+        self.assertIn("用户主动开启 Plan 模式视为明确的深度访谈请求", plan)
+        self.assertIn("不论现有材料是否已经足够成文", plan)
+        self.assertIn("必须先完成本次需要的联网补充", plan)
+        self.assertIn("再使用 `request_user_input` 开始访谈", plan)
+        self.assertLess(
+            plan.index("必须先完成本次需要的联网补充"),
+            plan.index("再使用 `request_user_input` 开始访谈"),
+        )
+        self.assertIn("不先询问能够从现有材料或公开来源自行取得的客观信息", plan)
+        self.assertIn("真实情绪、感受、观点和立场", plan)
+        self.assertIn("每轮只集中推进一个问题", plan)
+        self.assertIn("不按固定问卷机械遍历", plan)
+        self.assertIn("不重复询问用户已经回答过的问题", plan)
+        self.assertIn("默认模式下资料已经足够时停止", skill)
+
     def test_material_preparation_preserves_distinct_relations(self) -> None:
         skill = _read("SKILL.md")
         preparation = _read("references/writing-material-preparation.md")
