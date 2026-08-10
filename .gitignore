@@ -5,9 +5,6 @@ System Knowledge/
 output/
 artifacts/
 
-# Retired README visual retained locally for reference only.
-100x-learning-writing-flow.png
-
 # Local Python artifacts.
 __pycache__/
 *.py[cod]
