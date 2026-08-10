@@ -1,7 +1,7 @@
 <!-- readme-header:start -->
 
 <p align="center">
-  <img src="./assets/readme/hero.png" width="100%" alt="100x Learning">
+  <img src="./assets/readme/logo.svg" width="160" alt="100x Learning">
 </p>
 
 <h1 align="center">100x Learning</h1>
@@ -29,7 +29,11 @@
 
 <!-- readme-header:end -->
 
-`100x-learning` 是一个遵循 [Agent Skills 开放格式](https://agentskills.io/specification)的学习与内容 Skill。它能读取字幕、文章、链接、主题、项目、草稿和发布反馈，再按你要的最终结果选择合适的方法。它不是独立应用，也不依赖某一个特定 Agent 宿主。
+`100x-learning` 是一个遵循 [Agent Skills 开放格式](https://agentskills.io/specification)的学习与内容 Skill。它能读取字幕、文章、链接、主题、项目、草稿和发布反馈，再按你要的最终结果选择合适的方法。
+
+<p align="center">
+  <img src="./assets/readme/hero.png" width="100%" alt="材料、主题和真实问题经过 100x Learning 形成理解、判断、使用和分享的机制图">
+</p>
 
 ## 先告诉它你要什么
 

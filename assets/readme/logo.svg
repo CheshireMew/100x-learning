@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 160 160"
+     role="img" aria-labelledby="title desc">
+  <title id="title">100x Learning logo</title>
+  <desc id="desc">A black circular mark with the text 100x.</desc>
+  <circle cx="80" cy="80" r="64" fill="#1f2024"/>
+  <text x="80" y="92"
+        text-anchor="middle"
+        fill="#f3efe6"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="43"
+        font-weight="700">100x</text>
+</svg>

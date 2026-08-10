@@ -1,7 +1,7 @@
 <!-- readme-header:start -->
 
 <p align="center">
-  <img src="./assets/readme/hero-ja.png" width="100%" alt="100x Learning">
+  <img src="./assets/readme/logo.svg" width="160" alt="100x Learning">
 </p>
 
 <h1 align="center">100x Learning</h1>
@@ -29,7 +29,11 @@
 
 <!-- readme-header:end -->
 
-`100x-learning` は、オープンな [Agent Skills 仕様](https://agentskills.io/specification)に準拠した学習・コンテンツ Skill です。字幕、記事、リンク、テーマ、プロジェクト、下書き、公開後の反応を読み取り、求められた最終結果に合う方法を選びます。独立したアプリではなく、特定の Agent ホストだけに依存しません。
+`100x-learning` は、オープンな [Agent Skills 仕様](https://agentskills.io/specification)に準拠した学習・コンテンツ Skill です。字幕、記事、リンク、テーマ、プロジェクト、下書き、公開後の反応を読み取り、求められた最終結果に合う方法を選びます。
+
+<p align="center">
+  <img src="./assets/readme/hero-ja.png" width="100%" alt="素材・テーマ・現実の問いから、理解・判断・実践・発信につなげる 100x Learning の仕組み">
+</p>
 
 ## まず欲しい成果を伝える
 

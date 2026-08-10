@@ -1,7 +1,7 @@
 <!-- readme-header:start -->
 
 <p align="center">
-  <img src="./assets/readme/hero-en.png" width="100%" alt="100x Learning">
+  <img src="./assets/readme/logo.svg" width="160" alt="100x Learning">
 </p>
 
 <h1 align="center">100x Learning</h1>
@@ -29,7 +29,11 @@
 
 <!-- readme-header:end -->
 
-`100x-learning` is a learning and content Skill built to the open [Agent Skills specification](https://agentskills.io/specification). It reads subtitles, articles, links, topics, projects, drafts, and post-publication feedback, then chooses the method that matches the result you asked for. It is not a standalone app or tied to one Agent host.
+`100x-learning` is a learning and content Skill built to the open [Agent Skills specification](https://agentskills.io/specification). It reads subtitles, articles, links, topics, projects, drafts, and post-publication feedback, then chooses the method that matches the result you asked for.
+
+<p align="center">
+  <img src="./assets/readme/hero-en.png" width="100%" alt="How 100x Learning turns materials, topics, and real questions into insight, decisions, action, and shareable work">
+</p>
 
 ## Start with the result you want
 
