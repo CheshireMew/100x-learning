@@ -1,8 +1,14 @@
+<!-- readme-header:start -->
+
 <p align="center">
-  <img src="./assets/readme/hero-en.png" width="100%" alt="100x Learning turns materials, topics, and real questions into understanding, decisions, action, and shareable work">
+  <img src="./assets/readme/hero-en.png" width="100%" alt="100x Learning">
 </p>
 
-<!-- readme-header:start -->
+<h1 align="center">100x Learning</h1>
+
+<p align="center">
+  <strong>Turn sources, topics, and real problems into work you can understand, evaluate, apply, or share.</strong>
+</p>
 
 <p align="center">
   <a href="./README.md">中文</a> · <strong>English</strong> · <a href="./README.ja.md">日本語</a> | <a href="./SKILL.md">文档</a> | <a href="./CONTRIBUTING.md">贡献</a> | <a href="https://github.com/CheshireMew/100x-learning/issues">反馈</a>
@@ -23,47 +29,30 @@
 
 <!-- readme-header:end -->
 
-# 100x Learning
+`100x-learning` is a learning and content Skill built to the open [Agent Skills specification](https://agentskills.io/specification). It reads subtitles, articles, links, topics, projects, drafts, and post-publication feedback, then chooses the method that matches the result you asked for. It is not a standalone app or tied to one Agent host.
 
-Give your Agent a source, an unfamiliar topic, or a real problem. Get something you can understand, evaluate, apply, or share now. When the work is ongoing, 100x Learning can also use real feedback to maintain the next lesson, topic, or content experiment.
+## Start with the result you want
 
-`100x-learning` is a learning and content Skill built to the open [Agent Skills specification](https://agentskills.io/specification). It reads subtitles, articles, links, topics, claims, projects, drafts, and post-publication feedback, then chooses the workflow that matches the requested result.
+You do not need to choose an internal workflow. Describe the outcome directly:
 
-Those workflows cover source comprehension, research, explanation, practice, content review, writing, ongoing topic selection, and knowledge capture. The Skill is not a standalone application or tied to one Agent host, and the hero explains a mechanism rather than claiming a 100x performance effect.
+- **Understand a source**: `Explain the main thread and key relationships in this interview, and mark the passages worth revisiting.`
+- **Research and decide**: `Research X, compare whether A or B better fits my goal, and keep the unknowns visible.`
+- **Explain and apply**: `Explain X through a real scenario, then use it to analyze the Y I am facing.`
+- **Review or write**: `Check this draft for factual, structural, and AI-sounding problems. Do not rewrite it.` or `Turn these materials into a thread for general readers.`
+- **Learn and improve continuously**: `Teach me X over multiple rounds. Finish the most useful lesson now, then use my feedback to choose the next step.`
+- **Capture knowledge**: `Save the confirmed conclusions to my private knowledge library and update the existing source of truth for this topic.`
 
-## What you can ask for
-
-### Learning and research
-
-- **Understand a source**: `Read this interview, explain its main thread, and mark the passages worth revisiting.` → Structure, key relationships, important points, and their real locations.
-- **Choose how to learn**: `I want to learn X, but I am stuck at Y. How should I proceed?` → A learning path and practice method matched to the current goal and obstacle.
-- **Research or verify a topic**: `Research X and compare whether A or B better fits my goal.` → Relevant sources, a reasoned judgment, and what remains unknown.
-- **Explain or apply a concept**: `Explain X through a real scenario, then use it to analyze Y.` → A sufficient explanation, mechanism, example, and usable judgment.
-
-### Continuous learning and content
-
-- **Learn a topic continuously**: `Teach me X over multiple rounds. Complete the most useful lesson now, then use my feedback to choose the next one.` → A useful current lesson and a next step based on real feedback.
-- **Maintain a long-term content direction**: `Build a long-term direction from my goals and existing work, then select topics worth pursuing this week.` → A content direction, durable topic state, and links to the relevant knowledge sources—without score-based quota filling.
-- **Review published work**: `Review this post using the final copy, the last seven days of metrics, and the comments.` → Separate observations, candidate explanations, alternatives, and the next test.
-
-### Review, writing, and the knowledge library
-
-- **Review an existing draft**: `Check facts, structure, and AI-sounding language only. Do not rewrite it.` → Problems, impact, and revision direction; review stops before editing unless authorized.
-- **Write publishable content**: `Turn these materials into a Chinese thread for general readers.` → A ready-to-use post, thread, GitHub project introduction, or article.
-- **Design launch content**: `Design the launch content for this project. Give me the plan first.` → A normal content plan; benefits, dates, and action links are verified only when the copy actually contains them.
-- **Use a private knowledge library**: `Save the confirmed conclusions to my private knowledge library.` → The unique library root is resolved first, then the existing topic source of truth is updated; files change only when explicitly requested.
-
-Different results stop at different points. A request for candidates does not silently become a post, and a review does not silently edit the draft. A promotional request that asks for copy receives finished copy directly; it stops at a plan only when the user explicitly asks for a plan. Sufficient-material short copy does not re-check supplied facts through external search. Saving files, producing media, and publishing are separate actions.
+The Skill stops at the result you named: a review does not silently rewrite the draft, candidates do not silently become a post, and one topic-selection task does not become a long-running project. Saving files, producing media, uploading, and publishing are separate actions.
 
 ## Quick start
 
-Place the complete repository in a Skills directory read by your compatible tool. Tools that support project-level `.agents/skills/` can use:
+Place the complete repository in a Skills directory read by a compatible Agent. Tools that support project-level `.agents/skills/` can use:
 
 ```bash
 git clone https://github.com/CheshireMew/100x-learning.git .agents/skills/100x-learning
 ```
 
-If your tool uses a user-level directory or another location, replace the destination with that tool's Skills directory. Agent Skills is an open format; discovery paths and explicit invocation syntax are host-specific. The [official quickstart](https://agentskills.io/skill-creation/quickstart) shows the project-level layout.
+If your tool uses a user-level directory or another location, replace the destination with its Skills directory. Discovery paths and explicit invocation syntax are host-specific; the [official quickstart](https://agentskills.io/skill-creation/quickstart) shows the project-level layout.
 
 After installation, describe the result directly:
 
@@ -72,46 +61,41 @@ Read this material. First explain the content, main thread, and key relationship
 Then tell me which parts are most worth investigating further.
 ```
 
-Hosts that support explicit Skill names can also use `$100x-learning`. The first successful result should be a clear explanation of the source itself—not generic study advice or an account of the internal workflow.
+Hosts that support explicit Skill names can also use `$100x-learning`. The first successful result should be a clear explanation of the source itself—not generic study advice or a description of the internal workflow.
 
-## From one task to the next round
+## How it stays on target
 
-A one-off task does not require a system. When the available material is sufficient, the Skill completes the explanation, research, judgment, or writing and stops. It uses the private knowledge library for cross-task state only when you explicitly ask for continuous learning, long-term content direction, durable topic management, or saved results.
+| Your request | What the Skill does | Delivery and stopping point |
+| --- | --- | --- |
+| Understand a source | Reconstructs the content, main thread, relationships, and real locations faithfully | A clear explanation and highlights, without expanding into a research project |
+| Research or verify | Compares sources and separates facts, judgments, and unknowns | A sourced conclusion and the questions still open |
+| Review content | Checks facts, structure, language, and the requested concerns | Problems and revision direction, without silently editing the draft |
+| Write content | Organizes the supplied material, supplements it from the web when useful, then drafts directly | A usable post, thread, GitHub project introduction, or article |
+| Continue learning or review results | Reads the real artifact, feedback, and outcome from the current round | The next lesson, topic, or testable improvement |
 
-Ongoing work follows one feedback chain: lock the real input and artifact for the current round, read metrics, comments, actual use, or your direct feedback, and then choose the next lesson, topic, or experiment. One publication result remains a hypothesis; it does not automatically rewrite long-term strategy, personal voice, or knowledge.
+Web supplementation for writing adds useful material; it is not automatically a claim-by-claim fact-check. Research, source comparison, or verification becomes the deliverable only when you explicitly ask for it.
 
-```text
-Use $100x-learning to maintain the topic portfolio for this series.
-Read the confirmed content direction and existing topics, then select the next batch for this week.
-Do not score topics to fill a quota, and do not turn a temporary request into long-term strategy.
-```
+In normal mode, sufficient material leads directly to the finished artifact. If the host provides a Plan mode, you can use it for a deeper interview: the Skill first gathers information it can obtain independently, then asks for the experiences, emotions, views, and disclosure boundaries only you can provide.
 
-## How a task is handled
+One-off tasks do not require a persistent system. The Skill uses durable material only when you explicitly ask for continuous learning, a maintained content direction, saved results, or personal voice.
 
-`SKILL.md` is the single entry point. It routes by the result the user wants and loads only the corresponding method from `references/`. Source comprehension, research, writing, durable topic selection, and publication review use distinct workflows.
+## Optional: private knowledge library and ongoing work
 
-The active routes stay separate:
-
-- Research establishes facts and keeps relevant unknowns visible.
-- Writing may browse before drafting for material that improves understanding, adds information, or strengthens communication. When the user explicitly asks for web supplementation, it does so directly. This is not a fact-check of every user-provided claim and never becomes a gate before drafting. Research, source comparison, and fact-checking use the research route only when the user explicitly requests those results. Preparation removes irrelevant material, exact duplication, old drafts, and sample copy; distinct funding, partnerships, phases, numbers, invitation conditions, and relationships remain available to the writer.
-- Ordinary writing reads only cases and hooks from the private library. It does not search topic knowledge, other sources, projects, outputs, author voice, publication history, or content strategy. Standalone posts and threads share one social-content case index, while articles keep a separate case index; all forms share one hook index. For each task, the Skill chooses three different writing-technique groups from each relevant index, follows one stable-ID link from every group, and reads the complete texts. An unsuitable reference is replaced only within its original group. Candidate discovery never scans the body directories or searches examples by sentence pattern, rhetorical phrase, subject, industry, object, or plot. The writing model normally receives three distinct complete cases and three complete hooks. References may cross subjects because they contribute openings, progression, and endings rather than facts about the current subject. Complete public references are used temporarily only when the local indexes cannot supply those methods, and they are never saved automatically. References never supply the current subject’s facts, identity, or voice. The final response lists only references actually sent to the writing model and includes each local absolute path or public source link.
-- The writing request contains only the artifact the user wants and any explicit hard constraints. Facts, relationships, judgments, guesses, questions, angles, and priorities supplied with the request stay in the material, alongside web-supplemented source material, multiple complete cases, multiple complete hooks, and voice material supplied now or explicitly requested from the private library. Articles and newsletters do not load private author voice automatically. Voice analysis, publication-history lookup, and novelty checks remain separate explicit capabilities. The writing model does not receive specialty instructions, maintenance rules, outlines, or a generic style checklist. Separate complete cases and separate hooks are divided by a standalone `---` line. Unless the user explicitly disables network access, the Skill does not add a no-search constraint to the request. Every writing response displays four sections: request, prepared writing material, result, and references used.
-- Publication review uses the real artifact and feedback to define the next testable improvement.
-
-Launch, recruitment, pre-launch, and promotional copy still use the normal writing flow. Benefits, dates, action links, or disclosure requirements are added only when ordinary readers need them to understand the main benefit or complete the next step.
-
-Not every task is forced through writing. Source comprehension stops at explanation, research retains sources and unknowns, and a review does not edit the draft. One-off topic selection does not silently become a long-running project. Initializing a knowledge library, saving files, producing media, and publishing all require explicit requests.
-
-## Private knowledge library and public repository
-
-The private knowledge library lives outside the Skill directory and is not distributed with the public repository. You can initialize a new library or adopt an existing Markdown library that meets the directory contract:
+The private knowledge library lives outside the Skill directory and is never distributed with the public repository. Ask the Agent to initialize a new library or adopt an existing Markdown library:
 
 ```text
 Use $100x-learning to initialize my private knowledge library at D:\Knowledge\100x-learning.
 Use $100x-learning to adopt my existing private knowledge library at E:\Knowledge\Existing Library.
 ```
 
-The underlying maintenance commands are:
+The selected root is recorded in `~/.100x-learning/config.json`; the config stores only the library version and path, not private text. `init` will not overwrite a non-empty directory. `adopt` adds the project marker and updates the local pointer without moving or rewriting existing knowledge.
+
+Once connected, the library can hold sources, one source of truth per topic, complete writing cases, independent hooks, confirmed work, content direction, and durable topic state.
+
+Ordinary writing reads only cases and hooks; it does not automatically bring topic knowledge, personal voice, or publication history into a new draft. Those materials are used only when you explicitly request the corresponding result. A single publication outcome does not rewrite long-term strategy or personal voice.
+
+<details>
+<summary>Run the knowledge-library maintenance scripts directly</summary>
 
 ```powershell
 python scripts/private_library.py init --root "D:\Knowledge\100x-learning"
@@ -120,27 +104,19 @@ python scripts/private_library.py show
 python scripts/private_library.py validate
 ```
 
-The selected root is recorded in `~/.100x-learning/config.json`. A new library must live outside the Skill source directory. `init` will not overwrite a non-empty directory.
+</details>
 
-`adopt` adds the 100x Learning marker and updates the local root pointer without moving, copying, or rewriting existing knowledge. The config stores the library version and root path, not private content.
+Without a configured library, source comprehension, research, review, and writing still work from the current input. Cloning the public repository never includes private material.
 
-Once connected, the library can provide knowledge sources of truth, complete content examples, independent hooks, confirmed writing voice, publication history, long-term content direction, and durable topic state. Ordinary writing uses only cases and hooks; topic knowledge belongs to explicit research or knowledge maintenance, while voice and publication history are used only for explicitly requested results. Without a configured library, comprehension, research, and writing continue from the current input rather than treating the library as a gate.
+## Scope
 
-| Material role | Private-library destination | Result |
-| --- | --- | --- |
-| Original web pages, courses, subtitles, interviews, or posts | `20-Sources` | Source, role, and necessary context are retained; full text is saved only when needed and allowed |
-| Digested concepts, mechanisms, conclusions, and boundaries | `10-Knowledge` | Existing topics and aliases are searched first; one topic keeps one source of truth |
-| A complete piece worth using as a writing reference | Complete social-content or article case directories | The full artifact and writing techniques are stored; standalone posts and threads share one social-content case index |
-| An original opening explicitly selected by the user | `20-Sources/Hook Library/Examples/<writing technique>` | The continuous original passage and its continuation are stored without an applicable-form field and added to the unified hook index |
-| A confirmed final or published work | `40-Outputs/Writing` | The final copy is saved; publication history or voice is updated only when the evidence qualifies |
+This Skill covers source comprehension, topic research, concept explanation, practice design, content review, short posts, threads, GitHub project introductions, and articles.
 
-Long-term content direction and personal voice use separate sources of truth. A topic portfolio stores only the decision state for its series. Publication reviews link the final artifact and real feedback instead of copying another body or metric database.
+Image, GIF, video, audio, and podcast production; general translation; ad buying; sales pages; email sequences; full brand or marketing strategy; and publishing itself belong to separate capabilities.
 
-Only repeated evidence, direct behavioral evidence, or user confirmation can update long-term sources of truth.
+Writing a file, producing media, uploading, and publishing are different actions. Without explicit authorization, results remain in the current response or local workspace.
 
-Cloning the public repository does not include private material or inherit another person's experience, opinions, or writing voice. The repository ships the workflow, methods, initialization templates, maintenance scripts, and behavior tests.
-
-## Repository structure
+## Repository structure and maintenance
 
 ```text
 100x-learning/
@@ -150,13 +126,11 @@ Cloning the public repository does not include private material or inherit anoth
 ├── scripts/                   # Subtitle, private-library, case, hook, and writing-memory tools
 ├── assets/private-library/    # Public templates used to initialize a private library
 ├── assets/readme/             # GitHub README visuals
-├── tests/                     # Routing, capability-conservation, and resource-boundary tests
+├── tests/                     # Behavior, producer-consumer chain, and resource-boundary tests
 └── archive/                   # Retired material; never loaded by the active runtime
 ```
 
-Active behavior is defined by `SKILL.md`, current references, scripts, public assets, metadata, and tests. `agents/openai.yaml` adapts display in one host; it does not change the repository's identity as a general Agent Skill. Retired routes and scripts in `archive/` do not remain as compatibility paths.
-
-## Maintenance and verification
+`SKILL.md` is the single entry point, `references/` owns the specialized methods, and `scripts/` provides deterministic maintenance operations. `agents/openai.yaml` adapts presentation for one host without changing the project’s identity as a general Agent Skill. Retired paths in `archive/` are not part of the current runtime.
 
 Maintenance scripts use the Python standard library. Run the complete behavior suite with:
 
@@ -164,34 +138,7 @@ Maintenance scripts use the Python standard library. Run the complete behavior s
 python -m unittest discover -s tests -v
 ```
 
-Normalize SRT, VTT, or timestamped text into Markdown while preserving real time boundaries:
-
-```bash
-python scripts/normalize_subtitles.py path/to/input.srt > normalized.md
-```
-
-With a configured private library, rebuild and validate content cases and writing memory:
-
-```bash
-python scripts/content_case_library.py build-index
-python scripts/content_case_library.py validate
-python scripts/writing_memory.py build-index
-python scripts/writing_memory.py validate
-```
-
-The tests cover the real producer-to-consumer chain: a library is initialized from an empty directory and rediscovered by another process; real UTF-8 material is written through the official case and hook commands; each index is rebuilt and read through its supported entry point. Consumer-side fake indexes do not stand in for producer output.
-
-## Scope
-
-This Skill covers source comprehension, topic research, concept explanation, practice design, content review, short posts, threads, GitHub project introductions, articles, and content that must carry verified launch facts.
-
-Image, GIF, video, audio, and podcast production; general translation; ad buying; sales pages; email sequences; full brand or marketing strategy; and publishing itself belong to separate capabilities.
-
-Writing a file, producing media, uploading, and publishing are different actions. Without explicit authorization, results remain in the current response or local workspace.
-
-## License
-
-Original Skill instructions, source code, tests, scripts, and reusable templates are licensed under the [Mozilla Public License 2.0](./LICENSE). `archive/`, `output/`, imported cases, source articles, social posts, screenshots, and other third-party or reference material are outside that grant. See [LICENSING.md](./LICENSING.md) for the exact scope.
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) before contributing. Behavior details, script entry points, and specialized methods live in [SKILL.md](./SKILL.md) and its active references; the README does not maintain a second copy of the internal rules.
 
 ## Star History
 
@@ -200,3 +147,7 @@ Original Skill instructions, source code, tests, scripts, and reusable templates
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/CheshireMew/100x-learning/star-history/star-history.svg">
   <img alt="CheshireMew/100x-learning GitHub Star History" src="https://raw.githubusercontent.com/CheshireMew/100x-learning/star-history/star-history.svg">
 </picture>
+
+## License
+
+Original Skill instructions, source code, tests, scripts, and reusable templates are licensed under the [Mozilla Public License 2.0](./LICENSE). `archive/`, `output/`, imported cases, source articles, social posts, screenshots, and other third-party or reference material are outside that grant. See [LICENSING.md](./LICENSING.md) for the exact scope.
