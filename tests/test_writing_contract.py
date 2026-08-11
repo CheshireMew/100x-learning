@@ -55,7 +55,7 @@ class SkillStructureTests(unittest.TestCase):
             self.assertNotIn(retired, contract)
 
         skill = _read("SKILL.md")
-        self.assertIn("三个完整案例和三个完整钩子实际参与表达", skill)
+        self.assertIn("三个完整案例和三个完整钩子参与写作", skill)
         self.assertIn("在同一次回复中直接成文", skill)
         self.assertIn("材料准备和成文在同一次回复中连续完成", skill)
         self.assertIn("材料准备、直接成文和最终交付在同一次处理中连续完成", contract)
@@ -176,10 +176,13 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("【通用写作注意】", skill)
         self.assertIn("这里是成文输入的唯一模板", content)
         self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
-        self.assertIn("直接写成一个可使用的成品", content)
-        self.assertIn("当前成品从哪里进入、展开哪些内容以及怎样组合，由材料本身和你决定", content)
-        self.assertIn("不预设它必须归结为某种变化、单一卖点、痛点、反转或一句中心结论", content)
-        self.assertIn("不先替正文规定读者必须得到哪一种感受", content)
+        self.assertIn(
+            "完整阅读当前材料、三份案例和三份钩子，把它们作为参考，直接写出用户要的内容。",
+            content,
+        )
+        self.assertNotIn("当前成品从哪里进入、展开哪些内容以及怎样组合", content)
+        self.assertNotIn("不预设它必须归结为", content)
+        self.assertNotIn("不先替正文规定读者必须得到", content)
         self.assertNotIn("确定一个读者能感受到的核心变化", content)
         for retired_style_rule in (
             "按用户强调的内容分清主次",
@@ -224,20 +227,17 @@ class SkillStructureTests(unittest.TestCase):
         skill = _read("SKILL.md")
         cases = _read("references/content-case-library.md")
         hooks = _read("references/hook-library.md")
-        self.assertIn("优先从本地私人库读取三份彼此互补的参考写作案例和三份参考开头钩子", skill)
+        self.assertIn("优先从本地私人库读取三份完整参考写作案例和三份完整开头钩子", skill)
         self.assertIn("短帖和 Thread 从社交内容案例索引", skill)
         self.assertIn("所有成品从同一份钩子索引", skill)
         self.assertIn("分别从活动案例索引和钩子索引选择三个不同的写作技巧分组", skill)
         self.assertIn("从每个分组沿一个稳定编号链接打开完整原文", skill)
-        self.assertIn("三份案例应当在整篇写法上彼此互补", skill)
-        self.assertIn("三份钩子应当在开头及其承接上彼此互补", skill)
-        self.assertIn("能像自然中文原稿一样直接读", skill)
-        self.assertIn("主要靠翻译腔、通用夸张或悬念套话维持吸引力", skill)
+        self.assertIn("以原文是否值得参考、是否适合当前写作为准", skill)
         self.assertIn("优先在原分组换读", skill)
-        self.assertIn("在承担相同或相邻表达作用的分组中换读", skill)
+        self.assertIn("原分组没有可用正文时再从相邻分组换读", skill)
         self.assertNotIn("只在原分组中换读另一份", skill)
         self.assertIn("索引标签只负责确定候选分组，完整原文决定最终取舍", skill)
-        self.assertIn("题材、行业、对象、具体事件或邀请机制相同都不是前提", skill)
+        self.assertIn("题材、行业和具体对象相同都不是前提", skill)
         self.assertIn("候选发现只通过索引分组及其中的稳定编号链接进行", skill)
         self.assertIn("不对案例或钩子正文目录运行 `rg`、`Select-String` 或其它全文检索", skill)
         self.assertIn("不把句式、修辞词组、题材、行业、对象或具体情节作为候选搜索词", skill)
@@ -254,15 +254,22 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("不让同一内容同时充当两种参考", skill)
         content = _read("references/content-writing.md")
         self.assertIn("默认选入的三份案例和三份钩子都完整进入这份成文输入", skill)
-        self.assertIn("直接模仿原文里的具体表达", content)
-        self.assertIn("三份案例共同影响整篇的展开、推进和收束", content)
-        self.assertIn("三份钩子共同影响开头及其接入正文的方式", content)
-        self.assertIn("词序、句长、停顿、信息揭示和转折动作", content)
-        self.assertIn("不先把参考概括成技巧标签或写法清单", content)
-        self.assertIn("具体事实、动作、场景、结果、明确观点或确有答案的问题起笔", content)
-        self.assertIn("不另造概括性开场", content)
-        self.assertIn("在六份完整原文的共同影响下", content)
-        self.assertIn("具体角度、取舍、组合方式、结构、句子、篇幅和结束位置仍由你", content)
+        self.assertIn(
+            "完整阅读当前材料、三份案例和三份钩子，把它们作为参考，直接写出用户要的内容。",
+            content,
+        )
+        for retired_creative_instruction in (
+            "直接模仿原文里的具体表达",
+            "三份案例共同影响",
+            "三份钩子共同影响",
+            "词序、句长、停顿",
+            "不先把参考概括成技巧标签或写法清单",
+            "不另造概括性开场",
+            "在六份完整原文的共同影响下",
+            "当前成品从哪里进入",
+            "主要靠翻译腔、通用夸张或悬念套话",
+        ):
+            self.assertNotIn(retired_creative_instruction, "\n".join((skill, content)))
         self.assertNotIn("每份案例都承接一种", content)
         self.assertNotIn("每份钩子都承接一种", content)
         self.assertNotIn("不要求模型逐条模仿", content)
@@ -322,7 +329,7 @@ class SkillStructureTests(unittest.TestCase):
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
         self.assertIn("由它决定角度、取舍、结构、语言、篇幅和结束位置", skill)
-        self.assertIn("直接写成可使用的成品", content)
+        self.assertIn("直接写出用户要的内容", content)
         self.assertIn("没有指定数量时只生成一个", content)
         self.assertIn("不自动评审、融合或润色", content)
         self.assertIn("提纲或写法清单", content)
@@ -355,7 +362,7 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("在独立代码块中完整展示本次实际选入的成文输入", skill)
         self.assertIn("而不是复制完整来源", skill)
         self.assertIn("不另建临时文件", skill)
-        self.assertIn("每个完整成品分别放在独立代码块中", skill)
+        self.assertIn("每份结果分别放在独立代码块中", skill)
         self.assertIn("不重新摘要或改写已选内容", skill)
         self.assertIn("只列出真正进入本次成文输入的案例与钩子", skill)
         self.assertIn("不列候选阶段读过但没有送入成文模型的内容", skill)
