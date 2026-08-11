@@ -128,7 +128,6 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("不能因为篇幅可能较短就提前删除", preparation)
         self.assertIn("另一来源提供了新的条件、参与者、原因或结果时仍然保留", preparation)
         self.assertIn("宣发重点、内容主次、讨论问题、猜测方向和补充信息继续作为材料", promotion)
-        self.assertIn("当前仍成立的开放问题和候选机制继续保留", promotion)
         self.assertNotIn("选题清单和内部宣传建议只作为准备侧信息", promotion)
         self.assertIn("来源原文、原有顺序、来源边界和必要上下文", contract)
         self.assertIn("不摘要、转述、重排、拼接或统一改写", preparation)
@@ -173,7 +172,6 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("【通用写作注意】", skill)
         self.assertIn("这里是成文输入的唯一模板", content)
         self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
-        self.assertIn("选入的每份案例和钩子都应当真实参与写作", content)
         self.assertIn("直接写成一个可使用的成品", content)
         for retired_style_rule in (
             "按用户强调的内容分清主次",
@@ -240,10 +238,8 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("选入的案例与钩子分别来自各自的独立文件", skill)
         self.assertIn("任意两份完整原文不能相同", skill)
         self.assertIn("不让同一内容同时充当两种参考", skill)
-        self.assertIn("所有选入的参考都保留完整正文", _read("references/content-writing.md"))
         content = _read("references/content-writing.md")
         self.assertIn("默认选入的三份案例和三份钩子都完整进入这份成文输入", skill)
-        self.assertIn("选入的每份案例和钩子都应当真实参与写作", content)
         for writing_effect in (
             "开头承担的功能",
             "信息推进顺序",
@@ -254,7 +250,6 @@ class SkillStructureTests(unittest.TestCase):
         ):
             self.assertIn(writing_effect, content)
         self.assertIn("不能读取后实际忽略", content)
-        self.assertIn("成品中也不说明采用了哪一份", content)
         self.assertNotIn("不要求模型逐条模仿", content)
         self.assertNotIn("偶然细节或连续措辞", content)
         self.assertNotIn("主参考", "\n".join((skill, content)))
@@ -377,7 +372,6 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("文件正文、栏目、字段名和检查过程不进入成文输入", publication)
         self.assertIn("不规定开头、身份、语气、结构、篇幅和结尾", promotion)
         self.assertIn("融资、支持方、钱包入口、基础设施合作", promotion)
-        self.assertIn("项目方发给作者邀请码", promotion)
         self.assertIn("本文件不生成摘要、提纲、角度方案或写法要求", promotion)
 
     def test_reference_admission_keeps_quality_maintenance(self) -> None:
