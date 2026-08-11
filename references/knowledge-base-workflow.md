@@ -86,7 +86,7 @@ published_url: ""
 
 `source` 按真实状态使用 `user-confirmed`、`published-article`、`published-post` 或 `published-thread`。`format` 使用这份成品的实际形式。已经发布时填写规范入口；用户只确认终稿但尚未发布时保留空值。`writing_origin` 按实际情况使用 `human`、`human-edited`、`ai-generated`、`curated`、`translated` 或 `unknown`。只有用户明确确认正文能代表自己的表达，而且来源是 `human` 或 `human-edited` 时，才填写 `voice_eligible: true`；确认终稿和发布入口本身不能证明它适合作为用户写作风格样本。
 
-`<私人知识库>/60-Systems/Writing/style-guide/voice.md` 继续保存长期写作风格。`published-content-index.jsonl` 只索引确认稿、正式文章和明确标记的写作案例所对应的路径、形式、写作来源、能否作为风格样本、日期、正式作品发布入口与哈希，不复制正文，也不保存发布账号。内容案例继续留在 `20-Sources/Social Posts/Content Cases`；普通案例不能证明作者声音，也不能提供本轮事实。正式取例工具只列出当前组件的候选标题，模型确认与当前角度相关后才读取其中一份完整案例帮助表达。案例需要进入写作记忆时，在隐藏索引中明确填写 `writing_format`，并按真实情况填写 `writing_origin` 与 `voice_eligible`；脚本不根据账号或链接推断。
+`<私人知识库>/60-Systems/Writing/style-guide/voice.md` 继续保存长期写作风格。`published-content-index.jsonl` 只索引确认稿、正式文章和明确标记的写作案例所对应的路径、形式、写作来源、能否作为风格样本、日期、正式作品发布入口与哈希，不复制正文，也不保存发布账号。内容案例继续留在 `20-Sources/Social Posts/Content Cases`；普通案例不能证明作者声音，也不能提供本轮事实。正式取例工具只列出当前组件的候选标题，模型可以为同一组件完整比较多份仍可能相关的案例，正式成文时最多采用其中一份帮助表达。案例需要进入写作记忆时，在隐藏索引中明确填写 `writing_format`，并按真实情况填写 `writing_origin` 与 `voice_eligible`；脚本不根据账号或链接推断。
 
 ### 内容策略、选题和发布复盘
 

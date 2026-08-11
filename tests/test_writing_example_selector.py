@@ -102,15 +102,31 @@ class WritingExampleSelectorTests(unittest.TestCase):
         self.assertIn("第一段\n\n第二段", output)
         self.assertIn("来源：`case-a`", output)
 
-    def test_duplicate_component_selection_is_rejected(self) -> None:
+    def test_same_component_can_render_multiple_distinct_candidates(self) -> None:
         mapping = {"P01": ["case-a", "case-b"]}
         cases = {
             "case-a": SimpleNamespace(asset="social", title="A", original_text="A"),
             "case-b": SimpleNamespace(asset="social", title="B", original_text="B"),
         }
-        with self.assertRaisesRegex(ValueError, "组件重复选择"):
+        self.assertEqual(
+            [("P01", "case-a"), ("P01", "case-b")],
             validate_selections(
                 [("P01", "case-a"), ("P01", "case-b")],
+                mapping,
+                cases,
+                {},
+                "short",
+            ),
+        )
+
+    def test_exact_same_component_source_pair_is_rejected(self) -> None:
+        mapping = {"P01": ["case-a"]}
+        cases = {
+            "case-a": SimpleNamespace(asset="social", title="A", original_text="A"),
+        }
+        with self.assertRaisesRegex(ValueError, "模仿来源重复选择"):
+            validate_selections(
+                [("P01", "case-a"), ("P01", "case-a")],
                 mapping,
                 cases,
                 {},

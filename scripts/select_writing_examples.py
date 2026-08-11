@@ -76,18 +76,19 @@ def validate_selections(
     form: str,
 ) -> list[tuple[str, str]]:
     validated: list[tuple[str, str]] = []
-    seen: set[str] = set()
+    seen: set[tuple[str, str]] = set()
     known_sources = set(cases) | set(hooks)
     for component, source_id in selected:
         _validate_component(component, form)
-        if component in seen:
-            raise ValueError(f"组件重复选择：{component}")
+        selection = (component, source_id)
+        if selection in seen:
+            raise ValueError(f"模仿来源重复选择：{component}={source_id}")
         if source_id not in known_sources:
             raise ValueError(f"{source_id} 不是可读取的活动模仿来源")
         if source_id not in mapping.get(component, ()):
             raise ValueError(f"{source_id} 没有被覆盖账本映射到 {component}")
-        validated.append((component, source_id))
-        seen.add(component)
+        validated.append(selection)
+        seen.add(selection)
     return validated
 
 
@@ -159,18 +160,18 @@ def _add_source_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="查看候选来源并按显式选择读取组件模仿例子")
+    parser = argparse.ArgumentParser(description="查看候选来源并完整读取显式选择的候选例子")
     commands = parser.add_subparsers(dest="command", required=True)
 
     candidates = commands.add_parser("candidates", help="列出组件的全部活动候选标题，不自动选择")
     candidates.add_argument("components", nargs="+", help="组件 ID，例如 H23 P01 E04")
     _add_source_arguments(candidates)
 
-    render = commands.add_parser("render", help="读取经过语义判断后显式指定的完整例子")
+    render = commands.add_parser("render", help="完整读取显式指定的候选；同一组件可比较多个来源")
     render.add_argument(
         "selections",
         nargs="+",
-        help="组件与来源，例如 H23=short-hook-human-01 P01=case-1234",
+        help="组件与来源，例如 H02=short-hook-human-01 H02=case-1234 P01=case-5678",
     )
     _add_source_arguments(render)
     return parser
