@@ -172,8 +172,8 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("【其它实际写作输入】", content)
         self.assertNotIn("【通用写作注意】", skill)
         self.assertIn("这里是成文输入的唯一模板", content)
-        self.assertIn("当前对象的事实和作者身份以本次材料为准", content)
-        self.assertIn("选入的每份案例和钩子都必须真实参与写作", content)
+        self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
+        self.assertIn("选入的每份案例和钩子都应当真实参与写作", content)
         self.assertIn("直接写成一个可使用的成品", content)
         for retired_style_rule in (
             "按用户强调的内容分清主次",
@@ -242,8 +242,8 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("不让同一内容同时充当两种参考", skill)
         self.assertIn("所有选入的参考都保留完整正文", _read("references/content-writing.md"))
         content = _read("references/content-writing.md")
-        self.assertIn("默认选入的三份案例和三份钩子都必须进入这份成文输入", skill)
-        self.assertIn("选入的每份案例和钩子都必须真实参与写作", content)
+        self.assertIn("默认选入的三份案例和三份钩子都完整进入这份成文输入", skill)
+        self.assertIn("选入的每份案例和钩子都应当真实参与写作", content)
         for writing_effect in (
             "开头承担的功能",
             "信息推进顺序",
@@ -305,7 +305,7 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("只放用户在当前请求中直接提供的声音样稿", content)
         self.assertNotIn("文章和 Newsletter 默认读取", contract)
         self.assertNotIn("文章和 Newsletter 默认尝试", contract)
-        self.assertEqual(1, content.count("当前对象的事实和作者身份以本次材料为准"))
+        self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
         self.assertIn("第一人称经历、使用体验", skill)
         self.assertIn("第一人称经历、使用体验", content)
 
