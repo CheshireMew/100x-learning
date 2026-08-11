@@ -55,7 +55,7 @@ class SkillStructureTests(unittest.TestCase):
             self.assertNotIn(retired, contract)
 
         skill = _read("SKILL.md")
-        self.assertIn("完整案例和开头钩子帮助表达", skill)
+        self.assertIn("完整案例和开头钩子实际参与表达", skill)
         self.assertIn("在同一次回复中直接成文", skill)
         self.assertIn("材料准备和成文在同一次回复中连续完成", skill)
         self.assertIn("材料准备、直接成文和最终交付在同一次处理中连续完成", contract)
@@ -172,7 +172,8 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("【其它实际写作输入】", content)
         self.assertNotIn("【通用写作注意】", skill)
         self.assertIn("这里是成文输入的唯一模板", content)
-        self.assertIn("案例和钩子只提供写法", content)
+        self.assertIn("当前对象的事实和作者身份以本次材料为准", content)
+        self.assertIn("选入的每份案例和钩子都必须真实参与写作", content)
         self.assertIn("直接写成一个可使用的成品", content)
         for retired_style_rule in (
             "按用户强调的内容分清主次",
@@ -240,7 +241,23 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("任意两份完整原文不能相同", skill)
         self.assertIn("不让同一内容同时充当两种参考", skill)
         self.assertIn("所有选入的参考都保留完整正文", _read("references/content-writing.md"))
-        self.assertIn("不要求模型逐条模仿或说明采用了哪一份", _read("references/content-writing.md"))
+        content = _read("references/content-writing.md")
+        self.assertIn("默认选入的三份案例和三份钩子都必须进入这份成文输入", skill)
+        self.assertIn("选入的每份案例和钩子都必须真实参与写作", content)
+        for writing_effect in (
+            "开头承担的功能",
+            "信息推进顺序",
+            "句段节奏",
+            "转折方式",
+            "表达强度",
+            "结尾方式",
+        ):
+            self.assertIn(writing_effect, content)
+        self.assertIn("不能读取后实际忽略", content)
+        self.assertIn("成品中也不说明采用了哪一份", content)
+        self.assertNotIn("不要求模型逐条模仿", content)
+        self.assertNotIn("偶然细节或连续措辞", content)
+        self.assertNotIn("主参考", "\n".join((skill, content)))
         self.assertIn("用户要求维护完整案例或钩子时", skill)
         self.assertNotIn("## 普通写作读取", cases)
         self.assertNotIn("## 普通写作读取", hooks)
@@ -288,7 +305,7 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("只放用户在当前请求中直接提供的声音样稿", content)
         self.assertNotIn("文章和 Newsletter 默认读取", contract)
         self.assertNotIn("文章和 Newsletter 默认尝试", contract)
-        self.assertIn("不提供当前对象的事实、人物、经历、立场或作者身份", content)
+        self.assertEqual(1, content.count("当前对象的事实和作者身份以本次材料为准"))
         self.assertIn("第一人称经历、使用体验", skill)
         self.assertIn("第一人称经历、使用体验", content)
 
