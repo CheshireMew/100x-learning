@@ -110,23 +110,28 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("不重复询问用户已经回答过的问题", plan)
         self.assertIn("默认模式下资料已经足够时停止", skill)
 
-    def test_material_preparation_preserves_distinct_relations(self) -> None:
+    def test_material_preparation_reads_full_sources_then_selects_relevant_originals(self) -> None:
         skill = _read("SKILL.md")
         preparation = _read("references/writing-material-preparation.md")
         content = _read("references/content-writing.md")
         promotion = _read("references/project-promotion-materials.md")
         contract = "\n".join((skill, preparation, content, promotion))
-        self.assertIn("准备后的材料是成文输入，不是正文提纲", preparation)
-        self.assertIn("写作要求只用于确认成品对象和用户明确排除的范围", preparation)
-        self.assertIn("不根据用户指定的主次、希望讨论的角度、预计篇幅或模型可能采用的信息裁切材料", preparation)
+        self.assertIn("先完整阅读每份来源", preparation)
+        self.assertIn("再区分来源原文与本次成文材料", preparation)
+        self.assertIn("不是整份来源的副本，也不是正文提纲", preparation)
+        self.assertIn("不因为来源中的每项内容彼此不同，就机械纳入整份来源", preparation)
         self.assertIn("事实、关系、判断、猜测、问题、宣发角度和内容主次作为材料保留原话", preparation)
-        self.assertIn("只移开与用户明确指定的对象或范围无关的内容", preparation)
+        self.assertIn("帮助理解对象、比较可能写法、支持具体表达或保证行动准确", preparation)
+        self.assertIn("不改变本次理解、表达或行动的穷举细节", preparation)
+        self.assertIn("材料取舍也不替模型预先决定最终角度", preparation)
         self.assertIn("旧成品或示例文案", preparation)
         self.assertIn("用户把事实列入材料，不等于要求正文逐项覆盖", preparation)
-        self.assertIn("每项不同的事实、关系、动作、阶段、数字、限制、利益、邀请条件和行动入口", preparation)
         self.assertIn("主次、已确认事实、可讨论信息、开放问题、猜测边界和补充内容", preparation)
-        self.assertIn("不能因为篇幅可能较短就提前删除", preparation)
-        self.assertIn("另一来源提供了新的条件、参与者、原因或结果时仍然保留", preparation)
+        self.assertIn("会改变理解、表达或行动的新条件、参与者、原因或结果", preparation)
+        self.assertIn("没有固定材料条数", preparation)
+        self.assertIn("不要求所有内容都归结为一个变化、卖点或中心句", preparation)
+        self.assertNotIn("即使最终正文可能不用", preparation)
+        self.assertNotIn("每项不同的事实、关系、动作、阶段、数字、限制、利益、邀请条件和行动入口", preparation)
         self.assertIn("宣发重点、内容主次、讨论问题、猜测方向和补充信息继续作为材料", promotion)
         self.assertNotIn("选题清单和内部宣传建议只作为准备侧信息", promotion)
         self.assertIn("来源原文、原有顺序、来源边界和必要上下文", contract)
@@ -156,7 +161,6 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("专项说明、材料取舍理由、搜索记录和维护规则", preparation)
         self.assertIn("说明文件本身、维护理由、字段名和检查过程不进入成文输入", skill)
         self.assertNotIn("留下足以准确成文的最少内容", contract)
-        self.assertNotIn("不因为内容准确就自动保留", contract)
         self.assertNotIn("写作简报", content)
 
     def test_writer_input_is_minimal_without_generic_style_rules(self) -> None:
@@ -173,6 +177,10 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("这里是成文输入的唯一模板", content)
         self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
         self.assertIn("直接写成一个可使用的成品", content)
+        self.assertIn("当前成品从哪里进入、展开哪些内容以及怎样组合，由材料本身和你决定", content)
+        self.assertIn("不预设它必须归结为某种变化、单一卖点、痛点、反转或一句中心结论", content)
+        self.assertIn("不先替正文规定读者必须得到哪一种感受", content)
+        self.assertNotIn("确定一个读者能感受到的核心变化", content)
         for retired_style_rule in (
             "按用户强调的内容分清主次",
             "正文只放核心关系和必要事实",
@@ -344,10 +352,11 @@ class SkillStructureTests(unittest.TestCase):
             "**本次创作参考**",
         ):
             self.assertEqual(1, skill.count(heading))
-        self.assertIn("在独立代码块中完整展示本次实际使用的成文输入", skill)
+        self.assertIn("在独立代码块中完整展示本次实际选入的成文输入", skill)
+        self.assertIn("而不是复制完整来源", skill)
         self.assertIn("不另建临时文件", skill)
         self.assertIn("每个完整成品分别放在独立代码块中", skill)
-        self.assertIn("不重新摘要或改写内容", skill)
+        self.assertIn("不重新摘要或改写已选内容", skill)
         self.assertIn("只列出真正进入本次成文输入的案例与钩子", skill)
         self.assertIn("不列候选阶段读过但没有送入成文模型的内容", skill)
         self.assertIn("本地参考使用可点击的绝对文件路径", skill)
