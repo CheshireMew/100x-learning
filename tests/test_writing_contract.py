@@ -33,37 +33,190 @@ class SkillStructureTests(unittest.TestCase):
             )
             self.assertEqual([], mentioned, path)
 
-    def test_writing_completes_in_one_turn_without_old_routes_or_handoff(self) -> None:
-        contract = "\n".join(
-            (
-                _read("SKILL.md"),
-                _read("references/writing-material-preparation.md"),
-                _read("references/content-writing.md"),
-                _read("references/private-knowledge-library.md"),
-                _read("references/content-case-library.md"),
-                _read("references/hook-library.md"),
-            )
-        )
-        for retired in (
-            "材料完备短内容",
-            "发现式新写",
-            "局部修改路线",
-            "一份合格主案例",
-            "至少一份、最多两份",
-            "固定两份",
-        ):
-            self.assertNotIn(retired, contract)
-
+    def test_normal_writing_uses_one_full_template(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("完整案例和开头钩子实际参与表达", skill)
-        self.assertIn("在同一次回复中直接成文", skill)
-        self.assertIn("材料准备和成文在同一次回复中连续完成", skill)
-        self.assertIn("材料准备、直接成文和最终交付在同一次处理中连续完成", contract)
-        self.assertIn("材料准备与联网补充只执行一次", contract)
+        content = _read("references/content-writing.md")
+        catalog = _read("references/writing-template-catalog.md")
+        contract = "\n".join((skill, content, catalog))
+
+        self.assertIn("先选一个完整模板，再填材料", skill)
+        self.assertIn("每篇只选择一个完整模板", catalog)
+        self.assertIn("禁止跨模板拼装", catalog)
+        self.assertIn("模板 ID：<只允许一个", content)
+        self.assertIn("完整模板：", content)
+        self.assertIn("必填槽绑定", content)
+        self.assertIn("停止点", content)
+        self.assertIn("正文每句话只能完成一个已绑定槽位", content)
+        self.assertIn("每句话必须对应一个槽位和当前材料", skill)
+        self.assertIn("模型负责判断，模板负责限制", skill)
+        self.assertNotIn("由它决定角度、取舍、结构、语言、篇幅和结束位置", contract)
+
+    def test_old_case_and_hook_mixing_runtime_is_gone(self) -> None:
+        runtime_paths = ["SKILL.md"] + [
+            path.relative_to(PROJECT_ROOT).as_posix()
+            for path in sorted((PROJECT_ROOT / "references").glob("*.md"))
+        ]
+        runtime = "\n".join(_read(path) for path in runtime_paths)
+        for retired in (
+            "【参考案例】",
+            "【参考开头】",
+            "默认选入三份",
+            "三个不同的写作技巧分组",
+            "沿索引打开的完整案例",
+            "沿索引打开的完整钩子",
+            "临时参考不自动保存",
+            "重新选择案例与钩子",
+            "完整案例和开头钩子实际参与表达",
+            "选入的每份案例和钩子都应当真实参与写作",
+            "每次写作在同一次回复中固定展示四部分",
+            "本次创作参考",
+        ):
+            self.assertNotIn(retired, runtime)
+
+        self.assertIn("案例与钩子只用于明确发起的模板维护", skill := _read("SKILL.md"))
+        self.assertIn("普通写作没有运行私人库定位", skill)
+        self.assertIn("普通写作不运行 `show`", _read("references/private-knowledge-library.md"))
+
+    def test_writer_input_has_only_material_template_and_optional_voice(self) -> None:
+        content = _read("references/content-writing.md")
+        for heading in ("【用户要求】", "【材料】", "【写作模板】", "【作者声音】"):
+            self.assertEqual(1, content.count(heading), heading)
+        for retired in ("【参考案例】", "【参考开头】", "【完整案例】", "【完整钩子】"):
+            self.assertNotIn(retired, content)
+        self.assertIn("案例、钩子、专项说明、维护规则、检索过程、外部写作范例和与当前对象无关的旧稿不进入", content)
+        self.assertIn("可选槽没有材料时直接跨过", content)
+        self.assertIn("无法同时找到二者的句子删除", content)
+
+    def test_catalog_has_complete_short_and_long_templates(self) -> None:
+        catalog = _read("references/writing-template-catalog.md")
+        matches = list(
+            re.finditer(r"^### ([TA]\d{2}) [^\n]+$", catalog, flags=re.MULTILINE)
+        )
+        ids = [match.group(1) for match in matches]
+        self.assertEqual([f"T{i:02d}" for i in range(1, 11)], ids[:10])
+        self.assertEqual([f"A{i:02d}" for i in range(1, 10)], ids[10:])
+        self.assertEqual(len(ids), len(set(ids)))
+
+        for index, match in enumerate(matches):
+            end = matches[index + 1].start() if index + 1 < len(matches) else len(catalog)
+            block = catalog[match.start():end]
+            for field in ("适用条件", "必须事实", "钩子", "承接", "收尾"):
+                self.assertIn(f"- {field}：", block, match.group(1))
+            if match.group(1).startswith("T"):
+                for field in ("禁用条件", "推进", "连接", "删除项"):
+                    self.assertIn(f"- {field}：", block, match.group(1))
+            else:
+                for field in ("全文推进", "章节块", "章节连接", "禁止"):
+                    self.assertIn(f"- {field}：", block, match.group(1))
+
+            fields = re.findall(r"^- ([^：\n]+)：([^\n]+)$", block, flags=re.MULTILINE)
+            self.assertTrue(fields, match.group(1))
+            self.assertTrue(all(value.strip() for _, value in fields), match.group(1))
+            required_line = next(value for name, value in fields if name == "必须事实")
+            required_slots = re.findall(r"`([^`]+)`", required_line)
+            self.assertGreaterEqual(len(required_slots), 4, match.group(1))
+            self.assertEqual(len(required_slots), len(set(required_slots)), match.group(1))
+
+    def test_template_selection_rejects_missing_facts(self) -> None:
+        catalog = _read("references/writing-template-catalog.md")
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+        contract = "\n".join((catalog, skill, content))
+        self.assertIn("只保留满足“适用条件”且“必须事实”齐全的模板", catalog)
+        self.assertIn("缺少必填槽就换模板", catalog)
+        self.assertIn("不能把缺口交给模型发明", skill)
+        self.assertIn("没有材料的可选槽省略", content)
+        self.assertIn("第一人称、亲历、测试、时间、数字、引语、因果、比较和最高级", contract)
+        self.assertIn("不补故事、痛点、情绪、使用体验、读者心理或价值判断", catalog)
+        self.assertIn("没有任何同形态模板满足必填事实时不跨形态回退", catalog)
+        self.assertIn("短帖或 Thread 只能选择 `T` 模板", skill)
+        self.assertIn("文章或 Newsletter 只能选择 `A` 模板", skill)
+        self.assertIn("没有任何同形态模板合格时不成文", skill)
+
+    def test_user_structure_cannot_bypass_a_complete_template(self) -> None:
+        catalog = _read("references/writing-template-catalog.md")
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+        contract = "\n".join((catalog, skill, content))
+        self.assertIn("同时规定了开头或进入方式、紧接开头怎样承接、正文推进顺序", catalog)
+        self.assertIn("段落怎样连接或明确不加连接，以及停止位置", catalog)
+        self.assertIn("长文还规定了章节内部写法", catalog)
+        self.assertIn("局部约束时，仍从目录选择一个完整模板", catalog)
+        self.assertIn("用户结构约束", content)
+        self.assertIn("局部结构要求进入“用户结构约束”", content)
+        self.assertIn("局部结构要求继续绑定到一个目录模板", skill)
+        self.assertIn("`USER` 把用户给出的完整结构展开成同样字段", content)
+        self.assertNotIn("用户已经给出结构时，把它视为本次唯一模板", contract)
+
+    def test_sources_and_current_drafts_are_not_mistaken_for_style_examples(self) -> None:
+        catalog = _read("references/writing-template-catalog.md")
+        skill = _read("SKILL.md")
+        content = _read("references/content-writing.md")
+        contract = "\n".join((catalog, skill, content))
+        self.assertIn("外部写作范例和与当前对象无关的旧稿", catalog)
+        self.assertIn("本次任务的事实来源、用户明确交付的待改正文和来源消化对象", catalog)
+        self.assertIn("本次任务的事实来源、待改正文和来源消化对象仍作为材料使用", skill)
+        self.assertIn("用户明确交付的待改正文和来源消化对象仍作为材料使用", content)
+        self.assertNotIn("外部文章和旧稿都不能代替", contract)
+
+    def test_workflow_demo_is_a_first_class_route(self) -> None:
+        catalog = _read("references/writing-template-catalog.md")
+        block = catalog.split("### T02 工作流演示", 1)[1].split("### T03", 1)[0]
+        self.assertIn("真实命令、自然语言输入、输入到输出的操作链", block)
+        self.assertIn("你只要说/输入", block)
+        self.assertIn("可见输出", block)
+        self.assertIn("二至四个自动步骤", block)
+        self.assertIn("凭空补用户痛点", block)
+        self.assertIn("工具存在真实输入、处理和输出链时，优先工作流演示", catalog)
+
+    def test_long_writing_constrains_each_section(self) -> None:
+        catalog = _read("references/writing-template-catalog.md")
+        content = _read("references/content-writing.md")
+        article = _read("references/article-from-practice.md")
+        contract = "\n".join((catalog, content, article))
+        self.assertIn("每个章节只选择模板规定的一种章节块", catalog)
+        self.assertIn("每个段落只承担", catalog)
+        self.assertIn("小标题直接写本节对象", catalog)
+        self.assertIn("每个章节必须使用所选 `A` 模板规定的章节块", content)
+        self.assertIn("不能把多个模板当成多个章节拼接", article)
+        self.assertIn("CTA 与逻辑结尾分开", article)
+        self.assertIn("最多一个", article)
+
+    def test_case_and_hook_libraries_are_maintenance_corpus_only(self) -> None:
+        cases = _read("references/content-case-library.md")
+        hooks = _read("references/hook-library.md")
+        maintenance = _read("references/writing-template-maintenance.md")
+        home = _read("assets/private-library/Home.md")
+        self.assertIn("只作为重新蒸馏和验证写作模板的原始语料", cases)
+        self.assertIn("不直接进入普通成文输入", cases)
+        self.assertIn("只作为重新蒸馏和验证写作模板的原始语料", hooks)
+        self.assertIn("普通写作不读取钩子库", hooks)
+        self.assertIn("普通写作不读取本文件", maintenance)
+        self.assertIn("同一模板必须覆盖完整内容链", maintenance)
+        self.assertIn("不能分别建立可任意组合的钩子库、推进库和结尾库", maintenance)
+        self.assertIn("普通写作使用 Skill 源码中的完整写作模板", home)
+
+    def test_material_preparation_preserves_source_boundaries(self) -> None:
+        preparation = _read("references/writing-material-preparation.md")
+        promotion = _read("references/project-promotion-materials.md")
+        self.assertIn("准备后的材料是成文输入，不是正文提纲", preparation)
+        self.assertIn("事实、关系、判断、猜测、问题、宣发角度和内容主次作为材料保留原话", preparation)
+        self.assertIn("来源身份和原有确定程度", preparation)
+        self.assertIn("不摘要、转述、重排、拼接或统一改写", preparation)
+        self.assertIn("当前仍成立的开放问题和候选机制继续保留", promotion)
+        self.assertIn("项目方发给作者邀请码", promotion)
+        self.assertIn("只有能绑定到选中模板槽位的信息才进入正文", promotion)
+
+    def test_writing_completes_in_one_turn_without_handoff(self) -> None:
+        skill = _read("SKILL.md")
+        preparation = _read("references/writing-material-preparation.md")
+        content = _read("references/content-writing.md")
+        contract = "\n".join((skill, preparation, content))
+        self.assertIn("材料准备、模板选择和成文在同一次回复中连续完成", skill)
+        self.assertIn("材料准备与联网补充只执行一次", preparation)
         self.assertNotIn("writing-handoff.md", contract)
         self.assertNotIn("正式交接文件", contract)
         self.assertNotIn("第一轮：交出正式准备文件", contract)
-        self.assertNotIn("第二轮：只读交接文件成文", contract)
 
     def test_writing_browses_for_supplement_without_prewrite_fact_check(self) -> None:
         skill = _read("SKILL.md")
@@ -78,278 +231,50 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("不是逐项验证用户已经给出的说法", preparation)
         self.assertIn("不生成事实核查报告", preparation)
         self.assertIn("不以核查完成作为开始写作的前置条件", skill)
-        self.assertIn("写作中的联网补充不调用这两份研究说明", skill)
-        self.assertIn("没有增加理解或传播价值时不加入", preparation)
-        self.assertIn("草稿完成后只核对正文实际写出的", skill)
-        self.assertIn("成稿完成后只检查正文实际使用的", _read("references/content-writing.md"))
-        self.assertNotIn("搜索服从材料缺口", contract)
-        self.assertNotIn("两篇普通短内容或一篇中等篇幅文章", contract)
+        self.assertIn("新增内容保持来源身份和原有确定程度", preparation)
 
-        writing = skill.split("## 写作", 1)[1].split("## 知识库与持久化", 1)[0]
-        self.assertNotIn("research-context-reuse.md", writing)
-        self.assertNotIn("research-led-learning.md", writing)
-
-    def test_plan_mode_supplements_before_interviewing_for_subjective_material(self) -> None:
+    def test_plan_mode_supplements_before_interviewing(self) -> None:
         skill = _read("SKILL.md")
         plan = skill.split("### Plan 模式下先补充再访谈", 1)[1].split(
             "### 默认模式下准备并直接成文", 1
         )[0]
-
         self.assertIn("用户主动开启 Plan 模式视为明确的深度访谈请求", plan)
-        self.assertIn("不论现有材料是否已经足够成文", plan)
         self.assertIn("必须先完成本次需要的联网补充", plan)
         self.assertIn("再使用 `request_user_input` 开始访谈", plan)
         self.assertLess(
             plan.index("必须先完成本次需要的联网补充"),
             plan.index("再使用 `request_user_input` 开始访谈"),
         )
-        self.assertIn("不先询问能够从现有材料或公开来源自行取得的客观信息", plan)
-        self.assertIn("真实情绪、感受、观点和立场", plan)
         self.assertIn("每轮只集中推进一个问题", plan)
         self.assertIn("不按固定问卷机械遍历", plan)
-        self.assertIn("不重复询问用户已经回答过的问题", plan)
-        self.assertIn("默认模式下资料已经足够时停止", skill)
 
-    def test_material_preparation_preserves_distinct_relations(self) -> None:
-        skill = _read("SKILL.md")
-        preparation = _read("references/writing-material-preparation.md")
-        content = _read("references/content-writing.md")
-        promotion = _read("references/project-promotion-materials.md")
-        contract = "\n".join((skill, preparation, content, promotion))
-        self.assertIn("准备后的材料是成文输入，不是正文提纲", preparation)
-        self.assertIn("写作要求只用于确认成品对象和用户明确排除的范围", preparation)
-        self.assertIn("不根据用户指定的主次、希望讨论的角度、预计篇幅或模型可能采用的信息裁切材料", preparation)
-        self.assertIn("事实、关系、判断、猜测、问题、宣发角度和内容主次作为材料保留原话", preparation)
-        self.assertIn("只移开与用户明确指定的对象或范围无关的内容", preparation)
-        self.assertIn("旧成品或示例文案", preparation)
-        self.assertIn("用户把事实列入材料，不等于要求正文逐项覆盖", preparation)
-        self.assertIn("每项不同的事实、关系、动作、阶段、数字、限制、利益、邀请条件和行动入口", preparation)
-        self.assertIn("主次、已确认事实、可讨论信息、开放问题、猜测边界和补充内容", preparation)
-        self.assertIn("不能因为篇幅可能较短就提前删除", preparation)
-        self.assertIn("另一来源提供了新的条件、参与者、原因或结果时仍然保留", preparation)
-        self.assertIn("宣发重点、内容主次、讨论问题、猜测方向和补充信息继续作为材料", promotion)
-        self.assertNotIn("选题清单和内部宣传建议只作为准备侧信息", promotion)
-        self.assertIn("来源原文、原有顺序、来源边界和必要上下文", contract)
-        self.assertIn("不摘要、转述、重排、拼接或统一改写", preparation)
-        self.assertIn("## 写作输入", content)
-        self.assertNotIn("writing-handoff.md", contract)
-        self.assertIn("材料准备与联网补充只执行一次", preparation)
-        self.assertIn("【用户要求】", content)
-        self.assertNotIn("【写作规则】", content)
-        self.assertNotIn("【通用写作注意】", content)
-        self.assertIn("【材料】", content)
-        self.assertIn("【参考案例】", content)
-        self.assertIn("【参考开头】", content)
-        self.assertNotIn("【完整案例】", content)
-        self.assertNotIn("【完整钩子】", content)
-        self.assertNotIn("【其它实际写作输入】", content)
-        self.assertIn("【作者声音】", content)
-        self.assertIn("不带案例库生成的标题", content)
-        self.assertIn("不带钩子库生成的标题", content)
-        self.assertIn("依次完整放入实际读取的多份写作案例正文", content)
-        self.assertIn("依次完整放入实际读取的多份开头钩子正文", content)
-        self.assertIn("相邻正文之间单独放一行 `---`", content)
-        self.assertIn("相邻案例之间和相邻钩子之间各用一行 `---`", content)
-        self.assertIn("“原文全文”等栏目名", content)
-        self.assertIn("“钩子原文”等栏目名", content)
-        self.assertIn("只保留实际参考正文", content)
-        self.assertIn("专项说明、材料取舍理由、搜索记录和维护规则", preparation)
-        self.assertIn("说明文件本身、维护理由、字段名和检查过程不进入成文输入", skill)
-        self.assertNotIn("留下足以准确成文的最少内容", contract)
-        self.assertNotIn("不因为内容准确就自动保留", contract)
-        self.assertNotIn("写作简报", content)
-
-    def test_writer_input_is_minimal_without_generic_style_rules(self) -> None:
-        skill = _read("SKILL.md")
-        content = _read("references/content-writing.md")
-        self.assertEqual(1, content.count("【用户要求】"))
-        self.assertEqual(1, content.count("【材料】"))
-        self.assertEqual(1, content.count("【参考案例】"))
-        self.assertEqual(1, content.count("【参考开头】"))
-        self.assertEqual(1, content.count("【作者声音】"))
-        self.assertNotIn("【写作规则】", content)
-        self.assertNotIn("【其它实际写作输入】", content)
-        self.assertNotIn("【通用写作注意】", skill)
-        self.assertIn("这里是成文输入的唯一模板", content)
-        self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
-        self.assertIn("直接写成一个可使用的成品", content)
-        for retired_style_rule in (
-            "按用户强调的内容分清主次",
-            "正文只放核心关系和必要事实",
-            "开头从具体变化、冲突、结果或真实情绪",
-            "每句话增加新事实",
-            "普通名词不加装饰性引号",
-            "不反复使用“不是……而是……”",
-            "不强补总结、金句、问题或结尾",
-        ):
-            self.assertNotIn(retired_style_rule, content)
-
-        runtime = "\n".join(
-            _read(path)
-            for path in (
-                "SKILL.md",
-                "references/content-writing.md",
-                "references/natural-writing.md",
-                "references/content-audit.md",
-                "references/article-from-practice.md",
-                "references/github-project-list.md",
-                "references/github-project-short-content.md",
-                "references/publication-requirements.md",
-                "references/project-promotion-materials.md",
-            )
-        )
-        self.assertNotIn("以为……其实……", runtime)
-        self.assertNotIn("不只是……而是……", runtime)
-
-        for retired_prewrite_contract in (
-            "准备材料的信息范围与拟写正文保持一致",
-            "最值得传播的变化",
-            "直接影响所需",
-            "不先搭次要说法再转折",
-            "抽象结论、口号或问题",
-            "参考已经足够",
-            "互补价值",
-        ):
-            self.assertNotIn(retired_prewrite_contract, runtime)
-
-    def test_normal_writing_reads_references_without_loading_maintenance_rules(self) -> None:
-        skill = _read("SKILL.md")
-        cases = _read("references/content-case-library.md")
-        hooks = _read("references/hook-library.md")
-        self.assertIn("优先从本地私人库读取多份彼此互补的参考写作案例和参考开头钩子", skill)
-        self.assertIn("短帖和 Thread 从社交内容案例索引", skill)
-        self.assertIn("所有成品从同一份钩子索引", skill)
-        self.assertIn("分别从活动案例索引和钩子索引选择三个不同的写作技巧分组", skill)
-        self.assertIn("从每个分组沿一个稳定编号链接打开完整原文", skill)
-        self.assertIn("优先在原分组换读", skill)
-        self.assertIn("在承担相同或相邻表达作用的分组中换读", skill)
-        self.assertNotIn("只在原分组中换读另一份", skill)
-        self.assertIn("索引标签只负责确定候选分组，完整原文决定最终取舍", skill)
-        self.assertIn("题材、行业、对象、具体事件或邀请机制相同都不是前提", skill)
-        self.assertIn("候选发现只通过索引分组及其中的稳定编号链接进行", skill)
-        self.assertIn("不对案例或钩子正文目录运行 `rg`、`Select-String` 或其它全文检索", skill)
-        self.assertIn("不把句式、修辞词组、题材、行业、对象或具体情节作为候选搜索词", skill)
-        self.assertIn("默认选入三份彼此不同的完整案例和三份完整钩子", skill)
-        self.assertIn("只有新增参考能提供前三份没有的写法", skill)
-        self.assertIn("不为了显得丰富继续堆参考", skill)
-        self.assertIn("只有本地索引无法提供足够的完整参考", skill)
-        self.assertIn("临时参考不自动保存进私人库", skill)
-        self.assertNotIn("活动案例与钩子正文中全文搜索", skill)
-        self.assertIn("选入的案例与钩子分别来自各自的独立文件", skill)
-        self.assertIn("任意两份完整原文不能相同", skill)
-        self.assertIn("不让同一内容同时充当两种参考", skill)
-        content = _read("references/content-writing.md")
-        self.assertIn("默认选入的三份案例和三份钩子都完整进入这份成文输入", skill)
-        for writing_effect in (
-            "开头承担的功能",
-            "信息推进顺序",
-            "句段节奏",
-            "转折方式",
-            "表达强度",
-            "结尾方式",
-        ):
-            self.assertIn(writing_effect, content)
-        self.assertIn("不能读取后实际忽略", content)
-        self.assertNotIn("不要求模型逐条模仿", content)
-        self.assertNotIn("偶然细节或连续措辞", content)
-        self.assertNotIn("主参考", "\n".join((skill, content)))
-        self.assertIn("用户要求维护完整案例或钩子时", skill)
-        self.assertNotIn("## 普通写作读取", cases)
-        self.assertNotIn("## 普通写作读取", hooks)
-        self.assertNotIn("固定三份", skill)
-        self.assertNotIn("至少三份", skill)
-
-    def test_explicit_rewrite_reuses_confirmed_material_without_reusing_the_previous_draft(self) -> None:
+    def test_explicit_rewrite_reuses_facts_and_reselects_one_template(self) -> None:
         skill = _read("SKILL.md")
         self.assertIn("“重新写”“重写”“从头写”或等义表达", skill)
         self.assertIn("沿用已经确认的当前对象材料、表达边界和仍然适用的硬要求", skill)
-        self.assertIn("不再联网", skill)
         self.assertIn("不把上一稿及其句子、结构或纠错过程放入成文输入", skill)
-        self.assertIn("重新选择案例与钩子，从零独立成文", skill)
-        self.assertIn("用户另有明确要求时，以当前要求为准", skill)
+        self.assertIn("重新选择一个合格模板，从零独立成文", skill)
+        self.assertIn("只要求改字词、格式或等义措辞", skill)
 
-    def test_private_library_is_not_a_writing_gate(self) -> None:
+    def test_default_delivery_returns_the_result_not_internal_inputs(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("运行 `python scripts/private_library.py show`", skill)
-        self.assertIn("私人库或参考不可用时直接继续写作", skill)
+        content = _read("references/content-writing.md")
+        self.assertIn("默认只交付可直接使用的完整成品", skill)
+        self.assertIn("不展示内部材料、模板选择、槽位绑定、检查过程", skill)
+        self.assertIn("用户明确要求查看依据、写作过程或模板时", skill)
+        self.assertIn("只把完整成品交回主流程", content)
+        self.assertNotIn("**写作准备材料**", skill)
+        self.assertNotIn("**本次创作参考**", skill)
 
-    def test_normal_writing_private_library_allowlist_and_author_voice_opt_in(self) -> None:
+    def test_author_voice_and_fact_checks_remain_opt_in_and_grounded(self) -> None:
         skill = _read("SKILL.md")
-        private_library = _read("references/private-knowledge-library.md")
-        knowledge = _read("references/knowledge-base-workflow.md")
-        article = _read("references/article-from-practice.md")
         memory = _read("references/personal-writing-memory.md")
         content = _read("references/content-writing.md")
-        contract = "\n".join(
-            (skill, private_library, knowledge, article, memory, content)
-        )
-        self.assertIn("普通写作只允许读取社交内容案例索引或文章案例索引", skill)
-        self.assertIn("沿索引打开的完整案例", skill)
-        self.assertIn("钩子索引和沿索引打开的完整钩子", skill)
-        self.assertIn("不读取 `Home.md`、`10-Knowledge`、其它来源、项目、成果、作者声音、发布历史、内容策略或任何同主题笔记", skill)
-        self.assertIn("即使项目名、机构名或产品名命中也不搜索", skill)
-        self.assertIn("取得路径后只打开案例索引", private_library)
-        self.assertIn("普通写作不从这里读取主题知识或启动知识补全", knowledge)
         self.assertIn("普通写作不从私人库读取作者声音或发布历史", skill)
-        self.assertIn("文章和 Newsletter 也不例外", skill)
-        self.assertIn("不因为成品较长就读取私人库中的作者声音", article)
-        self.assertIn("普通写作不自动进入本流程", memory)
         self.assertIn("用户明确要求读取私人库中的既有声音", memory)
-        self.assertIn("不自动并入其它普通写作", memory)
         self.assertIn("用户给出的文字默认是来源材料，不是用户本人写的现稿", content)
-        self.assertIn("只放用户在当前请求中直接提供的声音样稿", content)
-        self.assertNotIn("文章和 Newsletter 默认读取", contract)
-        self.assertNotIn("文章和 Newsletter 默认尝试", contract)
-        self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
         self.assertIn("第一人称经历、使用体验", skill)
-        self.assertIn("第一人称经历、使用体验", content)
-
-    def test_model_controls_creation_without_outline_or_review_route(self) -> None:
-        skill = _read("SKILL.md")
-        content = _read("references/content-writing.md")
-        self.assertIn("由它决定角度、取舍、结构、语言、篇幅和结束位置", skill)
-        self.assertIn("直接写成可使用的成品", content)
-        self.assertIn("没有指定数量时只生成一个", content)
-        self.assertIn("不自动评审、融合或润色", content)
-        self.assertIn("提纲或写法清单", content)
-
-    def test_source_and_finished_languages_are_separate(self) -> None:
-        skill = _read("SKILL.md")
-        self.assertIn("直接回复和可发布文字默认使用中文", skill)
-
-    def test_delivery_exposes_prepared_material_result_and_references(self) -> None:
-        skill = _read("SKILL.md")
-        content = _read("references/content-writing.md")
-        self.assertIn("每次写作在同一次回复中固定展示四部分", skill)
-        self.assertIn("在同一次回复中直接成文", skill)
-        self.assertIn("只放用户要生成的成品", skill)
-        self.assertIn("用户提供的内容说明进入写作准备材料", skill)
-        self.assertIn("用户提供的事实、关系、判断、猜测、问题、宣发角度和内容主次属于材料", skill)
-        self.assertIn("同一条消息里的对象事实、关系、观点、疑问、猜测、内容主次和角度说明进入材料", content)
-        self.assertNotIn("写作要求能直接摘录用户原话时不改写", skill)
-        self.assertNotIn("只放用户本次明确提出的写作要求", content)
-        self.assertIn("用户没有提出限制时不擅自补上“不要搜索外部资料”等要求", skill)
-        self.assertIn("写作前可以联网发现新的写作材料", _read("references/writing-material-preparation.md"))
-        self.assertIn("多份案例之间和多份钩子之间分别用单独一行 `---` 分隔", skill)
-        for heading in (
-            "**写作要求**",
-            "**写作准备材料**",
-            "**结果**",
-            "**本次创作参考**",
-        ):
-            self.assertEqual(1, skill.count(heading))
-        self.assertIn("在独立代码块中完整展示本次实际使用的成文输入", skill)
-        self.assertIn("不另建临时文件", skill)
-        self.assertIn("每个完整成品分别放在独立代码块中", skill)
-        self.assertIn("不重新摘要或改写内容", skill)
-        self.assertIn("只列出真正进入本次成文输入的案例与钩子", skill)
-        self.assertIn("不列候选阶段读过但没有送入成文模型的内容", skill)
-        self.assertIn("本地参考使用可点击的绝对文件路径", skill)
-        self.assertIn("临时公开参考使用原始网页链接", skill)
-        self.assertNotIn("writing-handoff.md", "\n".join((skill, content)))
-        self.assertNotIn("**修改前**", skill)
-        self.assertNotIn("**修改后**", skill)
-        self.assertNotIn("本次信息来源", skill)
+        self.assertIn("第一人称、亲历、测试、时间、数字、引语、因果、比较和最高级", content)
 
     def test_ai_flavor_audit_edits_only_confirmed_problems(self) -> None:
         skill = _read("SKILL.md")
@@ -359,45 +284,30 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("用户要求检查或清理 AI 味时", skill)
         self.assertIn("没有内容作用的句子可以删除", natural)
         self.assertIn("删除后不补抽象总结", natural)
-        self.assertIn("不把失败句式和禁用示例重新放进创作输入", natural)
         self.assertIn("只修改已经确认的问题", audit)
         self.assertIn("不借审查重新设计全文", audit)
 
-    def test_publication_facts_do_not_prescribe_activity_copy_structure(self) -> None:
-        publication = _read("references/publication-requirements.md")
-        promotion = _read("references/project-promotion-materials.md")
-        self.assertNotIn("活动发布型短内容使用同一条内容关系", publication)
-        self.assertNotIn("最后落在参与结果", publication)
-        self.assertIn("它只准备事实", publication)
-        self.assertIn("文件正文、栏目、字段名和检查过程不进入成文输入", publication)
-        self.assertIn("不规定开头、身份、语气、结构、篇幅和结尾", promotion)
-        self.assertIn("融资、支持方、钱包入口、基础设施合作", promotion)
-        self.assertIn("本文件不生成摘要、提纲、角度方案或写法要求", promotion)
-
-    def test_reference_admission_keeps_quality_maintenance(self) -> None:
-        cases = _read("references/content-case-library.md")
-        hooks = _read("references/hook-library.md")
-        self.assertIn("信息量与篇幅相称", cases)
-        self.assertIn("空泛总结", cases)
-        self.assertIn("重新阅读全文", cases)
-        self.assertIn("可回查归档并重建索引", cases)
-        self.assertIn("具体事实、动作、冲突、结果、问题或真实情绪", hooks)
-        self.assertIn("自然接入后文", hooks)
-        self.assertIn("可回查归档并重建索引", hooks)
-
-    def test_reference_indexes_do_not_split_threads_from_short_posts(self) -> None:
+    def test_reference_admission_and_indexes_remain_maintainable(self) -> None:
         skill = _read("SKILL.md")
         cases = _read("references/content-case-library.md")
         hooks = _read("references/hook-library.md")
+        self.assertIn("信息量与篇幅相称", cases)
+        self.assertIn("可回查归档并重建索引", cases)
+        self.assertIn("自然接入后文", hooks)
+        self.assertIn("可回查归档并重建索引", hooks)
         self.assertIn("短帖和 Thread 都使用 `social`", skill)
-        self.assertIn("社交内容案例索引.md", cases)
         self.assertIn("独立短帖和 Thread 不再区分", cases)
-        self.assertNotIn("--kind short", cases)
-        self.assertIn("Hook Library/钩子索引.md", hooks)
         self.assertIn("不保存适用形式字段", hooks)
-        self.assertNotIn("--format", hooks)
         for retired in ("短内容钩子索引.md", "Thread钩子索引.md", "文章钩子索引.md"):
             self.assertNotIn(retired, "\n".join((skill, cases, hooks)))
+
+    def test_readmes_describe_template_runtime(self) -> None:
+        self.assertIn("普通写作使用仓库内经过验证的完整写作模板", _read("README.md"))
+        self.assertIn("validated full-piece templates", _read("README.en.md"))
+        self.assertIn("検証済みの全文テンプレート", _read("README.ja.md"))
+
+    def test_source_and_finished_languages_are_separate(self) -> None:
+        self.assertIn("直接回复和可发布文字默认使用中文", _read("SKILL.md"))
 
 
 if __name__ == "__main__":
