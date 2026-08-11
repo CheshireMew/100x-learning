@@ -96,7 +96,7 @@ The selected root is recorded in `~/.100x-learning/config.json`; the config stor
 
 Once connected, the library can hold sources, one source of truth per topic, complete writing cases, independent hooks, confirmed work, content direction, and durable topic state.
 
-Ordinary writing independently selects version-controlled hook, continuation, body, bridge, ending, and long-form section templates, then lists the templates actually used after the finished copy. It does not read private cases, hooks, topic knowledge, personal voice, or publication history unless you explicitly request corpus, template, voice, or history maintenance. A single publication outcome does not rewrite long-term strategy or personal voice.
+Ordinary writing independently selects version-controlled hook, continuation, body, bridge, ending, and long-form section templates, then lists the templates actually used after the finished copy. When the private library is available, the example selector supplies one complete case for the hook, body, ending, and each long-form section actually used, so the model can follow natural expression without borrowing facts. Ordinary writing does not read topic knowledge, personal voice, or publication history unless you explicitly request the corresponding task. A single publication outcome does not rewrite long-term strategy or personal voice.
 
 <details>
 <summary>Run the knowledge-library maintenance scripts directly</summary>
