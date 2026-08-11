@@ -15,8 +15,8 @@ description: 帮助用户读懂材料、研究主题、解释概念、把知识�
 
 1. **先完成用户真正要的结果。** 直接理解用户的自然语言要求并完成相应内容。同一请求包含研究、写作或保存等多个明确结果时依次完成；用户只要其中一项时，在该结果完成后停止。
 2. **联网补充服务写作。** 写作前可以联网发现有助于理解、增加信息量或提升传播力的新材料；用户明确要求联网补充时直接执行。联网补充不是研究或事实核查，不逐项验证用户材料，也不以核查完成作为开始写作的前置条件。
-3. **先选一个完整模板，再填材料。** 普通写作只从 `references/writing-template-catalog.md` 选择一个满足事实条件的整篇模板；钩子、承接、推进、连接和收尾不能跨模板拼装。案例与钩子只用于明确发起的模板维护，不进入普通成文输入。
-4. **模型负责判断，模板负责限制。** 模型可以在合格模板中选择，并在槽位内组织自然语言；结构、必填事实、句段作用、首尾关系和停止位置由选中模板决定。没有材料支持的槽位省略或换模板，不靠模型补全。
+3. **分开选择每个写作部件。** 普通写作从 `references/writing-templates/` 分别选择一个钩子、承接、正文推进、连接和结尾；文章与 Newsletter 还为每个章节选择章节块。组件可以独立组合，不预先绑定成整篇路线。案例与钩子只用于明确发起的模板维护，不进入普通成文输入。
+4. **模板给句法，材料填槽位。** 模型只在各类合格组件中选择，并按组件的固定骨架填入当前材料。某一组件缺少必填事实时换同类组件，不借另一个组件补缺口，也不自行发明人物、痛点、情绪、体验、意义或行动入口。
 
 ## 根据请求使用材料
 
@@ -26,10 +26,17 @@ description: 帮助用户读懂材料、研究主题、解释概念、把知识�
 - 用户明确要求研究主题、比较来源或核查重要事实时读取 `references/research-context-reuse.md` 和 `references/research-led-learning.md`；写作中的联网补充不调用这两份研究说明。解释概念读取 `references/concept-deconstruction.md`；系统学习读取 `references/continuous-learning.md`。
 - 把知识用于真实问题读取 `references/practice-led-learning.md`；建立长期内容方向读取 `references/content-strategy-and-topic-selection.md`；复盘已发布内容读取 `references/published-content-review.md`。
 - 视频、社交帖子和 Thread 先按 `references/source-ingestion.md` 取得可靠正文与上下文，再直接用于用户要的结果。
-- 可发布文字共同使用 `references/writing-material-preparation.md`、`references/writing-template-catalog.md` 和 `references/content-writing.md`。单个 GitHub 项目补充 `references/github-project-short-content.md`，GitHub 项目清单补充 `references/github-project-list.md`，项目或产品宣发补充 `references/project-promotion-materials.md`，文章和 Newsletter 补充 `references/article-from-practice.md`。
+- 可发布文字共同使用 `references/writing-material-preparation.md`、`references/writing-templates/index.md` 和 `references/content-writing.md`。单个 GitHub 项目补充 `references/github-project-short-content.md`，GitHub 项目清单补充 `references/github-project-list.md`，项目或产品宣发补充 `references/project-promotion-materials.md`，文章和 Newsletter 补充 `references/article-from-practice.md`。
+- 组件文件由下面的直接地址清单寻址。先按索引筛选职责和事实条件，再只打开相应类别中的合格候选；地址清单本身不是固定组合，也不要求每次读取全部文件。
+  - 钩子：`references/writing-templates/hooks/H01.md`、`references/writing-templates/hooks/H02.md`、`references/writing-templates/hooks/H03.md`、`references/writing-templates/hooks/H04.md`、`references/writing-templates/hooks/H05.md`、`references/writing-templates/hooks/H06.md`、`references/writing-templates/hooks/H07.md`、`references/writing-templates/hooks/H08.md`、`references/writing-templates/hooks/H09.md`、`references/writing-templates/hooks/H10.md`、`references/writing-templates/hooks/H11.md`、`references/writing-templates/hooks/H12.md`、`references/writing-templates/hooks/H13.md`、`references/writing-templates/hooks/H14.md`、`references/writing-templates/hooks/H15.md`、`references/writing-templates/hooks/H16.md`、`references/writing-templates/hooks/H17.md`、`references/writing-templates/hooks/H18.md`、`references/writing-templates/hooks/H19.md`、`references/writing-templates/hooks/H20.md`、`references/writing-templates/hooks/H21.md`、`references/writing-templates/hooks/H22.md`、`references/writing-templates/hooks/H23.md`
+  - 承接：`references/writing-templates/continuations/C01.md`、`references/writing-templates/continuations/C02.md`、`references/writing-templates/continuations/C03.md`、`references/writing-templates/continuations/C04.md`、`references/writing-templates/continuations/C05.md`、`references/writing-templates/continuations/C06.md`、`references/writing-templates/continuations/C07.md`、`references/writing-templates/continuations/C08.md`、`references/writing-templates/continuations/C09.md`、`references/writing-templates/continuations/C10.md`、`references/writing-templates/continuations/C11.md`、`references/writing-templates/continuations/C12.md`
+  - 正文：`references/writing-templates/bodies/P01.md`、`references/writing-templates/bodies/P02.md`、`references/writing-templates/bodies/P03.md`、`references/writing-templates/bodies/P04.md`、`references/writing-templates/bodies/P05.md`、`references/writing-templates/bodies/P06.md`、`references/writing-templates/bodies/P07.md`、`references/writing-templates/bodies/P08.md`、`references/writing-templates/bodies/P09.md`、`references/writing-templates/bodies/P10.md`、`references/writing-templates/bodies/P11.md`、`references/writing-templates/bodies/P12.md`、`references/writing-templates/bodies/P13.md`、`references/writing-templates/bodies/P14.md`、`references/writing-templates/bodies/P15.md`、`references/writing-templates/bodies/P16.md`、`references/writing-templates/bodies/P17.md`、`references/writing-templates/bodies/P18.md`、`references/writing-templates/bodies/P19.md`、`references/writing-templates/bodies/P20.md`、`references/writing-templates/bodies/P21.md`、`references/writing-templates/bodies/P22.md`、`references/writing-templates/bodies/P23.md`、`references/writing-templates/bodies/P24.md`
+  - 连接：`references/writing-templates/bridges/B01.md`、`references/writing-templates/bridges/B02.md`、`references/writing-templates/bridges/B03.md`、`references/writing-templates/bridges/B04.md`、`references/writing-templates/bridges/B05.md`、`references/writing-templates/bridges/B06.md`、`references/writing-templates/bridges/B07.md`、`references/writing-templates/bridges/B08.md`、`references/writing-templates/bridges/B09.md`、`references/writing-templates/bridges/B10.md`、`references/writing-templates/bridges/B11.md`、`references/writing-templates/bridges/B12.md`、`references/writing-templates/bridges/B13.md`、`references/writing-templates/bridges/B14.md`、`references/writing-templates/bridges/B15.md`、`references/writing-templates/bridges/B16.md`
+  - 结尾：`references/writing-templates/endings/E01.md`、`references/writing-templates/endings/E02.md`、`references/writing-templates/endings/E03.md`、`references/writing-templates/endings/E04.md`、`references/writing-templates/endings/E05.md`、`references/writing-templates/endings/E06.md`、`references/writing-templates/endings/E07.md`、`references/writing-templates/endings/E08.md`、`references/writing-templates/endings/E09.md`、`references/writing-templates/endings/E10.md`、`references/writing-templates/endings/E11.md`、`references/writing-templates/endings/E12.md`、`references/writing-templates/endings/E13.md`、`references/writing-templates/endings/E14.md`、`references/writing-templates/endings/E15.md`、`references/writing-templates/endings/E16.md`、`references/writing-templates/endings/E17.md`、`references/writing-templates/endings/E18.md`
+  - 章节：`references/writing-templates/sections/S01.md`、`references/writing-templates/sections/S02.md`、`references/writing-templates/sections/S03.md`、`references/writing-templates/sections/S04.md`、`references/writing-templates/sections/S05.md`、`references/writing-templates/sections/S06.md`、`references/writing-templates/sections/S07.md`、`references/writing-templates/sections/S08.md`、`references/writing-templates/sections/S09.md`
 - 审查内容读取 `references/content-audit.md`；用户要求检查或清理 AI 味时同时读取 `references/natural-writing.md`。正文需要福利、时限、行动入口或披露时补充 `references/publication-requirements.md`。
 - 私人知识库的初始化和接入读取 `references/private-knowledge-library.md`；知识写入读取 `references/knowledge-base-workflow.md`；库健康检查读取 `references/knowledge-base-health.md`；批量接入读取 `references/bulk-knowledge-ingestion.md`；需要跨任务恢复时读取 `references/durable-learning-projects.md`。
-- 用户要求维护完整案例或钩子时分别读取 `references/content-case-library.md` 和 `references/hook-library.md`；用户要求新增、修改、审查或重新蒸馏写作模板时读取 `references/writing-template-maintenance.md`。只有用户明确要求读取私人库中的作者声音或既有作品、查询发布历史、检查内容重复或维护写作记忆时，才使用 `references/personal-writing-memory.md`。
+- 用户要求维护完整案例或钩子时分别读取 `references/content-case-library.md` 和 `references/hook-library.md`；用户要求新增、修改、审查或重新蒸馏写作模板时读取 `references/writing-template-maintenance.md` 和维护专用的 `references/writing-template-coverage.md`。只有用户明确要求读取私人库中的作者声音或既有作品、查询发布历史、检查内容重复或维护写作记忆时，才使用 `references/personal-writing-memory.md`。
 
 用户只点名本 Skill 或只附材料而没有指定产物时，直接讲清材料本身。直接回复和可发布文字默认使用中文；只有没有清楚中文说法、读者需要按原名搜索或操作，或者用户要求官方写法时才保留必要外文。普通一次性结果不增加持久化；只有用户明确要求保存、更新或沉淀时才写入长期位置。
 
@@ -47,7 +54,7 @@ description: 帮助用户读懂材料、研究主题、解释概念、把知识�
 
 ### 默认模式下准备并直接成文
 
-根据用户要求直接处理本次成品。连续反馈只改变用户本次纠正的方面，不把上一对象的事实、原句和一次性结构带到新对象。用户对同一对象明确说“重新写”“重写”“从头写”或等义表达时，沿用已经确认的当前对象材料、表达边界和仍然适用的硬要求，不再联网，不把上一稿及其句子、结构或纠错过程放入成文输入；重新选择一个合格模板，从零独立成文。用户另有明确要求时，以当前要求为准。
+根据用户要求直接处理本次成品。连续反馈只改变用户本次纠正的方面，不把上一对象的事实、原句和一次性结构带到新对象。用户对同一对象明确说“重新写”“重写”“从头写”或等义表达时，沿用已经确认的当前对象材料、表达边界和仍然适用的硬要求，不再联网，不把上一稿及其句子、结构或纠错过程放入成文输入；重新独立选择各类合格组件，从零成文。用户另有明确要求时，以当前要求为准。
 
 按 `references/writing-material-preparation.md` 整理现有材料，并在写作前联网补充有助理解、增加信息量或提升传播力的新材料。联网补充只发现写作材料，不逐项验证用户说法，不生成事实核查结果，也不以核查完成作为成文前置条件。专项说明只帮助准备对应类型真正需要的事实、关系和行动条件；说明文件本身、维护理由、字段名和检查过程不进入成文输入。
 
@@ -55,15 +62,17 @@ description: 帮助用户读懂材料、研究主题、解释概念、把知识�
 
 普通写作不从私人库读取作者声音或发布历史，文章和 Newsletter 也不例外。用户只要求“像我写”时，使用当前请求中的原话和用户直接提供的样稿；只有用户明确要求读取私人库中的既有声音或作品时，才把声音检索作为一项单独的明确结果。任何来源材料都不会因为使用第一人称而自动成为用户声音。
 
-单个 GitHub 项目、项目清单、项目或产品宣发、文章、Newsletter 和包含发布事实的内容可以读取对应专项说明。每份专项说明只帮助准备对应事实和边界，在准备材料后停止；结构只由用户明确要求或写作模板目录决定。
+单个 GitHub 项目、项目清单、项目或产品宣发、文章、Newsletter 和包含发布事实的内容可以读取对应专项说明。每份专项说明只帮助准备对应事实和边界，在准备材料后停止；结构只由用户明确要求或组件模板目录决定。
 
-完整读取 `references/writing-template-catalog.md`，先按材料事实筛掉不合格模板，再选择一个完整模板。只有用户同时规定了开头或进入方式、紧接开头怎样承接、正文推进顺序、段落怎样连接或明确不加连接，以及停止位置，长文还规定了章节内部写法时，才把用户结构视为本次唯一模板；局部结构要求继续绑定到一个目录模板。用户只要求改字词、格式或等义措辞时保持现有结构，不重新选择。
+完整读取 `references/writing-templates/index.md`，再按用户要求的成品目的和当前材料分别筛选钩子 `H`、承接 `C`、正文推进 `P`、连接 `B` 和结尾 `E`；文章与 Newsletter 还为每个章节筛选章节块 `S`。只打开各类合格候选文件，最终每类选择一个；连接没有必要时选择 `B01`，长文不同章节可以分别选一个 `S`。材料里存在示例命令不等于项目介绍要从命令开场或用输入—处理—输出推进；组件之间不使用预先绑定的路线或推荐组合。
 
-选择后先完成槽位绑定：模板 ID、每个必填槽对应的当前材料、允许省略的可选槽，以及模板规定的停止点。某个必填槽没有材料时换模板；短帖或 Thread 只能选择 `T` 模板，文章或 Newsletter 只能选择 `A` 模板，不能跨形态回退。没有任何同形态模板合格时不成文，只指出当前格式缺少的最小事实集合。不能把缺口交给模型发明，也不能从案例、钩子、外部写作范例或与当前对象无关的旧稿中补结构和措辞；本次任务的事实来源、待改正文和来源消化对象仍作为材料使用。
+用户明确规定某一部分时，只把该部分记为对应的 `USER-H`、`USER-C`、`USER-P`、`USER-B`、`USER-E` 或 `USER-S`，其它部分仍从各自目录选择。用户只要求改字词、格式或等义措辞时保持现有结构，不重新选组件。
 
-按 `references/content-writing.md` 把用户对成品的直接要求、用户随请求给出的内容说明与准备后的来源材料、唯一选中模板及其槽位绑定，以及用户在当前请求中提供或明确要求取得的声音材料组成当前请求的成文输入。完整读取后逐槽成文，材料准备、模板选择和成文在同一次回复中连续完成。成品要求只放用户要生成什么，以及用户明确提出的数量、语言、平台、格式、受众、篇幅和必须或禁止出现的内容；能直接摘录时保持原话。用户提供的事实、关系、判断、猜测、问题、宣发角度和内容主次属于材料，保持原话和来源边界，不以这些内容说明裁切其它有效材料。
+分别完成槽位绑定：组件 ID、每个必填槽对应的当前材料、允许省略的可选槽和结尾停止点。某个组件缺少必填事实时只换同类组件；任何必需类别都没有合格组件时不成文，只指出缺少的最小事实集合。不能把缺口交给模型发明，也不能从案例、钩子、覆盖账本、外部写作范例或与当前对象无关的旧稿中补结构和措辞；本次任务的事实来源、待改正文和来源消化对象仍作为材料使用。
 
-草稿完成后按选中模板逐句核对：每句话必须对应一个槽位和当前材料；钩子承诺、问题和数量必须兑现；解释后要有具体机制、动作、数字、例子或限制；结尾必须停在模板规定的位置。发现模板外句子时删除，不用新的总结句补位。用户明确要求多个候选时，每个候选分别选择一个合格模板并独立完成槽位绑定；没有指定数量时只生成一个。
+按 `references/content-writing.md` 把用户对成品的直接要求、用户随请求给出的内容说明与准备后的来源材料、分别选中的组件及其槽位绑定，以及用户在当前请求中提供或明确要求取得的声音材料组成当前请求的成文输入。完整读取后按 `H → C → P → B → E` 成文，长文在 `P` 内按章节使用 `S`。材料准备、模板选择和成文在同一次回复中连续完成。成品要求只放用户要生成什么，以及用户明确提出的数量、语言、平台、格式、受众、篇幅和必须或禁止出现的内容；能直接摘录时保持原话。用户提供的事实、关系、判断、猜测、问题、宣发角度和内容主次属于材料，保持原话和来源边界，不以这些内容说明裁切其它有效材料。
+
+草稿完成后按各组件逐句核对：每句话必须对应一个组件槽位和当前材料；钩子承诺、问题和数量必须兑现；承接不能重复钩子；连接只能表达已有关系；结尾必须停在 `E` 规定的位置。发现模板外句子时删除，不用新的总结句补位。用户明确要求多个候选时，每个候选分别独立选择全套组件并完成槽位绑定；没有指定数量时只生成一个。
 
 草稿完成后只核对正文实际写出的名称、数字、日期、功能、合作关系、第一人称经历、使用体验、资格、时限和行动入口。发现错误时修正对应事实，不把自然表达整体改写成保守的官方口径，也不因为核对而补写成稿没有使用的背景。
 
@@ -71,9 +80,9 @@ description: 帮助用户读懂材料、研究主题、解释概念、把知识�
 
 ### 交付
 
-默认只交付可直接使用的完整成品，不展示内部材料、模板选择、槽位绑定、检查过程、案例或钩子路径。用户明确要求多个候选时逐个完整交付；较长、结构复杂或需要继续修改的文字可以另存临时 Markdown 并提供可点击链接。
+默认先交付可直接使用的完整成品，随后固定列出本次使用的模板：钩子 `H`、承接 `C`、正文 `P`、连接 `B`、章节 `S`（非长文写“无”）和结尾 `E` 的 ID 与名称。用户明确要求多个候选时，每个候选各自列出组件；较长、结构复杂或需要继续修改的文字可以另存临时 Markdown 并提供可点击链接。
 
-用户明确要求查看依据、写作过程或模板时，再在成品之后简要说明选中的模板 ID、实际使用的材料来源和关键槽位；不展示隐藏推理，也不把内部检查清单混进正文。
+默认不展示内部材料、槽位绑定、检查过程、案例、钩子或覆盖账本路径。用户明确要求查看依据或写作过程时，再补充实际使用的材料来源和关键槽位；不展示隐藏推理，也不把内部检查清单混进正文。
 
 ## 知识库与持久化
 
@@ -97,6 +106,6 @@ description: 帮助用户读懂材料、研究主题、解释概念、把知识�
 
 - 成品直接回答用户要求；资料足够时已经停止。
 - 用户指定的重点、材料关系、数量、语言、格式和权限保持不变。
-- 成文输入使用 `references/content-writing.md` 中唯一输入格式，只包含一个完整写作模板及其槽位绑定；没有混入案例、钩子、专项说明或维护过程。
+- 成文输入使用 `references/content-writing.md` 中唯一输入格式，分别包含一个 `H`、`C`、`P`、`B`、`E`，长文每章一个 `S` 及其槽位绑定；没有混入案例、钩子、覆盖账本、专项说明或维护过程。
 - 普通写作没有运行私人库定位，也没有读取案例、钩子、同主题知识、作者声音或发布历史；长期保存、发布和其它外部动作只在用户明确要求时执行。
-- 正文每句话都能对应选中模板的槽位和当前材料，开头已经兑现，结尾停在模板规定的位置。
+- 正文每句话都能对应一个选中组件的槽位和当前材料，开头已经兑现，组件之间没有重复或虚构连接，结尾停在 `E` 规定的位置，成品后已经列出全部模板 ID 与名称。
