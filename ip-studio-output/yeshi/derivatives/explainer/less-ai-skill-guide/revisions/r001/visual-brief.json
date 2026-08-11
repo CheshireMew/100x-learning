@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "visual_id": "less-ai-skill-guide",
+  "kind": "explainer",
+  "language": "zh-CN",
+  "visual_language": "default",
+  "content": {
+    "source_label": "当前对话中对 AI 味写作 Skill 的反复测试与修正",
+    "source_text": "主题：如何做一个不那么 AI 味的 Skill。AI 味常常来自整条写作链被过度设计：材料被裁切，参考只剩句式，规则提前规定角度和结构，最后还让 AI 自己判断是否自然。更有效的做法是保留完整材料，用完整优质案例提供写法，让模型保留取舍、节奏和表达判断，并由真人读者完成最后验收。"
+  },
+  "message": {
+    "core_object": "一台把所有内容压成同一种腔调的 AI 写作机器",
+    "audience_gap": "很多人只盯着几个 AI 常用词，没有看到材料、参考、创作权和真人验收共同决定成稿",
+    "mechanism_or_change": "夜希打开机器，取出僵硬的模板齿轮，把完整材料、优质案例和真人判断送进核心，机器吐出的整齐套话随即变成有轻重、有停顿、有个人判断的鲜活内容",
+    "takeaway": "系统守住材料与边界，写作者保留判断"
+  },
+  "brand": {
+    "role": "none",
+    "name": "",
+    "visual_cues": ""
+  },
+  "composition": {
+    "aspect_ratio": "3:4",
+    "structure": "problem-result",
+    "title": "如何做一个不那么 AI 味的 Skill",
+    "subtitle": "",
+    "labels": [
+      "完整材料",
+      "优质案例",
+      "创作判断",
+      "真人验收"
+    ],
+    "conclusion": "系统守边界，作者做判断",
+    "palette": [
+      "#F2E9DA",
+      "#12131A",
+      "#E83A4E",
+      "#D9A62E",
+      "#4C8DFF"
+    ],
+    "style_notes": "单幅叙事插画。精致二次元 Q 版角色与有机械隐喻的编辑插画融合，场景要像一个真实发生的检修瞬间，前后变化一眼能懂。标题和结论清楚可读。四个短标签各出现一次，只贴在机器内部对应的发光核心旁；这些核心就是全部信息模块。底部保持为完整场景，不再出现步骤卡、编号、图标排布或重复说明。输出纸只显示少量长短不同的段落痕迹与手写线条，不承载大段正文。"
+  },
+  "character_action": {
+    "role": "检修者与改变结果的人",
+    "action": "夜希俯身打开写作机器，一只手抽出带有规则刻线的方形模板齿轮，另一只手把三枚发光的材料核心送进机器；她的视线落在刚刚发生变化的输出端",
+    "affected_object": "AI 写作机器的内部核心与输出纸带",
+    "visible_result": "机器左侧仍残留几张灰白、整齐、完全相同的套话纸片；经过夜希改造后，另一侧输出变成节奏不一、重点鲜明、带有手写线条和真实情绪的鲜活内容。四个短标签各出现一次，只贴近对应的发光核心；画面下方继续展示机器、地面和输出纸，不再重复排列信息模块"
+  },
+  "references": [],
+  "decisions": [
+    {
+      "path": "$.composition.title",
+      "source": "user_confirmed",
+      "note": "沿用用户指定主题原文。"
+    },
+    {
+      "path": "$.character_action",
+      "source": "agent_inferred",
+      "note": "用检修写作机器的单一动作，把材料、参考、创作判断和真人验收变成可见关系。"
+    },
+    {
+      "path": "$.composition.style_notes",
+      "source": "user_confirmed",
+      "note": "用户明确否定网页制作和上一版硬塞信息的版式。"
+    }
+  ]
+}
