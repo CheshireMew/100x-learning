@@ -9,22 +9,21 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Sequence
 
-try:
-    from scripts.marktree_integration import managed_write_text
-    from scripts.private_library import (
-        LibraryError,
-        LibraryLayout,
-        resolve_library_root,
-        validate_library,
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+PRIVATE_KNOWLEDGE_SCRIPTS = SKILL_ROOT.parent / "private-knowledge" / "scripts"
+if not PRIVATE_KNOWLEDGE_SCRIPTS.is_dir():
+    raise RuntimeError(
+        "content-system requires the sibling private-knowledge skill and its library contract"
     )
-except ModuleNotFoundError:
-    from marktree_integration import managed_write_text
-    from private_library import (
-        LibraryError,
-        LibraryLayout,
-        resolve_library_root,
-        validate_library,
-    )
+sys.path.insert(0, str(PRIVATE_KNOWLEDGE_SCRIPTS))
+
+from marktree_integration import managed_write_text
+from private_library import (
+    LibraryError,
+    LibraryLayout,
+    resolve_library_root,
+    validate_library,
+)
 
 
 METADATA_PATTERN = re.compile(

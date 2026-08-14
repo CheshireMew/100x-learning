@@ -1,0 +1,4 @@
+interface:
+  display_name: "Private Knowledge"
+  short_description: "初始化、接入、整理、检查和长期维护本机私人知识库内容"
+  default_prompt: "使用 $private-knowledge 接入并检查我的私人知识库。"

@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[1] / "skills" / "100x-learning"
 SCRIPT_PATH = PROJECT_ROOT / "scripts" / "durable_learning_project.py"
 
 

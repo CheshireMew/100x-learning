@@ -1,0 +1,4 @@
+interface:
+  display_name: "Content System"
+  short_description: "维护内容策略、持续选题、发布复盘、案例、钩子与写作记忆"
+  default_prompt: "使用 $content-system 复盘这篇已发布内容，并更新下一轮选题。"

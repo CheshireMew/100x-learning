@@ -20,9 +20,9 @@
 原始笔记、链接堆叠、规格清单、松散转录、通用宣传稿、反复宣布重要性、靠空泛总结收尾，以及已经被真实成品证明会放大模板感或篇幅的案例不进入活动目录。不能确认质量时保留为候选材料。活动案例持续污染真实成品时，重新阅读全文；确认后移到活动目录之外的可回查归档并重建索引，不把筛选理由写进案例正文或创作输入。
 
 ```powershell
-python scripts/content_case_library.py add-case --kind social --input "完整原文.md" --title "案例标题" --technique "结果先行"
-python scripts/content_case_library.py build-index
-python scripts/content_case_library.py validate
+python <content-system-skill>/scripts/content_case_library.py add-case --kind social --input "完整原文.md" --title "案例标题" --technique "结果先行"
+python <content-system-skill>/scripts/content_case_library.py build-index
+python <content-system-skill>/scripts/content_case_library.py validate
 ```
 
 案例需要同时进入写作记忆时，通过 `--writing-format`、`--writing-purpose`、`--writing-origin` 和 `--voice-eligible` 明确相应字段；这些字段不进入普通案例索引。更新已有资源时修改唯一案例文件并重建索引。

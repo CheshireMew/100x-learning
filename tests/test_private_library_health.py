@@ -11,7 +11,7 @@ from scripts.private_library import initialize_library
 from scripts.private_library_health import REPORT_SCHEMA, _io_path, scan_library
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[1] / "skills" / "private-knowledge"
 SCRIPT_PATH = PROJECT_ROOT / "scripts" / "private_library_health.py"
 
 
