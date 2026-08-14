@@ -18,7 +18,7 @@ from scripts.private_library import (
 )
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1] / "skills" / "private-knowledge"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = PROJECT_ROOT / "scripts" / "private_library.py"
 
 

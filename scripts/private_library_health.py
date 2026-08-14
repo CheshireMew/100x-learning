@@ -10,29 +10,38 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
-SKILL_ROOT = Path(__file__).resolve().parents[1]
-CONTENT_SYSTEM_SCRIPTS = SKILL_ROOT.parent / "content-system" / "scripts"
-if not CONTENT_SYSTEM_SCRIPTS.is_dir():
-    raise RuntimeError(
-        "private-knowledge health checks require the sibling content-system skill"
+try:
+    from scripts.content_case_library import (
+        build_index as build_case_index,
+        load_library as load_case_library,
     )
-sys.path.insert(0, str(CONTENT_SYSTEM_SCRIPTS))
-
-from content_case_library import (
-    build_index as build_case_index,
-    load_library as load_case_library,
-)
-from hook_library import (
-    build_index as build_hook_index,
-    load_library as load_hook_library,
-)
-from private_library import (
-    LibraryError,
-    LibraryLayout,
-    resolve_library_root,
-    validate_library,
-)
-from writing_memory import discover_records, index_is_current
+    from scripts.hook_library import (
+        build_index as build_hook_index,
+        load_library as load_hook_library,
+    )
+    from scripts.private_library import (
+        LibraryError,
+        LibraryLayout,
+        resolve_library_root,
+        validate_library,
+    )
+    from scripts.writing_memory import discover_records, index_is_current
+except ModuleNotFoundError:
+    from content_case_library import (
+        build_index as build_case_index,
+        load_library as load_case_library,
+    )
+    from hook_library import (
+        build_index as build_hook_index,
+        load_library as load_hook_library,
+    )
+    from private_library import (
+        LibraryError,
+        LibraryLayout,
+        resolve_library_root,
+        validate_library,
+    )
+    from writing_memory import discover_records, index_is_current
 
 
 REPORT_SCHEMA = "100x-learning-private-library-health"

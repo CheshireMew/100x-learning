@@ -19,9 +19,9 @@
 残缺片段、翻译腔改写、通用宣传句、无法迁移的题材句，以及已经被真实成品证明会放大模板感、抽象判断或篇幅的钩子不进入活动目录。不能确认质量时保留为候选材料。活动钩子持续污染真实成品时移到活动目录之外的可回查归档并重建索引。
 
 ```powershell
-python <content-system-skill>/scripts/hook_library.py add-hook --input "钩子原文.md" --title "钩子标题" --hook-id "stable-hook-id" --technique "结果先行"
-python <content-system-skill>/scripts/hook_library.py build-index
-python <content-system-skill>/scripts/hook_library.py validate
+python scripts/hook_library.py add-hook --input "钩子原文.md" --title "钩子标题" --hook-id "stable-hook-id" --technique "结果先行"
+python scripts/hook_library.py build-index
+python scripts/hook_library.py validate
 ```
 
 更新已有钩子时修改唯一文件并重建索引。没有用户明确写入要求时，普通写作只读。

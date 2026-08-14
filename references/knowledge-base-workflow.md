@@ -140,12 +140,12 @@ published_url: ""
 如果 `private_library.py show` 返回了可用的 `marktree_cli`，持久化正文不再用 `apply_patch`、`write_text` 或其它外部写入绕过 Marktree。单文件正文通过标准输入交给：
 
 ```powershell
-python <private-knowledge-skill>/scripts/marktree_integration.py write --path "10-Knowledge/主题.md"
+python scripts/marktree_integration.py write --path "10-Knowledge/主题.md"
 ```
 
 一次任务需要共同更新来源、知识和综合入口时，把最终内容组成 `{"writes":[{"path":"相对路径","content":"完整正文"}]}`，通过标准输入交给 `write-batch`。适配器会从真实文件计算预期哈希，让 Marktree 拒绝覆盖外部新改动；写后再按实际字节核对。内容案例索引、独立钩子索引和个人写作索引脚本也使用同一个写入适配器，但案例与钩子仍由各自的保存流程和文件类型管理。未配置 Marktree 时保持现有独立文件工作流，不为了集成阻断知识库操作。
 
-写完后可运行 `python <private-knowledge-skill>/scripts/marktree_integration.py changes` 或 `sync-plan` 核对精确路径。只有用户明确要求同步远端时才运行 `sync`；普通保存不会自动提交或推送。
+写完后可运行 `python scripts/marktree_integration.py changes` 或 `sync-plan` 核对精确路径。只有用户明确要求同步远端时才运行 `sync`；普通保存不会自动提交或推送。
 
 1. 新来源需要长期保留时，先写入或更新 `20-Sources`；网页研究通常保存出处、作用和必要上下文。本地来源需要哈希时，在写入计划前从实际文件计算一次，并把同一个计算结果复用于 `source_identity`、来源元数据和正文。
 2. 把新结论、修正、关系、边界和开放问题合并进 `10-Knowledge` 的唯一主题文档。
@@ -154,7 +154,7 @@ python <private-knowledge-skill>/scripts/marktree_integration.py write --path "1
 5. 更新 `updated` 日期，并确认活动目录中只有一份正式主题文档。
 6. 新建或更新知识文档后重新读取文件，检查标题、主题范围、来源链接、必要边界和内部链接是否完整，确认用户实际能找到并使用。
 7. 本地来源写入后重新计算实际文件哈希，并与来源记录中保存的值比较；两者一致后交付。
-8. 保存确认稿、已发布内容或长期写作风格后，由 `$content-system` 运行 `python <content-system-skill>/scripts/writing_memory.py build-index` 和 `validate`，证明正式正文已经进入发布历史，写作来源和能否作为风格样本也能被下一次明确的发布历史、查重或声音任务按用途读取。没有新的可靠样本或稳定风格变化时，不更新长期写作风格。
+8. 保存确认稿、已发布内容或长期写作风格后，运行 `python scripts/writing_memory.py build-index` 和 `python scripts/writing_memory.py validate`，证明正式正文已经进入发布历史，写作来源和能否作为风格样本也能被下一次明确的发布历史、查重或声音任务按用途读取。没有新的可靠样本或稳定风格变化时，不更新长期写作风格。
 9. 告诉用户实际更新了哪些文件和认识；稳定增量存在时执行写入。
 
 进入用户明确要求的研究、知识应用或项目实践前，检查当前用途需要的机制、证据、案例和限制是否已经可用。普通写作不从这里读取主题知识或启动知识补全。

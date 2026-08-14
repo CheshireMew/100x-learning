@@ -1,4 +1,0 @@
-interface:
-  display_name: "100x Learning"
-  short_description: "读懂材料、研究主题、解释概念，并把知识用于真实问题"
-  default_prompt: "使用 $100x-learning 读懂这份材料，解释关键概念并把它用于当前问题。"

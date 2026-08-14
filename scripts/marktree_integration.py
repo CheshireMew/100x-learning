@@ -11,12 +11,20 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Sequence
 
-from private_library import (
-    LibraryError,
-    default_config_path,
-    resolve_library_root,
-    validate_library,
-)
+try:
+    from scripts.private_library import (
+        LibraryError,
+        default_config_path,
+        resolve_library_root,
+        validate_library,
+    )
+except ModuleNotFoundError:
+    from private_library import (
+        LibraryError,
+        default_config_path,
+        resolve_library_root,
+        validate_library,
+    )
 
 
 class MarktreeIntegrationError(ValueError):

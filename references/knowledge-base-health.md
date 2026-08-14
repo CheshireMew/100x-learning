@@ -7,8 +7,8 @@
 先运行：
 
 ```powershell
-python <private-knowledge-skill>/scripts/private_library.py show
-python <private-knowledge-skill>/scripts/private_library_health.py
+python scripts/private_library.py show
+python scripts/private_library_health.py
 ```
 
 第一条命令确认当前根目录和写入方式，第二条命令从真实活动目录、链接与索引生成 JSON 报告。用户给出 `--library-root` 或 `--config` 时按该边界执行，不扫描其它资料目录，也不读取或解析 `90-Archive`。活动文档指向归档内容时按无效活动链接报告。脚本只检查能从文件确定的结构事实：不可读文档、重复主题身份、失效或歧义链接、到期复核、没有来源入口的知识、尚未被后续任务使用的来源，以及内容案例、钩子和写作记忆的索引偏差；即使某类资源当前为零，缺失或残留的派生索引也会被报告。

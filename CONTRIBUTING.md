@@ -1,12 +1,12 @@
 # 参与 100x Learning
 
-感谢你愿意改进 100x Learning。这个仓库交付三个 Agent Skills：`skills/100x-learning`、`skills/private-knowledge` 和 `skills/content-system`。每个 `SKILL.md` 只负责自己的用户结果，目录内的 `references/` 保存方法，`scripts/` 负责确定性操作，根级 `tests/` 保护跨 Skill 的生产消费链和资源边界。
+感谢你愿意改进 100x Learning。这个仓库交付的是一个 Agent Skill：`SKILL.md` 负责按用户最终要得到的结果选择路径，`references/` 保存各条方法，`scripts/` 负责确定性维护操作，`tests/` 保护公开能力与资源边界。
 
 ## 开始前
 
-先查看 [skills/](./skills/) 中与你的改动对应的 `SKILL.md`、reference、脚本与测试。缺陷修复应沿着真实入口找到唯一真源，一次迁移生产者和消费者；已经退休的路径放在 `archive/`，不能重新接回活动路由。
+先查看 [SKILL.md](./SKILL.md) 和与你的改动直接相关的 reference、脚本与测试。缺陷修复应沿着真实入口找到唯一真源，一次迁移生产者和消费者；已经退休的路径放在 `archive/`，不能重新接回活动路由。
 
-如果你准备新增能力，请先确认它产生的是新的用户结果，还是现有结果中的方法细节。新的独立结果才考虑新增 Skill；现有结果的完整方法由对应入口的一份明确 reference 负责，不要把同一规则同时复制到 README、多个 reference 和脚本里。
+如果你准备新增能力，请先确认它产生的是新的用户结果，还是现有结果中的方法细节。新的用户结果进入 `SKILL.md` 路由；完整方法由一份明确的 reference 负责，不要把同一规则同时复制到 README、多个 reference 和脚本里。
 
 ## 提交改动
 
@@ -19,7 +19,7 @@
 运行完整行为测试：
 
 ```bash
-python -m pytest -q
+python -m unittest discover -s tests -v
 ```
 
 只修改文档时，不需要运行与改动无关的端到端测试，但必须检查 Markdown 链接、命令、图片和所陈述的项目事实。

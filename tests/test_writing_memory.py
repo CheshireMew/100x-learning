@@ -21,13 +21,7 @@ from scripts.writing_memory import (
 )
 
 
-SCRIPT_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "skills"
-    / "content-system"
-    / "scripts"
-    / "writing_memory.py"
-)
+SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "writing_memory.py"
 
 
 def _write(path: Path, text: str) -> None:

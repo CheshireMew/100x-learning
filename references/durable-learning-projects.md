@@ -7,7 +7,7 @@
 项目根目录必须由用户给出，或位于用户已经明确授权的工作区；不能写进 Skill 目录。初始化前确认标题、项目类型与最终结果，目标目录必须为空，或已经属于完全相同的学习项目：
 
 ```powershell
-python <100x-learning-skill>/scripts/durable_learning_project.py init --project-root "<项目目录>" --type long-material --title "<标题>"
+python scripts/durable_learning_project.py init --project-root "<项目目录>" --type long-material --title "<标题>"
 ```
 
 批量知识接入使用 `bulk-ingestion`。`learning-project.json` 是程序读取的唯一进度记录；知识库中的项目文档只在用户明确要求跨任务保存项目说明时建立，并链接这份清单，不复制单元哈希和完成状态。
@@ -17,7 +17,7 @@ python <100x-learning-skill>/scripts/durable_learning_project.py init --project-
 根据章节、议题、说话人变化、论证边界、文件版本或其它能独立验收的范围拆分，不按固定页数、时长或字符数机械切块。每个单元都登记真实来源文件、可理解的标签和可回到原文的定位：
 
 ```powershell
-python <100x-learning-skill>/scripts/durable_learning_project.py add-unit --project-root "<项目目录>" --source "<来源文件>" --label "<单元名称>" --locator "<章节、页码或时间范围>"
+python scripts/durable_learning_project.py add-unit --project-root "<项目目录>" --source "<来源文件>" --label "<单元名称>" --locator "<章节、页码或时间范围>"
 ```
 
 来源文件哈希用于防止跨轮误接旧上下文。只有实际内容完全相同的同一定位才可幂等复用；内容变化时停止并重新确认版本，不能覆盖旧单元假装继续。
@@ -27,7 +27,7 @@ python <100x-learning-skill>/scripts/durable_learning_project.py add-unit --proj
 每个单元先完成材料读取、解释、证据记录或知识接入，再把该单元的真实输出放进项目目录。不能预先创建空结果、让测试手写摘要代替正式处理结果，或只更新状态冒充完成。确认文件能被用户读取后运行：
 
 ```powershell
-python <100x-learning-skill>/scripts/durable_learning_project.py record-unit --project-root "<项目目录>" --unit unit-0001 --output "<项目内输出文件>"
+python scripts/durable_learning_project.py record-unit --project-root "<项目目录>" --unit unit-0001 --output "<项目内输出文件>"
 ```
 
 恢复任务时先运行 `status`。它重新核对来源和输出哈希；来源丢失、来源变化、输出丢失、输出为空或输出变化都会成为显式问题。只有含有非空白实际内容的文件才算输出。先解决这些问题，再处理下一个单元。
@@ -37,7 +37,7 @@ python <100x-learning-skill>/scripts/durable_learning_project.py record-unit --p
 所有单元都完成且仍与真实文件一致后，创建能够串起整体主线、关系、冲突、缺口与最终用途的汇总成品，再运行：
 
 ```powershell
-python <100x-learning-skill>/scripts/durable_learning_project.py finalize --project-root "<项目目录>" --aggregate "<项目内汇总文件>"
+python scripts/durable_learning_project.py finalize --project-root "<项目目录>" --aggregate "<项目内汇总文件>"
 ```
 
 完成报告要区分总单元、有效完成单元、待处理单元、漂移问题和最终成品。只建立清单叫“已初始化”，处理部分单元叫“部分完成”，只有脚本确认全部单元输出与汇总文件都含有实际内容、哈希仍一致时才叫“项目完成”。

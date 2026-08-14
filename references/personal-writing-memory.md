@@ -43,11 +43,11 @@
 
 ## 查找可靠的写作风格样本
 
-使用 `<content-system-skill>/scripts/writing_memory.py search --purpose voice`。这项检索必须传入已经确定的内容形式；已经确定内容作用时同时传入 `--content-type`。这条路径不接收主题查询，产品名、行业名和其它题材词不参与风格样本排序：
+使用 `scripts/writing_memory.py search --purpose voice`。这项检索必须传入已经确定的内容形式；已经确定内容作用时同时传入 `--content-type`。这条路径不接收主题查询，产品名、行业名和其它题材词不参与风格样本排序：
 
 ```powershell
-python <content-system-skill>/scripts/writing_memory.py search --purpose voice --format original --content-type "个人观察与实测" --limit 3
-python <content-system-skill>/scripts/writing_memory.py search --purpose voice --format product --content-type "项目与产品介绍" --limit 3
+python scripts/writing_memory.py search --purpose voice --format original --content-type "个人观察与实测" --limit 3
+python scripts/writing_memory.py search --purpose voice --format product --content-type "项目与产品介绍" --limit 3
 ```
 
 支持的内容形式是：
@@ -66,11 +66,11 @@ python <content-system-skill>/scripts/writing_memory.py search --purpose voice -
 
 ## 检查内容是否重复
 
-只有用户明确要求查重、避免重复，或当前任务正在维护持续选题时，才使用 `<content-system-skill>/scripts/writing_memory.py search --purpose novelty`。可以先用主题和主张检索；用户要求核对成稿时，再用完整草稿复查：
+只有用户明确要求查重、避免重复，或当前任务正在维护持续选题时，才使用 `scripts/writing_memory.py search --purpose novelty`。可以先用主题和主张检索；用户要求核对成稿时，再用完整草稿复查：
 
 ```powershell
-python <content-system-skill>/scripts/writing_memory.py search --purpose novelty --query "AI 写作工具怎样减少上下文切换" --format original --limit 3
-python <content-system-skill>/scripts/writing_memory.py search --purpose novelty --query-file "draft.md" --format thread --limit 3
+python scripts/writing_memory.py search --purpose novelty --query "AI 写作工具怎样减少上下文切换" --format original --limit 3
+python scripts/writing_memory.py search --purpose novelty --query-file "draft.md" --format thread --limit 3
 ```
 
 主题词只在这条路径里帮助寻找旧内容。命中的记录无论由人还是 AI 写成都可以证明“以前发布过什么”，但不能因此进入作者声音。逐项比较：
@@ -122,8 +122,8 @@ writing_techniques: ["结果先行", "因果推进"]
 保存正文后运行：
 
 ```powershell
-python <content-system-skill>/scripts/writing_memory.py build-index
-python <content-system-skill>/scripts/writing_memory.py validate
+python scripts/writing_memory.py build-index
+python scripts/writing_memory.py validate
 ```
 
 索引写到 `<私人知识库>/60-Systems/Writing/published-content-index.jsonl`，保存相对私人库的正文路径、内容形式、写作来源、能否作为风格样本、日期、正式作品发布入口和正文哈希，不保存发布账号。正式作品拥有相同发布入口或任意记录正文完全相同时会合并，`40-Outputs` 中的当前终稿优先于正式文章记录；是否可作为风格样本只跟随最终正文自身，不从被合并的旧版本继承。案例没有发布入口和账号字段，日期无法从正文可靠确定时保持未标注。
