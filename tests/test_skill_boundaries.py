@@ -19,12 +19,15 @@ def _declared_resources(text: str, skill_name: str) -> set[str]:
 
 class SkillBoundaryTests(unittest.TestCase):
     def test_repository_exposes_exactly_three_active_skills(self) -> None:
-        names = sorted(
-            path.parent.name for path in SKILLS_ROOT.glob("*/SKILL.md")
-        )
+        skill_files = sorted(REPOSITORY_ROOT.rglob("SKILL.md"))
+        names = sorted(path.parent.name for path in skill_files)
         self.assertEqual(
             ["100x-learning", "content-system", "private-knowledge"],
             names,
+        )
+        self.assertTrue(
+            all(path.parent.parent == SKILLS_ROOT for path in skill_files),
+            "SKILL.md outside skills/<name> becomes an unintended runtime entrypoint",
         )
 
     def test_every_direct_reference_and_script_exists(self) -> None:
