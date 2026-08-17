@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650" role="img" aria-labelledby="title description">
   <title id="title">Star history for CheshireMew/100x-learning</title>
-  <desc id="description">Cumulative GitHub stars through 2026-08-09. Total: 75.</desc>
+  <desc id="description">Cumulative GitHub stars through 2026-08-16. Total: 84.</desc>
   <rect width="100%" height="100%" rx="12" fill="#0d1117"/>
   <g data-style="hand-drawn" font-family="Comic Sans MS,Segoe Print,Bradley Hand,cursive" fill="#f0f6fc">
     <text x="500.0" y="58" text-anchor="middle" font-size="34" font-weight="700">Star History</text>
@@ -21,17 +21,17 @@
     <text x="91" y="105.00" text-anchor="end" dominant-baseline="middle" font-size="17">100</text>
     <path d="M 105.00 557 L 106.00 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
     <text x="105.00" y="594" text-anchor="start" font-size="17">07-13</text>
-    <path d="M 263.33 557 L 264.33 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="263.33" y="594" text-anchor="middle" font-size="17">07-18</text>
-    <path d="M 453.33 557 L 454.33 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="453.33" y="594" text-anchor="middle" font-size="17">07-24</text>
-    <path d="M 611.67 557 L 612.67 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="611.67" y="594" text-anchor="middle" font-size="17">07-29</text>
-    <path d="M 801.67 557 L 802.67 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="801.67" y="594" text-anchor="middle" font-size="17">08-04</text>
+    <path d="M 281.03 557 L 282.03 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="281.03" y="594" text-anchor="middle" font-size="17">07-20</text>
+    <path d="M 457.06 557 L 458.06 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="457.06" y="594" text-anchor="middle" font-size="17">07-27</text>
+    <path d="M 607.94 557 L 608.94 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="607.94" y="594" text-anchor="middle" font-size="17">08-02</text>
+    <path d="M 783.97 557 L 784.97 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="783.97" y="594" text-anchor="middle" font-size="17">08-09</text>
     <path d="M 960.00 557 L 961.00 567" fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="960.00" y="594" text-anchor="end" font-size="17">08-09</text>
-    <path data-role="star-line" d="M 105.00 560.00 L 833.33 382.55 L 865.00 291.55 L 896.67 273.35 L 928.33 227.85 L 960.00 218.75" fill="none" stroke="#ff5a36" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+    <text x="960.00" y="594" text-anchor="end" font-size="17">08-16</text>
+    <path data-role="star-line" d="M 105.00 560.00 L 683.38 387.10 L 708.53 296.10 L 733.68 277.90 L 758.82 232.40 L 783.97 223.30 L 809.12 214.20 L 834.26 200.55 L 859.41 196.00 L 884.56 186.90 L 934.85 182.35 L 960.00 177.80" fill="none" stroke="#ff5a36" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
     <g data-role="signature" transform="translate(786 608)">
       <path d="M 12 0 L 15 9 L 25 6 L 18 14 L 26 21 L 16 18 L 12 28 L 9 18 L 0 22 L 7 14 L 0 7 L 9 10 Z" fill="none" stroke="#39d353" stroke-width="2.5" stroke-linejoin="round"/>
       <text x="34" y="18" fill="#9da7b3" font-size="15">project-steward</text>
