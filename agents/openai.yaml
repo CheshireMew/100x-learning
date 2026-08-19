@@ -1,4 +1,4 @@
 interface:
   display_name: "100x Learning"
-  short_description: "去除字幕广告并整理沉淀知识，读懂材料，写作与筛选选题"
-  default_prompt: "使用 $100x-learning 去除字幕中的广告和主题无关插入，整理、读懂并沉淀字幕或其它材料；根据真实证据完成学习、选题、写作或下一轮改进。"
+  short_description: "整理并讲解字幕，读懂材料、研究主题、审查内容并撰写文章"
+  default_prompt: "使用 $100x-learning 整理并讲解这份字幕或材料；需要成文时，写成文章或 Newsletter。"

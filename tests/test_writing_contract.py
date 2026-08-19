@@ -55,7 +55,7 @@ class SkillStructureTests(unittest.TestCase):
             self.assertNotIn(retired, contract)
 
         skill = _read("SKILL.md")
-        self.assertIn("三个完整案例和三个完整钩子参与写作", skill)
+        self.assertIn("三个完整案例和三个完整钩子参与文章写作", skill)
         self.assertIn("在同一次回复中直接成文", skill)
         self.assertIn("材料准备和成文在同一次回复中连续完成", skill)
         self.assertIn("材料准备、直接成文和最终交付在同一次处理中连续完成", contract)
@@ -174,7 +174,7 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("【写作规则】", content)
         self.assertNotIn("【其它实际写作输入】", content)
         self.assertNotIn("【通用写作注意】", skill)
-        self.assertIn("这里是成文输入的唯一模板", content)
+        self.assertIn("这里是文章成文输入的唯一模板", content)
         self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
         self.assertIn(
             "完整阅读当前材料、三份案例和三份钩子，把它们作为参考，直接写出用户要的内容。",
@@ -203,8 +203,6 @@ class SkillStructureTests(unittest.TestCase):
                 "references/natural-writing.md",
                 "references/content-audit.md",
                 "references/article-from-practice.md",
-                "references/github-project-list.md",
-                "references/github-project-short-content.md",
                 "references/publication-requirements.md",
                 "references/project-promotion-materials.md",
             )
@@ -227,9 +225,9 @@ class SkillStructureTests(unittest.TestCase):
         skill = _read("SKILL.md")
         cases = _read("references/content-case-library.md")
         hooks = _read("references/hook-library.md")
-        self.assertIn("优先从本地私人库读取三份完整参考写作案例和三份完整开头钩子", skill)
-        self.assertIn("短帖和 Thread 从社交内容案例索引", skill)
-        self.assertIn("所有成品从同一份钩子索引", skill)
+        self.assertIn("文章和 Newsletter 优先从本地私人库读取三份完整文章案例和三份完整开头钩子", skill)
+        self.assertIn("文章和 Newsletter 从文章案例索引", skill)
+        self.assertIn("从统一钩子索引打开多份有帮助的参考开头钩子", skill)
         self.assertIn("分别从活动案例索引和钩子索引选择三个不同的写作技巧分组", skill)
         self.assertIn("从每个分组沿一个稳定编号链接打开完整原文", skill)
         self.assertIn("以原文是否值得参考、是否适合当前写作为准", skill)
@@ -241,7 +239,7 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("候选发现只通过索引分组及其中的稳定编号链接进行", skill)
         self.assertIn("不对案例或钩子正文目录运行 `rg`、`Select-String` 或其它全文检索", skill)
         self.assertIn("不把句式、修辞词组、题材、行业、对象或具体情节作为候选搜索词", skill)
-        self.assertIn("正常写作正好选入三份彼此不同的完整案例和三份完整钩子", skill)
+        self.assertIn("正常文章写作正好选入三份彼此不同的完整案例和三份完整钩子", skill)
         self.assertIn("不增加第四份", skill)
         self.assertIn("只有本地索引无法提供足够的完整参考", skill)
         self.assertIn("完整内容补足三份", skill)
@@ -304,15 +302,14 @@ class SkillStructureTests(unittest.TestCase):
         contract = "\n".join(
             (skill, private_library, knowledge, article, memory, content)
         )
-        self.assertIn("普通写作只允许读取社交内容案例索引或文章案例索引", skill)
-        self.assertIn("沿索引打开的完整案例", skill)
+        self.assertIn("普通文章写作只允许读取文章案例索引", skill)
+        self.assertIn("沿索引打开的完整文章案例", skill)
         self.assertIn("钩子索引和沿索引打开的完整钩子", skill)
         self.assertIn("不读取 `Home.md`、`10-Knowledge`、其它来源、项目、成果、作者声音、发布历史、内容策略或任何同主题笔记", skill)
         self.assertIn("即使项目名、机构名或产品名命中也不搜索", skill)
         self.assertIn("取得路径后只打开案例索引", private_library)
         self.assertIn("普通写作不从这里读取主题知识或启动知识补全", knowledge)
-        self.assertIn("普通写作不从私人库读取作者声音或发布历史", skill)
-        self.assertIn("文章和 Newsletter 也不例外", skill)
+        self.assertIn("普通文章写作不从私人库读取作者声音或发布历史", skill)
         self.assertIn("不因为成品较长就读取私人库中的作者声音", article)
         self.assertIn("普通写作不自动进入本流程", memory)
         self.assertIn("用户明确要求读取私人库中的既有声音", memory)
@@ -336,12 +333,26 @@ class SkillStructureTests(unittest.TestCase):
 
     def test_source_and_finished_languages_are_separate(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("直接回复和可发布文字默认使用中文", skill)
+        self.assertIn("直接回复、文章和 Newsletter 默认使用中文", skill)
+
+    def test_short_form_generation_is_retired_without_removing_analysis_or_history(self) -> None:
+        skill = _read("SKILL.md")
+
+        self.assertIn(
+            "本 Skill 不生成短帖、Thread、GitHub 项目短介绍或清单，以及项目或产品的短宣发文案",
+            skill,
+        )
+        self.assertIn("理解、研究、分享筛选、内容审查、发布复盘或文章写作", skill)
+        self.assertIn("不自动把短内容请求改成材料包", skill)
+        self.assertIn("也不转交其它写作模型", skill)
+        self.assertNotIn("references/github-project-short-content.md", skill)
+        self.assertNotIn("references/github-project-list.md", skill)
+        self.assertIn("短帖和 Thread 都使用 `social`", skill)
 
     def test_delivery_exposes_prepared_material_result_and_references(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
-        self.assertIn("每次写作在同一次回复中固定展示四部分", skill)
+        self.assertIn("每次文章写作在同一次回复中固定展示四部分", skill)
         self.assertIn("在同一次回复中直接成文", skill)
         self.assertIn("只放用户要生成的成品", skill)
         self.assertIn("用户提供的内容说明进入写作准备材料", skill)
@@ -350,7 +361,7 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("写作要求能直接摘录用户原话时不改写", skill)
         self.assertNotIn("只放用户本次明确提出的写作要求", content)
         self.assertIn("用户没有提出限制时不擅自补上“不要搜索外部资料”等要求", skill)
-        self.assertIn("写作前可以联网发现新的写作材料", _read("references/writing-material-preparation.md"))
+        self.assertIn("文章写作前可以联网发现新的写作材料", _read("references/writing-material-preparation.md"))
         self.assertIn("多份案例之间和多份钩子之间分别用单独一行 `---` 分隔", skill)
         for heading in (
             "**写作要求**",
@@ -407,10 +418,11 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("自然接入后文", hooks)
         self.assertIn("可回查归档并重建索引", hooks)
 
-    def test_reference_indexes_do_not_split_threads_from_short_posts(self) -> None:
+    def test_reference_resources_keep_social_history_without_restoring_generation(self) -> None:
         skill = _read("SKILL.md")
         cases = _read("references/content-case-library.md")
         hooks = _read("references/hook-library.md")
+        self.assertIn("本 Skill 不生成短帖、Thread", skill)
         self.assertIn("短帖和 Thread 都使用 `social`", skill)
         self.assertIn("社交内容案例索引.md", cases)
         self.assertIn("独立短帖和 Thread 不再区分", cases)

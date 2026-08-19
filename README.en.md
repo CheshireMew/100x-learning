@@ -29,7 +29,7 @@
 
 <!-- readme-header:end -->
 
-`100x-learning` is a learning and content Skill built to the open [Agent Skills specification](https://agentskills.io/specification). It reads subtitles, articles, links, topics, projects, drafts, and post-publication feedback, then chooses the method that matches the result you asked for.
+`100x-learning` is a learning and article-writing Skill built to the open [Agent Skills specification](https://agentskills.io/specification). It reads subtitles, articles, links, topics, projects, drafts, and post-publication feedback, then chooses the method that matches the result you asked for.
 
 <p align="center">
   <img src="./assets/readme/hero-en.png" width="100%" alt="How 100x Learning turns materials, topics, and real questions into insight, decisions, action, and shareable work">
@@ -43,11 +43,11 @@ You do not need to choose an internal workflow. Describe the outcome directly:
 - **Edit and explain a transcript**: `Remove ads and off-topic inserts from this automatic transcript, correct it, restore the remaining wording as article-like prose without paraphrasing, explain it, and save both to my private knowledge library.`
 - **Research and decide**: `Research X, compare whether A or B better fits my goal, and keep the unknowns visible.`
 - **Explain and apply**: `Explain X through a real scenario, then use it to analyze the Y I am facing.`
-- **Review or write**: `Check this draft for factual, structural, and AI-sounding problems. Do not rewrite it.` or `Turn these materials into a thread for general readers.`
+- **Review or write an article**: `Check this draft for factual, structural, and AI-sounding problems. Do not rewrite it.` or `Turn these materials into an article for general readers.`
 - **Learn and improve continuously**: `Teach me X over multiple rounds. Finish the most useful lesson now, then use my feedback to choose the next step.`
 - **Capture knowledge**: `Save the confirmed conclusions to my private knowledge library and update the existing source of truth for this topic.`
 
-The Skill stops at the result you named: a review does not silently rewrite the draft, candidates do not silently become a post, and one topic-selection task does not become a long-running project. Saving files, producing media, uploading, and publishing are separate actions.
+The Skill stops at the result you named: a review does not silently rewrite the draft, candidates do not silently become an article, and one topic-selection task does not become a long-running project. Saving files, producing media, uploading, and publishing are separate actions.
 
 ## Quick start
 
@@ -76,10 +76,10 @@ Hosts that support explicit Skill names can also use `$100x-learning`. The first
 | Understand a source | Reconstructs the content, main thread, relationships, and real locations faithfully | A clear explanation and highlights, without expanding into a research project |
 | Research or verify | Compares sources and separates facts, judgments, and unknowns | A sourced conclusion and the questions still open |
 | Review content | Checks facts, structure, language, and the requested concerns | Problems and revision direction, without silently editing the draft |
-| Write content | Organizes the supplied material, supplements it from the web when useful, then drafts directly | A usable post, thread, GitHub project introduction, or article |
+| Write an article | Organizes the supplied material, supplements it from the web when useful, then drafts directly | A usable article or newsletter |
 | Continue learning or review results | Reads the real artifact, feedback, and outcome from the current round | The next lesson, topic, or testable improvement |
 
-Web supplementation for writing adds useful material; it is not automatically a claim-by-claim fact-check. Research, source comparison, or verification becomes the deliverable only when you explicitly ask for it.
+Web supplementation for article writing adds useful material; it is not automatically a claim-by-claim fact-check. Research, source comparison, or verification becomes the deliverable only when you explicitly ask for it.
 
 In normal mode, sufficient material leads directly to the finished artifact. If the host provides a Plan mode, you can use it for a deeper interview: the Skill first gathers information it can obtain independently, then asks for the experiences, emotions, views, and disclosure boundaries only you can provide.
 
@@ -98,7 +98,7 @@ The selected root is recorded in `~/.100x-learning/config.json`; the config stor
 
 Once connected, the library can hold sources, one source of truth per topic, complete writing cases, independent hooks, confirmed work, content direction, and durable topic state.
 
-Ordinary writing reads only cases and hooks; it does not automatically bring topic knowledge, personal voice, or publication history into a new draft. Those materials are used only when you explicitly request the corresponding result. A single publication outcome does not rewrite long-term strategy or personal voice.
+Ordinary article writing reads only article cases and hooks; it does not automatically bring topic knowledge, personal voice, or publication history into a new draft. Those materials are used only when you explicitly request the corresponding result. A single publication outcome does not rewrite long-term strategy or personal voice.
 
 <details>
 <summary>Run the knowledge-library maintenance scripts directly</summary>
@@ -112,11 +112,11 @@ python scripts/private_library.py validate
 
 </details>
 
-Without a configured library, source comprehension, research, review, and writing still work from the current input. Cloning the public repository never includes private material.
+Without a configured library, source comprehension, research, review, and article writing still work from the current input. Cloning the public repository never includes private material.
 
 ## Scope
 
-This Skill covers source comprehension, topic research, concept explanation, practice design, content review, short posts, threads, GitHub project introductions, and articles.
+This Skill covers source comprehension, topic research, concept explanation, practice design, content review, articles, and newsletters. Short posts, threads, short GitHub project introductions or lists, and short project or product promotional copy are outside its writing scope.
 
 Image, GIF, video, audio, and podcast production; general translation; ad buying; sales pages; email sequences; full brand or marketing strategy; and publishing itself belong to separate capabilities.
 
@@ -128,7 +128,7 @@ Writing a file, producing media, uploading, and publishing are different actions
 100x-learning/
 ├── SKILL.md                   # Main routing, behavior boundaries, and delivery rules
 ├── agents/openai.yaml         # Presentation and default prompt for OpenAI hosts
-├── references/                # Learning, research, writing, and knowledge-library methods
+├── references/                # Learning, research, article-writing, and knowledge-library methods
 ├── scripts/                   # Subtitle, private-library, case, hook, and writing-memory tools
 ├── assets/private-library/    # Public templates used to initialize a private library
 ├── assets/readme/             # GitHub README visuals
