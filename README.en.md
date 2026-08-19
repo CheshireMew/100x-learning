@@ -76,7 +76,7 @@ Hosts that support explicit Skill names can also use `$100x-learning`. The first
 | Understand a source | Reconstructs the content, main thread, relationships, and real locations faithfully | A clear explanation and highlights, without expanding into a research project |
 | Research or verify | Compares sources and separates facts, judgments, and unknowns | A sourced conclusion and the questions still open |
 | Review content | Checks facts, structure, language, and the requested concerns | Problems and revision direction, without silently editing the draft |
-| Write an article | Organizes the supplied material, supplements it from the web when useful, then drafts directly | A usable article or newsletter |
+| Write an article | Organizes the supplied material, supplements it from the web when useful, then drafts directly | A usable article |
 | Continue learning or review results | Reads the real artifact, feedback, and outcome from the current round | The next lesson, topic, or testable improvement |
 
 Web supplementation for article writing adds useful material; it is not automatically a claim-by-claim fact-check. Research, source comparison, or verification becomes the deliverable only when you explicitly ask for it.
@@ -116,7 +116,7 @@ Without a configured library, source comprehension, research, review, and articl
 
 ## Scope
 
-This Skill covers source comprehension, topic research, concept explanation, practice design, content review, articles, and newsletters. Short posts, threads, short GitHub project introductions or lists, and short project or product promotional copy are outside its writing scope.
+This Skill covers source comprehension, topic research, concept explanation, practice design, content review, and articles. Short posts, threads, short GitHub project introductions or lists, and short project or product promotional copy are outside its writing scope.
 
 Image, GIF, video, audio, and podcast production; general translation; ad buying; sales pages; email sequences; full brand or marketing strategy; and publishing itself belong to separate capabilities.
 

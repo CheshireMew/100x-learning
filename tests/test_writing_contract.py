@@ -225,8 +225,8 @@ class SkillStructureTests(unittest.TestCase):
         skill = _read("SKILL.md")
         cases = _read("references/content-case-library.md")
         hooks = _read("references/hook-library.md")
-        self.assertIn("文章和 Newsletter 优先从本地私人库读取三份完整文章案例和三份完整开头钩子", skill)
-        self.assertIn("文章和 Newsletter 从文章案例索引", skill)
+        self.assertIn("文章写作优先从本地私人库读取三份完整文章案例和三份完整开头钩子", skill)
+        self.assertIn("文章写作从文章案例索引", skill)
         self.assertIn("从统一钩子索引打开多份有帮助的参考开头钩子", skill)
         self.assertIn("分别从活动案例索引和钩子索引选择三个不同的写作技巧分组", skill)
         self.assertIn("从每个分组沿一个稳定编号链接打开完整原文", skill)
@@ -311,13 +311,12 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("普通写作不从这里读取主题知识或启动知识补全", knowledge)
         self.assertIn("普通文章写作不从私人库读取作者声音或发布历史", skill)
         self.assertIn("不因为成品较长就读取私人库中的作者声音", article)
-        self.assertIn("普通写作不自动进入本流程", memory)
+        self.assertIn("普通文章写作不自动进入本流程", memory)
         self.assertIn("用户明确要求读取私人库中的既有声音", memory)
         self.assertIn("不自动并入其它普通写作", memory)
         self.assertIn("用户给出的文字默认是来源材料，不是用户本人写的现稿", content)
         self.assertIn("只放用户在当前请求中直接提供的声音样稿", content)
-        self.assertNotIn("文章和 Newsletter 默认读取", contract)
-        self.assertNotIn("文章和 Newsletter 默认尝试", contract)
+        self.assertNotIn("Newsletter", contract)
         self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
         self.assertIn("第一人称经历、使用体验", skill)
         self.assertIn("第一人称经历、使用体验", content)
@@ -333,7 +332,7 @@ class SkillStructureTests(unittest.TestCase):
 
     def test_source_and_finished_languages_are_separate(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("直接回复、文章和 Newsletter 默认使用中文", skill)
+        self.assertIn("直接回复和文章默认使用中文", skill)
 
     def test_short_form_generation_is_retired_without_removing_analysis_or_history(self) -> None:
         skill = _read("SKILL.md")

@@ -1,4 +1,4 @@
 interface:
   display_name: "100x Learning"
   short_description: "整理并讲解字幕，读懂材料、研究主题、审查内容并撰写文章"
-  default_prompt: "使用 $100x-learning 整理并讲解这份字幕或材料；需要成文时，写成文章或 Newsletter。"
+  default_prompt: "使用 $100x-learning 整理并讲解这份字幕或材料；需要成文时，写成文章。"
