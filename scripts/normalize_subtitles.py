@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Normalize SRT, VTT, or timestamped transcripts without inventing timing."""
+"""Prepare faithful SRT, VTT, or transcript text for Agent-led editing."""
 
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ TIMESTAMP_ONLY_RE = re.compile(
 TAG_RE = re.compile(r"<[^>]+>")
 SPACE_RE = re.compile(r"\s+")
 SENTENCE_END_RE = re.compile(r"[。！？!?；;.]\s*[\"'”’）)]*$")
+CJK_RE = re.compile(r"[\u3400-\u9fff]")
 
 
 @dataclass
@@ -80,9 +81,9 @@ def remove_overlap(previous: str, current: str) -> str:
     """Remove repeated words caused by rolling automatic captions."""
     if not previous or not current:
         return current
-    if current == previous or current in previous:
+    if current == previous or previous.endswith(current):
         return ""
-    if previous in current:
+    if current.startswith(previous):
         return current[len(previous) :].lstrip(" ,，。")
 
     previous_words = previous.split()
@@ -91,6 +92,13 @@ def remove_overlap(previous: str, current: str) -> str:
     for size in range(max_overlap, 1, -1):
         if previous_words[-size:] == current_words[:size]:
             return " ".join(current_words[size:])
+
+    # Chinese rolling captions commonly repeat character sequences without spaces.
+    max_character_overlap = min(len(previous), len(current), 80)
+    for size in range(max_character_overlap, 3, -1):
+        overlap = current[:size]
+        if CJK_RE.search(overlap) and previous.endswith(overlap):
+            return current[size:].lstrip(" ,，。！？!?；;")
     return current
 
 
@@ -153,9 +161,6 @@ def parse_timestamped_lines(lines: list[str]) -> list[Cue]:
             continue
         index += 1
 
-    for cue_index, cue in enumerate(cues[:-1]):
-        if cue.end is None:
-            cue.end = cues[cue_index + 1].start
     return cues
 
 
@@ -231,6 +236,26 @@ def merge_cues(cues: list[Cue], max_gap: float, max_chars: int) -> list[Cue]:
     return merged
 
 
+def normalize_cues(cues: list[Cue]) -> list[Cue]:
+    """Remove only deterministic rolling-caption overlap while keeping cue timing."""
+    normalized: list[Cue] = []
+    for cue in cues:
+        text = clean_text(cue.text)
+        if not text:
+            continue
+        if not normalized:
+            normalized.append(Cue(cue.start, cue.end, text))
+            continue
+
+        addition = remove_overlap(normalized[-1].text, text)
+        if not addition:
+            if cue.end is not None:
+                normalized[-1].end = cue.end
+            continue
+        normalized.append(Cue(cue.start, cue.end, addition))
+    return normalized
+
+
 def render_markdown(cues: list[Cue], source_format: str) -> str:
     lines = ["# 规范化字幕", "", f"来源格式：{source_format}", ""]
     for index, cue in enumerate(cues, start=1):
@@ -269,10 +294,15 @@ def read_input(path: str) -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Normalize subtitle timing and merge broken caption lines."
+        description="Parse subtitle timing and prepare a faithful transcript for Agent editing."
     )
     parser.add_argument("input", help="SRT/VTT/TXT file path, or - for stdin")
-    parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
+    parser.add_argument(
+        "--format",
+        choices=("markdown", "json"),
+        default="markdown",
+        help="JSON preserves every parsed cue; Markdown merges mechanical caption breaks",
+    )
     parser.add_argument("--max-gap", type=float, default=1.5, help="maximum merge gap in seconds")
     parser.add_argument("--max-chars", type=int, default=280, help="maximum merged segment length")
     return parser
@@ -288,16 +318,16 @@ def main() -> int:
         cues, source_format = parse_subtitles(text)
         if not cues:
             raise ValueError("no subtitle text found")
-        merged = (
-            cues
-            if source_format == "plain text"
-            else merge_cues(cues, args.max_gap, args.max_chars)
-        )
-        output = (
-            render_json(merged, source_format)
-            if args.format == "json"
-            else render_markdown(merged, source_format)
-        )
+        normalized = normalize_cues(cues)
+        if args.format == "json":
+            output = render_json(normalized, source_format)
+        else:
+            merged = (
+                normalized
+                if source_format == "plain text"
+                else merge_cues(normalized, args.max_gap, args.max_chars)
+            )
+            output = render_markdown(merged, source_format)
         sys.stdout.write(output)
         return 0
     except (OSError, UnicodeError, ValueError) as exc:

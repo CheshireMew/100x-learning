@@ -7,7 +7,28 @@ from pathlib import Path
 from scripts.private_library import initialize_library
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
 class ContentLearningLoopTests(unittest.TestCase):
+    def test_routing_separates_durable_projects_from_ordinary_continuous_learning(self) -> None:
+        skill = (PROJECT_ROOT / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "一份长材料或一批材料无法在当前任务可靠完成，或用户明确要求分轮继续时",
+            skill,
+        )
+        self.assertNotIn("需要跨任务恢复时读取", skill)
+
+    def test_ongoing_topic_maintenance_uses_novelty_without_author_voice(self) -> None:
+        skill = (PROJECT_ROOT / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertIn("或当前任务正在维护持续选题时", skill)
+        self.assertIn(
+            "维护持续选题时只使用其中的内容查重说明，不读取作者声音",
+            skill,
+        )
+
     def test_initialization_preserves_existing_strategy_and_templates(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / "library"

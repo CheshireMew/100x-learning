@@ -40,6 +40,7 @@
 You do not need to choose an internal workflow. Describe the outcome directly:
 
 - **Understand a source**: `Explain the main thread and key relationships in this interview, and mark the passages worth revisiting.`
+- **Edit and explain a transcript**: `Remove ads and off-topic inserts from this automatic transcript, correct it, restore the remaining wording as article-like prose without paraphrasing, explain it, and save both to my private knowledge library.`
 - **Research and decide**: `Research X, compare whether A or B better fits my goal, and keep the unknowns visible.`
 - **Explain and apply**: `Explain X through a real scenario, then use it to analyze the Y I am facing.`
 - **Review or write**: `Check this draft for factual, structural, and AI-sounding problems. Do not rewrite it.` or `Turn these materials into a thread for general readers.`
@@ -71,6 +72,7 @@ Hosts that support explicit Skill names can also use `$100x-learning`. The first
 
 | Your request | What the Skill does | Delivery and stopping point |
 | --- | --- | --- |
+| Subtitles or an automatic transcript | Removes clear ads and off-topic inserts, preserves the remaining wording and real timestamps, corrects confirmed transcription errors, restores natural paragraphs, then analyzes and captures the source | The complete topic transcript with omission and correction notes, reusable knowledge, and a current result overview |
 | Understand a source | Reconstructs the content, main thread, relationships, and real locations faithfully | A clear explanation and highlights, without expanding into a research project |
 | Research or verify | Compares sources and separates facts, judgments, and unknowns | A sourced conclusion and the questions still open |
 | Review content | Checks facts, structure, language, and the requested concerns | Problems and revision direction, without silently editing the draft |

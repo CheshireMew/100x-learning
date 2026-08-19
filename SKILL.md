@@ -1,6 +1,6 @@
 ---
 name: 100x-learning
-description: 帮助用户读懂材料、研究主题、解释概念、把知识用于真实问题，并直接写成短帖、GitHub 项目介绍或文章；也能接入视频和社交来源，筛选分享内容，根据发布反馈继续选题和改进内容，以及初始化、检查和维护本机私人知识库、内容案例、钩子与写作记忆。适用于划重点、系统学习、分轮处理长材料、内容审查、宣发写作和知识沉淀；媒体制作、普通翻译、广告投放、销售页、邮件营销、品牌全案、完整营销策略和实际发布使用对应的专门流程。
+description: 帮助用户读懂材料、研究主题、解释概念、把知识用于真实问题，并直接写成短帖、GitHub 项目介绍或文章；也能把字幕和自动转写稿整理成忠实、可读的文章式全文，讲清材料并沉淀到私人知识库，接入视频和社交来源，筛选分享内容，根据发布反馈继续选题和改进内容，以及初始化、检查和维护本机私人知识库、内容案例、钩子与写作记忆。适用于字幕整稿、划重点、系统学习、分轮处理长材料、内容审查、宣发写作和知识沉淀；媒体制作、普通翻译、广告投放、销售页、邮件营销、品牌全案、完整营销策略和实际发布使用对应的专门流程。
 ---
 
 # 100x Learning
@@ -26,12 +26,13 @@ description: 帮助用户读懂材料、研究主题、解释概念、把知识�
 - 用户明确要求研究主题、比较来源或核查重要事实时读取 `references/research-context-reuse.md` 和 `references/research-led-learning.md`；写作中的联网补充不调用这两份研究说明。解释概念读取 `references/concept-deconstruction.md`；系统学习读取 `references/continuous-learning.md`。
 - 把知识用于真实问题读取 `references/practice-led-learning.md`；建立长期内容方向读取 `references/content-strategy-and-topic-selection.md`；复盘已发布内容读取 `references/published-content-review.md`。
 - 视频、社交帖子和 Thread 先按 `references/source-ingestion.md` 取得可靠正文与上下文，再直接用于用户要的结果。
+- 输入主体是 SRT、VTT、带时间戳文本、断行字幕或明显由语音识别生成的连续转写稿时，先读取 `references/transcript-editing.md`，去除可明确圈定的广告和主题无关插入，完整整理并校正为文章式全文，再读取 `references/material-analysis.md` 讲清材料，最后按 `references/private-knowledge-library.md` 和 `references/knowledge-base-workflow.md` 把完整来源与可复用认识写入私人知识库；这是字幕输入的默认完整结果，用户明确只要其中一项或明确不保存时才按当前要求停止。
 - 可发布文字共同使用 `references/writing-material-preparation.md` 和 `references/content-writing.md`。单个 GitHub 项目补充 `references/github-project-short-content.md`，GitHub 项目清单补充 `references/github-project-list.md`，项目或产品宣发补充 `references/project-promotion-materials.md`，文章和 Newsletter 补充 `references/article-from-practice.md`。
 - 审查内容读取 `references/content-audit.md`；用户要求检查或清理 AI 味时同时读取 `references/natural-writing.md`。正文需要福利、时限、行动入口或披露时补充 `references/publication-requirements.md`。
-- 私人知识库的初始化和接入读取 `references/private-knowledge-library.md`；知识写入读取 `references/knowledge-base-workflow.md`；库健康检查读取 `references/knowledge-base-health.md`；批量接入读取 `references/bulk-knowledge-ingestion.md`；需要跨任务恢复时读取 `references/durable-learning-projects.md`。
-- 用户要求维护完整案例或钩子时分别读取 `references/content-case-library.md` 和 `references/hook-library.md`；只有用户明确要求读取私人库中的作者声音或既有作品、查询发布历史、检查内容重复或维护写作记忆时，才使用 `references/personal-writing-memory.md`。
+- 私人知识库的初始化和接入读取 `references/private-knowledge-library.md`；知识写入读取 `references/knowledge-base-workflow.md`；库健康检查读取 `references/knowledge-base-health.md`；批量接入读取 `references/bulk-knowledge-ingestion.md`；一份长材料或一批材料无法在当前任务可靠完成，或用户明确要求分轮继续时，读取 `references/durable-learning-projects.md`。
+- 用户要求维护完整案例或钩子时分别读取 `references/content-case-library.md` 和 `references/hook-library.md`；只有用户明确要求读取私人库中的作者声音或既有作品、查询发布历史、检查内容重复、维护写作记忆，或当前任务正在维护持续选题时，才使用 `references/personal-writing-memory.md`。维护持续选题时只使用其中的内容查重说明，不读取作者声音。
 
-用户只点名本 Skill 或只附材料而没有指定产物时，直接讲清材料本身。直接回复和可发布文字默认使用中文；只有没有清楚中文说法、读者需要按原名搜索或操作，或者用户要求官方写法时才保留必要外文。普通一次性结果不增加持久化；只有用户明确要求保存、更新或沉淀时才写入长期位置。
+用户只点名本 Skill 或只附材料而没有指定产物时，字幕和自动转写稿按上述顺序整理全文、讲清材料并写入私人知识库，其它材料直接讲清。直接回复和可发布文字默认使用中文；只有没有清楚中文说法、读者需要按原名搜索或操作，或者用户要求官方写法时才保留必要外文。除字幕输入的上述默认写入外，普通一次性结果不增加持久化；只有用户明确要求保存、更新或沉淀时才写入长期位置。
 
 ## 写作
 
@@ -95,8 +96,6 @@ description: 帮助用户读懂材料、研究主题、解释概念、把知识�
 长期内容方向与写作风格分别保存在 `60-Systems/Writing/content-strategy.md` 和 `60-Systems/Writing/style-guide/voice.md`。持续选题只在真实内容项目的 `30-Projects/Content/<系列>/topic-portfolio.md` 保存决策状态；已发布内容复盘链接最终正文和真实反馈，不复制正文。一次结果保持为假设，只有重复证据、直接行为证据或用户确认支持的认识才进入对应的长期文件，发布表现本身不改写用户声音。
 
 用户明确要求保存或更新完整案例时，使用 `scripts/content_case_library.py add-case` 写入完整社交内容或文章案例；短帖和 Thread 都使用 `social`，文章使用 `article`。用户明确要求保存或更新钩子时，使用 `scripts/hook_library.py add-hook` 写入不区分成品形式的独立钩子库。两个入口写后都运行各自的 `build-index` 和 `validate`，没有互相转换或引用的参数。
-
-本地 SRT、VTT、带时间戳 TXT 或断行严重的字幕需要规范化时，使用 `scripts/normalize_subtitles.py`，保留原文件和真实时间位置。
 
 个人写作记忆只提供经过确认的写作风格样本与发布历史；内容案例库只提供创作参考，两者不能替代当前对象的事实和明确要求。普通翻译、转写、格式清洗和普通计划走对应专门流程；广告投放、销售页与落地页、邮件营销序列、品牌全案、完整营销策略和实际发布不属于本 Skill 的文字写作结果。
 

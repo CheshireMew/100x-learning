@@ -1,4 +1,4 @@
 interface:
   display_name: "100x Learning"
-  short_description: "从材料学习、写作、筛选选题，并用发布结果改进下一轮内容"
-  default_prompt: "使用 $100x-learning 读懂这份材料或复盘已发布内容；根据真实证据完成学习、选题、写作或下一轮改进。"
+  short_description: "去除字幕广告并整理沉淀知识，读懂材料，写作与筛选选题"
+  default_prompt: "使用 $100x-learning 去除字幕中的广告和主题无关插入，整理、读懂并沉淀字幕或其它材料；根据真实证据完成学习、选题、写作或下一轮改进。"
