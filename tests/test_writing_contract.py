@@ -55,17 +55,17 @@ class SkillStructureTests(unittest.TestCase):
             self.assertNotIn(retired, contract)
 
         skill = _read("SKILL.md")
-        self.assertIn("三个完整案例和三个完整钩子参与文章写作", skill)
+        self.assertIn("只用一份最好的完整参考", skill)
         self.assertIn("在同一次回复中直接成文", skill)
         self.assertIn("材料准备和成文在同一次回复中连续完成", skill)
-        self.assertIn("材料准备、直接成文和最终交付在同一次处理中连续完成", contract)
-        self.assertIn("材料准备与联网补充只执行一次", contract)
+        self.assertIn("材料准备、补充或研究、直接成文和最终交付在同一次处理中连续完成", contract)
+        self.assertIn("材料准备、补充和研究只执行一次", contract)
         self.assertNotIn("writing-handoff.md", contract)
         self.assertNotIn("正式交接文件", contract)
         self.assertNotIn("第一轮：交出正式准备文件", contract)
         self.assertNotIn("第二轮：只读交接文件成文", contract)
 
-    def test_writing_browses_for_supplement_without_prewrite_fact_check(self) -> None:
+    def test_writing_researches_content_when_needed_and_still_finds_references(self) -> None:
         skill = _read("SKILL.md")
         preparation = _read("references/writing-material-preparation.md")
         contract = "\n".join((skill, preparation))
@@ -74,12 +74,18 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("明确禁止联网", contract)
         self.assertIn("只使用给定材料", contract)
         self.assertIn("只改错字、格式和等义措辞", contract)
-        self.assertIn("联网补充不是研究或事实核查", skill)
-        self.assertIn("不是逐项验证用户已经给出的说法", preparation)
+        self.assertIn("文章材料要足以支撑成文", skill)
+        self.assertIn("用户只给出主题、问题，或者现有材料无法支撑文章的核心判断时", skill)
+        self.assertIn("当前材料无法支撑核心判断时", preparation)
+        self.assertIn("支持、限制或推翻主要解释的来源", preparation)
+        self.assertIn("不逐项验证用户已经给出的所有说法", preparation)
         self.assertIn("不生成事实核查报告", preparation)
-        self.assertIn("不以核查完成作为开始写作的前置条件", skill)
-        self.assertIn("写作中的联网补充不调用这两份研究说明", skill)
-        self.assertIn("没有增加理解或传播价值时不加入", preparation)
+        self.assertIn("不调用这两份研究交付格式", skill)
+        self.assertIn("既不能增加理解、校正判断和支持具体表达，也不值得作为写作参考时不加入", preparation)
+        self.assertIn("内容材料已经足够不等于写作参考已经足够", skill)
+        self.assertIn("即使事实材料已经足够", skill)
+        self.assertIn("仍然进行这项参考发现", skill)
+        self.assertIn("不单独生成研究报告、中心句、因果简报、大纲或段落任务", skill)
         self.assertIn("草稿完成后只核对正文实际写出的", skill)
         self.assertIn("成稿完成后只检查正文实际使用的", _read("references/content-writing.md"))
         self.assertNotIn("搜索服从材料缺口", contract)
@@ -97,10 +103,10 @@ class SkillStructureTests(unittest.TestCase):
 
         self.assertIn("用户主动开启 Plan 模式视为明确的深度访谈请求", plan)
         self.assertIn("不论现有材料是否已经足够成文", plan)
-        self.assertIn("必须先完成本次需要的联网补充", plan)
+        self.assertIn("必须先完成本次需要的材料查找", plan)
         self.assertIn("再使用 `request_user_input` 开始访谈", plan)
         self.assertLess(
-            plan.index("必须先完成本次需要的联网补充"),
+            plan.index("必须先完成本次需要的材料查找"),
             plan.index("再使用 `request_user_input` 开始访谈"),
         )
         self.assertIn("不先询问能够从现有材料或公开来源自行取得的客观信息", plan)
@@ -138,48 +144,69 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("不摘要、转述、重排、拼接或统一改写", preparation)
         self.assertIn("## 写作输入", content)
         self.assertNotIn("writing-handoff.md", contract)
-        self.assertIn("材料准备与联网补充只执行一次", preparation)
+        self.assertIn("材料准备、补充和研究只执行一次", preparation)
         self.assertIn("【用户要求】", content)
         self.assertNotIn("【写作规则】", content)
         self.assertNotIn("【通用写作注意】", content)
         self.assertIn("【材料】", content)
-        self.assertIn("【参考案例】", content)
-        self.assertIn("【参考开头】", content)
+        self.assertIn("【写作参考】", content)
+        self.assertNotIn("【参考案例】", content)
+        self.assertNotIn("【参考开头】", content)
         self.assertNotIn("【完整案例】", content)
         self.assertNotIn("【完整钩子】", content)
         self.assertNotIn("【其它实际写作输入】", content)
         self.assertIn("【作者声音】", content)
         self.assertIn("不带案例库生成的标题", content)
-        self.assertIn("不带钩子库生成的标题", content)
-        self.assertIn("依次完整放入实际读取的三份写作案例正文", content)
-        self.assertIn("依次完整放入实际读取的三份开头钩子正文", content)
-        self.assertIn("相邻正文之间单独放一行 `---`", content)
-        self.assertIn("相邻案例之间和相邻钩子之间各用一行 `---`", content)
+        self.assertIn("完整放入本次实际选用的唯一一份本地文章、公开文章、字幕或其它写作参考正文", content)
+        self.assertNotIn("相邻正文之间", content)
+        self.assertNotIn("相邻参考之间", content)
         self.assertIn("“原文全文”等栏目名", content)
-        self.assertIn("“钩子原文”等栏目名", content)
-        self.assertIn("只保留实际参考正文", content)
+        self.assertIn("只保留唯一一份实际参考正文", content)
         self.assertIn("专项说明、材料取舍理由、搜索记录和维护规则", preparation)
         self.assertIn("说明文件本身、维护理由、字段名和检查过程不进入成文输入", skill)
         self.assertNotIn("留下足以准确成文的最少内容", contract)
         self.assertNotIn("写作简报", content)
+        self.assertIn("区分内容来源与写作参考", preparation)
+        self.assertIn("字幕、访谈、同主题文章和研究资料", preparation)
+        self.assertIn("写法真正优秀的完整内容也可以同时作为写作参考", preparation)
+        self.assertIn("本地文章案例和用户明确要求参考写法的样稿只帮助表达", preparation)
+        self.assertIn("不替当前对象提供事实", preparation)
+        self.assertIn("组织松散、论证薄弱或信息混杂时", preparation)
+        self.assertIn("不把来源的结构、语气和叙述缺陷变成成品要求", preparation)
+        self.assertIn("没有内容来源时", preparation)
+        self.assertIn("写作参考不是事实缺口", preparation)
+        self.assertIn("只选一份最值得当前文章深入模仿的完整参考", preparation)
+        self.assertIn("不把研究结果改写成中心句、因果简报、内容路线、大纲或段落任务", preparation)
+        self.assertIn("证据暂时不能支持唯一结论时保留这种不确定性", preparation)
 
     def test_writer_input_is_minimal_without_generic_style_rules(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
         self.assertEqual(1, content.count("【用户要求】"))
         self.assertEqual(1, content.count("【材料】"))
-        self.assertEqual(1, content.count("【参考案例】"))
-        self.assertEqual(1, content.count("【参考开头】"))
+        self.assertEqual(1, content.count("【写作参考】"))
+        self.assertNotIn("【参考案例】", content)
+        self.assertNotIn("【参考开头】", content)
         self.assertEqual(1, content.count("【作者声音】"))
         self.assertNotIn("【写作规则】", content)
         self.assertNotIn("【其它实际写作输入】", content)
         self.assertNotIn("【通用写作注意】", skill)
         self.assertIn("这里是文章成文输入的唯一模板", content)
         self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
-        self.assertIn(
-            "完整阅读当前材料、三份案例和三份钩子，把它们作为参考，直接写出用户要的内容。",
-            content,
-        )
+        self.assertIn("完整读完当前材料和唯一写作参考", content)
+        self.assertIn("沿着参考实际使用的写法直接写当前文章", content)
+        self.assertIn("不要只提炼几个技巧或另外套用通用文章结构", content)
+        self.assertIn("不要照抄原句", content)
+        for retired_reference_check in (
+            "叙述推进、信息安排、详略、段落节奏、转折、语气和收束方式",
+            "如果拿掉参考也大概率会得到几乎相同的通用文章",
+            "继续返修当前稿",
+            "同一个成文模型检查唯一参考",
+        ):
+            self.assertNotIn(retired_reference_check, content)
+        self.assertNotIn("让故事和分析共同推进", content)
+        self.assertNotIn("材料没有可信故事时", content)
+        self.assertNotIn("不退化成提纲、说明书或研究资料汇编", content)
         self.assertNotIn("当前成品从哪里进入、展开哪些内容以及怎样组合", content)
         self.assertNotIn("不预设它必须归结为", content)
         self.assertNotIn("不先替正文规定读者必须得到", content)
@@ -216,7 +243,6 @@ class SkillStructureTests(unittest.TestCase):
             "直接影响所需",
             "不先搭次要说法再转折",
             "抽象结论、口号或问题",
-            "参考已经足够",
             "互补价值",
         ):
             self.assertNotIn(retired_prewrite_contract, runtime)
@@ -225,35 +251,31 @@ class SkillStructureTests(unittest.TestCase):
         skill = _read("SKILL.md")
         cases = _read("references/content-case-library.md")
         hooks = _read("references/hook-library.md")
-        self.assertIn("文章写作优先从本地私人库读取三份完整文章案例和三份完整开头钩子", skill)
-        self.assertIn("文章写作从文章案例索引", skill)
-        self.assertIn("从统一钩子索引打开多份有帮助的参考开头钩子", skill)
-        self.assertIn("分别从活动案例索引和钩子索引选择三个不同的写作技巧分组", skill)
-        self.assertIn("从每个分组沿一个稳定编号链接打开完整原文", skill)
-        self.assertIn("以原文是否值得参考、是否适合当前写作为准", skill)
-        self.assertIn("优先在原分组换读", skill)
-        self.assertIn("原分组没有可用正文时再从相邻分组换读", skill)
-        self.assertNotIn("只在原分组中换读另一份", skill)
-        self.assertIn("索引标签只负责确定候选分组，完整原文决定最终取舍", skill)
-        self.assertIn("题材、行业和具体对象相同都不是前提", skill)
-        self.assertIn("候选发现只通过索引分组及其中的稳定编号链接进行", skill)
-        self.assertIn("不对案例或钩子正文目录运行 `rg`、`Select-String` 或其它全文检索", skill)
-        self.assertIn("不把句式、修辞词组、题材、行业、对象或具体情节作为候选搜索词", skill)
-        self.assertIn("正常文章写作正好选入三份彼此不同的完整案例和三份完整钩子", skill)
-        self.assertIn("不增加第四份", skill)
-        self.assertIn("只有本地索引无法提供足够的完整参考", skill)
-        self.assertIn("完整内容补足三份", skill)
-        self.assertIn("临时参考不自动保存进私人库", skill)
+        self.assertIn("当前用户提供或点名的材料、私人库中的同主题完整来源、公开网络中的同主题或相近写作任务原文、文章案例库中的通用案例依次发现", skill)
+        self.assertIn("中文成稿优先寻找自然的中文原文", skill)
+        self.assertIn("同主题本地来源可以在上述活动原始来源范围内使用 `rg`、`Select-String` 或等效工具", skill)
+        self.assertIn("搜索文件路径、标题、来源元数据和正文", skill)
+        self.assertIn("文章案例仍只通过文章案例索引分组及其中的稳定编号链接发现", skill)
+        self.assertIn("沿链接阅读全文后再判断", skill)
+        self.assertIn("通用案例与当前题材、行业或对象相同都不是前提", skill)
+        self.assertIn("不对案例正文目录进行全文检索", skill)
+        self.assertIn("不把句式、修辞词组、题材、行业、对象或具体情节作为通用案例搜索词", skill)
+        self.assertIn("同时作为内容来源与唯一写作参考", skill)
+        self.assertIn("不能被题材无关的通用案例替代", skill)
+        self.assertIn("即使事实材料已经足够", skill)
+        self.assertIn("仍然进行这项参考发现", skill)
+        self.assertIn("只选一份最好的完整原文", skill)
+        self.assertIn("不为成文输入增加第二份写作参考", skill)
+        self.assertIn("不自动保存进私人库", skill)
         self.assertNotIn("活动案例与钩子正文中全文搜索", skill)
-        self.assertIn("选入的六份参考来自六个独立文件", skill)
-        self.assertIn("文件不同不等于参考不同", skill)
-        self.assertIn("已选案例开头的节选或近似改写", skill)
-        self.assertIn("任意两份参考实际重复同一种写法", skill)
-        self.assertIn("不让同一内容同时充当两种参考", skill)
+        self.assertIn("孤立钩子不是普通文章的默认候选", skill)
+        self.assertIn("选中后同样占用唯一写作参考位置", skill)
         content = _read("references/content-writing.md")
-        self.assertIn("默认选入的三份案例和三份钩子都完整进入这份成文输入", skill)
+        self.assertIn("唯一参考必须完整进入这份成文输入", skill)
+        self.assertIn("直接作为本次文章的写法范本", skill)
+        self.assertIn("认真寻找后仍没有合适参考", skill)
         self.assertIn(
-            "完整阅读当前材料、三份案例和三份钩子，把它们作为参考，直接写出用户要的内容。",
+            "沿着参考实际使用的写法直接写当前文章",
             content,
         )
         for retired_creative_instruction in (
@@ -277,20 +299,31 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("## 普通写作读取", cases)
         self.assertNotIn("## 普通写作读取", hooks)
         self.assertNotIn("至少三份", skill)
+        for retired_quota in (
+            "三个完整案例和三个完整钩子",
+            "三份完整文章案例和三份完整开头钩子",
+            "三个不同的写作技巧分组",
+            "正好选入三份",
+            "不增加第四份",
+            "补足三份",
+            "选入的六份参考",
+        ):
+            self.assertNotIn(retired_quota, "\n".join((skill, content)))
 
-    def test_explicit_rewrite_reuses_confirmed_material_without_reusing_the_previous_draft(self) -> None:
+    def test_continuous_rewrite_preserves_unaffected_strengths_unless_reset_is_explicit(self) -> None:
         skill = _read("SKILL.md")
-        self.assertIn("“重新写”“重写”“从头写”或等义表达", skill)
-        self.assertIn("沿用已经确认的当前对象材料、表达边界和仍然适用的硬要求", skill)
-        self.assertIn("不再联网", skill)
-        self.assertIn("不把上一稿及其句子、结构或纠错过程放入成文输入", skill)
-        self.assertIn("重新选择案例与钩子，从零独立成文", skill)
-        self.assertIn("用户另有明确要求时，以当前要求为准", skill)
+        self.assertIn("“重新写”“重写”或等义修改时，不自动清空上一稿", skill)
+        self.assertIn("保留用户已经明确认可", skill)
+        self.assertIn("不受当前问题影响、仍有助于成品的事实、关系、叙事和表达", skill)
+        self.assertIn("只有用户明确要求完全换方向，或者明确要求从头写且不沿用上一稿", skill)
+        self.assertIn("才不把上一稿放入成文输入并重新独立成文", skill)
+        self.assertIn("连续修改不重复联网和准备材料", skill)
+        self.assertNotIn("重新选择案例与钩子，从零独立成文", skill)
 
     def test_private_library_is_not_a_writing_gate(self) -> None:
         skill = _read("SKILL.md")
         self.assertIn("运行 `python scripts/private_library.py show`", skill)
-        self.assertIn("私人库或参考不可用时直接继续写作", skill)
+        self.assertIn("私人库不可用时继续从当前材料和公开网络准备参考", skill)
 
     def test_normal_writing_private_library_allowlist_and_author_voice_opt_in(self) -> None:
         skill = _read("SKILL.md")
@@ -302,12 +335,15 @@ class SkillStructureTests(unittest.TestCase):
         contract = "\n".join(
             (skill, private_library, knowledge, article, memory, content)
         )
-        self.assertIn("普通文章写作只允许读取文章案例索引", skill)
-        self.assertIn("沿索引打开的完整文章案例", skill)
-        self.assertIn("钩子索引和沿索引打开的完整钩子", skill)
-        self.assertIn("不读取 `Home.md`、`10-Knowledge`、其它来源、项目、成果、作者声音、发布历史、内容策略或任何同主题笔记", skill)
-        self.assertIn("即使项目名、机构名或产品名命中也不搜索", skill)
-        self.assertIn("取得路径后只打开案例索引", private_library)
+        self.assertIn("普通文章写作先在 `<私人知识库>/20-Sources` 的活动原始来源中发现", skill)
+        self.assertIn("排除 `Archive`、`Content Cases` 和 `Hook Library`", skill)
+        self.assertIn("不读取 `Home.md`、`10-Knowledge`、项目、成果、作者声音、发布历史、内容策略或同主题知识笔记", skill)
+        self.assertIn("通用文章案例只从文章案例索引及其指向的完整案例取得", private_library)
+        self.assertIn("用户明确要求专门设计或修改开头时，才读取钩子索引", private_library)
+        self.assertIn("孤立钩子不作为普通文章的默认候选", article)
+        self.assertIn("在 `20-Sources` 的活动原始来源中按当前主题实体及其中英文名称或常见别名搜索", private_library)
+        self.assertIn("排除 `Archive`、`Content Cases` 与 `Hook Library`", private_library)
+        self.assertIn("不读取库首页、`10-Knowledge`、项目、成果、作者声音、发布历史、内容策略或同主题知识笔记", private_library)
         self.assertIn("普通写作不从这里读取主题知识或启动知识补全", knowledge)
         self.assertIn("普通文章写作不从私人库读取作者声音或发布历史", skill)
         self.assertIn("不因为成品较长就读取私人库中的作者声音", article)
@@ -327,7 +363,8 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("由它决定角度、取舍、结构、语言、篇幅和结束位置", skill)
         self.assertIn("直接写出用户要的内容", content)
         self.assertIn("没有指定数量时只生成一个", content)
-        self.assertIn("不自动评审、融合或润色", content)
+        self.assertIn("不再启动独立评审、融合或润色", content)
+        self.assertNotIn("由同一个成文模型检查唯一参考是否真实改变了文章", content)
         self.assertIn("提纲或写法清单", content)
 
     def test_source_and_finished_languages_are_separate(self) -> None:
@@ -360,8 +397,8 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("写作要求能直接摘录用户原话时不改写", skill)
         self.assertNotIn("只放用户本次明确提出的写作要求", content)
         self.assertIn("用户没有提出限制时不擅自补上“不要搜索外部资料”等要求", skill)
-        self.assertIn("文章写作前可以联网发现新的写作材料", _read("references/writing-material-preparation.md"))
-        self.assertIn("多份案例之间和多份钩子之间分别用单独一行 `---` 分隔", skill)
+        self.assertIn("文章写作前可以联网发现新的内容材料和完整写作参考", _read("references/writing-material-preparation.md"))
+        self.assertIn("`【写作参考】` 只放唯一一份完整原文", skill)
         for heading in (
             "**写作要求**",
             "**写作准备材料**",
@@ -370,14 +407,15 @@ class SkillStructureTests(unittest.TestCase):
         ):
             self.assertEqual(1, skill.count(heading))
         self.assertIn("在独立代码块中完整展示本次实际选入的成文输入", skill)
-        self.assertIn("而不是复制完整来源", skill)
+        self.assertIn("而不是复制全部内容来源", skill)
         self.assertIn("不另建临时文件", skill)
         self.assertIn("每份结果分别放在独立代码块中", skill)
         self.assertIn("不重新摘要或改写已选内容", skill)
-        self.assertIn("只列出真正进入本次成文输入的案例与钩子", skill)
+        self.assertIn("只列出真正进入本次成文输入的唯一完整写作参考", skill)
         self.assertIn("不列候选阶段读过但没有送入成文模型的内容", skill)
         self.assertIn("本地参考使用可点击的绝对文件路径", skill)
         self.assertIn("临时公开参考使用原始网页链接", skill)
+        self.assertIn("本次未找到合适的完整写作参考", skill)
         self.assertNotIn("writing-handoff.md", "\n".join((skill, content)))
         self.assertNotIn("**修改前**", skill)
         self.assertNotIn("**修改后**", skill)

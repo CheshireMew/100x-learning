@@ -98,7 +98,7 @@ The selected root is recorded in `~/.100x-learning/config.json`; the config stor
 
 Once connected, the library can hold sources, one source of truth per topic, complete writing cases, independent hooks, confirmed work, content direction, and durable topic state.
 
-Ordinary article writing reads only article cases and hooks; it does not automatically bring topic knowledge, personal voice, or publication history into a new draft. Those materials are used only when you explicitly request the corresponding result. A single publication outcome does not rewrite long-term strategy or personal voice.
+Ordinary article writing first looks for same-topic transcripts, interviews, and articles among active source materials, then follows the article-case index for general candidates. It ultimately selects only one complete source—the best fit for the current article—as the writing model. Hooks become candidates only when you explicitly ask to design or revise an opening. Topic knowledge, personal voice, and publication history are not automatically brought into a new draft; they are used only when you explicitly request the corresponding result. A single publication outcome does not rewrite long-term strategy or personal voice.
 
 <details>
 <summary>Run the knowledge-library maintenance scripts directly</summary>
