@@ -135,13 +135,28 @@ An unsupported claim.
             ],
         )
 
-    def test_empty_producers_still_require_current_derived_indexes(self) -> None:
-        report = scan_library(self.library_root)
-        codes = {issue["code"] for issue in report["issues"]}
+    def test_retired_writing_directories_are_preserved_but_not_scanned(self) -> None:
+        legacy_source = self._write(
+            "20-Sources/Articles/Content Cases/legacy.md",
+            "# Legacy source\n\nPreserved historical data.\n",
+        )
+        legacy_output = self._write(
+            "40-Outputs/Writing/legacy.md",
+            "# Legacy output\n\nPreserved historical data.\n",
+        )
 
-        self.assertIn("content_case_index_stale", codes)
-        self.assertIn("hook_index_stale", codes)
-        self.assertIn("writing_index_stale", codes)
+        report = scan_library(self.library_root)
+
+        issue_paths = {issue["path"] for issue in report["issues"]}
+        self.assertNotIn(
+            "20-Sources/Articles/Content Cases/legacy.md",
+            issue_paths,
+        )
+        self.assertNotIn("40-Outputs/Writing/legacy.md", issue_paths)
+        self.assertEqual(0, report["scanned"]["sources"])
+        self.assertEqual(0, report["scanned"]["markdown"])
+        self.assertTrue(legacy_source.is_file())
+        self.assertTrue(legacy_output.is_file())
 
     def test_cli_resolves_config_and_returns_machine_readable_severity(self) -> None:
         self._write(

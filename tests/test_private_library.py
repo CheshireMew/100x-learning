@@ -96,14 +96,18 @@ class PrivateLibraryTests(unittest.TestCase):
         self.assertNotIn("Codex", layout.home.read_text(encoding="utf-8"))
         for relative in REQUIRED_DIRECTORIES:
             self.assertTrue((layout.root / relative).is_dir(), relative)
-        self.assertIn(
-            Path("20-Sources/Social Posts/Content Cases/完整社交内容"),
-            REQUIRED_DIRECTORIES,
+        self.assertIn(Path("40-Outputs"), REQUIRED_DIRECTORIES)
+        self.assertIn(Path("60-Systems"), REQUIRED_DIRECTORIES)
+        retired_directories = (
+            Path("20-Sources/Content Cases"),
+            Path("20-Sources/Hook Library"),
+            Path("30-Projects/Content"),
+            Path("40-Outputs/Writing"),
+            Path("60-Systems/Writing"),
         )
-        self.assertNotIn(
-            Path("20-Sources/Social Posts/Content Cases/完整短内容"),
-            REQUIRED_DIRECTORIES,
-        )
+        for relative in retired_directories:
+            self.assertNotIn(relative, REQUIRED_DIRECTORIES)
+            self.assertFalse((layout.root / relative).exists(), relative)
 
     def test_repeated_init_preserves_existing_content(self) -> None:
         layout, _, created = initialize_library(

@@ -13,10 +13,6 @@ from typing import Any
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 ASSET_ROOT = SKILL_ROOT / "assets" / "private-library"
 HOME_TEMPLATE = ASSET_ROOT / "Home.md"
-WRITING_CONFIG_TEMPLATE = ASSET_ROOT / "writing-memory.json"
-CONTENT_STRATEGY_TEMPLATE = ASSET_ROOT / "content-strategy.md"
-TOPIC_PORTFOLIO_TEMPLATE = ASSET_ROOT / "topic-portfolio.md"
-PUBLISHED_REVIEW_TEMPLATE = ASSET_ROOT / "published-content-review.md"
 
 LIBRARY_SCHEMA = "100x-learning-private-library"
 LIBRARY_VERSION = 4
@@ -28,15 +24,10 @@ REQUIRED_DIRECTORIES = (
     Path("10-Knowledge"),
     Path("20-Sources"),
     Path("20-Sources/Articles"),
-    Path("20-Sources/Articles/Content Cases"),
-    Path("20-Sources/Content Cases"),
-    Path("20-Sources/Social Posts/Content Cases/完整社交内容"),
-    Path("20-Sources/Hook Library"),
-    Path("20-Sources/Hook Library/Examples"),
     Path("30-Projects"),
-    Path("40-Outputs/Writing"),
+    Path("40-Outputs"),
     Path("50-Areas"),
-    Path("60-Systems/Writing/style-guide"),
+    Path("60-Systems"),
     Path("90-Archive"),
 )
 
@@ -68,70 +59,6 @@ class LibraryLayout:
     @property
     def article_sources(self) -> Path:
         return self.sources / "Articles"
-
-    @property
-    def article_cases(self) -> Path:
-        return self.article_sources / "Content Cases"
-
-    @property
-    def social_cases(self) -> Path:
-        return self.sources / "Social Posts" / "Content Cases"
-
-    @property
-    def case_index_root(self) -> Path:
-        return self.sources / "Content Cases"
-
-    @property
-    def social_case_index(self) -> Path:
-        return self.case_index_root / "社交内容案例索引.md"
-
-    @property
-    def article_case_index(self) -> Path:
-        return self.case_index_root / "文章案例索引.md"
-
-    @property
-    def hook_root(self) -> Path:
-        return self.sources / "Hook Library"
-
-    @property
-    def hook_index(self) -> Path:
-        return self.hook_root / "钩子索引.md"
-
-    @property
-    def writing_outputs(self) -> Path:
-        return self.root / "40-Outputs" / "Writing"
-
-    @property
-    def writing_system(self) -> Path:
-        return self.root / "60-Systems" / "Writing"
-
-    @property
-    def writing_config(self) -> Path:
-        return self.writing_system / "writing-memory.json"
-
-    @property
-    def writing_index(self) -> Path:
-        return self.writing_system / "published-content-index.jsonl"
-
-    @property
-    def content_strategy(self) -> Path:
-        return self.writing_system / "content-strategy.md"
-
-    @property
-    def writing_templates(self) -> Path:
-        return self.writing_system / "templates"
-
-    @property
-    def topic_portfolio_template(self) -> Path:
-        return self.writing_templates / "topic-portfolio.md"
-
-    @property
-    def published_review_template(self) -> Path:
-        return self.writing_templates / "published-content-review.md"
-
-    @property
-    def voice(self) -> Path:
-        return self.writing_system / "style-guide" / "voice.md"
 
 
 def default_config_path() -> Path:
@@ -274,22 +201,6 @@ def _validate_structure(
     ]
     if missing:
         raise LibraryError("私人知识库缺少目录：" + "、".join(missing))
-    if not layout.writing_config.is_file():
-        raise LibraryError(f"私人知识库缺少写作配置：{layout.writing_config}")
-    writing = _json(layout.writing_config)
-    allowed = {"published_article_roots"}
-    unknown = sorted(set(writing) - allowed)
-    if unknown:
-        raise LibraryError(
-            f"{layout.writing_config}: 含有不受支持的字段：" + "、".join(unknown)
-        )
-    article_roots = writing.get("published_article_roots")
-    if not isinstance(article_roots, list) or not all(
-        isinstance(item, str) for item in article_roots
-    ):
-        raise LibraryError(
-            f"{layout.writing_config}: published_article_roots 必须是字符串数组"
-        )
 
 
 def validate_library(root: Path) -> LibraryLayout:
@@ -304,13 +215,6 @@ def _inside_skill(root: Path) -> bool:
     except ValueError:
         return False
     return True
-
-
-def _copy_template_if_missing(template: Path, target: Path) -> None:
-    if target.exists():
-        return
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(template.read_text(encoding="utf-8"), encoding="utf-8")
 
 
 def initialize_library(
@@ -346,16 +250,6 @@ def initialize_library(
             template.replace("{{DATE}}", date.today().isoformat()),
             encoding="utf-8",
         )
-    _copy_template_if_missing(WRITING_CONFIG_TEMPLATE, layout.writing_config)
-    _copy_template_if_missing(CONTENT_STRATEGY_TEMPLATE, layout.content_strategy)
-    _copy_template_if_missing(
-        TOPIC_PORTFOLIO_TEMPLATE,
-        layout.topic_portfolio_template,
-    )
-    _copy_template_if_missing(
-        PUBLISHED_REVIEW_TEMPLATE,
-        layout.published_review_template,
-    )
 
     layout = validate_library(root)
     config = _write_config(root, config_path)

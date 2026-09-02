@@ -11,37 +11,19 @@ from pathlib import Path
 from typing import Iterable
 
 try:
-    from scripts.content_case_library import (
-        build_index as build_case_index,
-        load_library as load_case_library,
-    )
-    from scripts.hook_library import (
-        build_index as build_hook_index,
-        load_library as load_hook_library,
-    )
     from scripts.private_library import (
         LibraryError,
         LibraryLayout,
         resolve_library_root,
         validate_library,
     )
-    from scripts.writing_memory import discover_records, index_is_current
 except ModuleNotFoundError:
-    from content_case_library import (
-        build_index as build_case_index,
-        load_library as load_case_library,
-    )
-    from hook_library import (
-        build_index as build_hook_index,
-        load_library as load_hook_library,
-    )
     from private_library import (
         LibraryError,
         LibraryLayout,
         resolve_library_root,
         validate_library,
     )
-    from writing_memory import discover_records, index_is_current
 
 
 REPORT_SCHEMA = "100x-learning-private-library-health"
@@ -53,6 +35,15 @@ ACTIVE_ROOTS = (
     "40-Outputs",
     "50-Areas",
     "60-Systems",
+)
+RETIRED_WRITING_PREFIXES = (
+    "20-Sources/Articles/Content Cases/",
+    "20-Sources/Content Cases/",
+    "20-Sources/Social Posts/Content Cases/",
+    "20-Sources/Hook Library/",
+    "30-Projects/Content/",
+    "40-Outputs/Writing/",
+    "60-Systems/Writing/",
 )
 WIKILINK_RE = re.compile(r"(?<!!)\[\[([^\[\]]+)\]\]")
 MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
@@ -118,12 +109,24 @@ def _identity(value: str) -> str:
     return re.sub(r"[\s_-]+", "", value).casefold()
 
 
+def _is_retired_writing_path(path: Path, layout: LibraryLayout) -> bool:
+    relative = _relative(path, layout.root)
+    return any(
+        relative == prefix.rstrip("/") or relative.startswith(prefix)
+        for prefix in RETIRED_WRITING_PREFIXES
+    )
+
+
 def _active_markdown(layout: LibraryLayout) -> list[Path]:
     paths: list[Path] = []
     for relative in ACTIVE_ROOTS:
         root = layout.root / relative
         if root.exists():
-            paths.extend(root.rglob("*.md"))
+            paths.extend(
+                path
+                for path in root.rglob("*.md")
+                if not _is_retired_writing_path(path, layout)
+            )
     return sorted({path.resolve() for path in paths})
 
 
@@ -133,7 +136,11 @@ def _active_resources(layout: LibraryLayout) -> list[Path]:
         root = layout.root / relative
         if root.exists():
             paths.add(root.resolve())
-            paths.update(path.resolve() for path in root.rglob("*"))
+            paths.update(
+                path.resolve()
+                for path in root.rglob("*")
+                if not _is_retired_writing_path(path, layout)
+            )
     if layout.home.is_file():
         paths.add(layout.home.resolve())
     return sorted(paths)
@@ -228,62 +235,6 @@ def _resolve_markdown_link(
     if inside_library:
         return "inactive", None
     return "ignored", None
-
-
-def _is_reference_source(path: Path, layout: LibraryLayout) -> bool:
-    relative = _relative(path, layout.root)
-    return "Content Cases/" in relative or relative.startswith("20-Sources/Hook Library/")
-
-
-def _index_issues(layout: LibraryLayout) -> list[Issue]:
-    issues: list[Issue] = []
-    cases, case_errors = load_case_library(layout)
-    for error in case_errors:
-        issues.append(Issue("error", "content_case_invalid", "20-Sources", error))
-    if not case_errors:
-        for asset, path in (
-            ("social", layout.social_case_index),
-            ("article", layout.article_case_index),
-        ):
-            expected = build_case_index(cases, layout, asset)
-            current = _read(path) if path.exists() else ""
-            if current != expected:
-                issues.append(
-                    Issue(
-                        "warning",
-                        "content_case_index_stale",
-                        _relative(path, layout.root),
-                        "对应成品形式的案例索引缺失或与当前案例原文不一致。",
-                    )
-                )
-
-    hooks, hook_errors = load_hook_library(layout)
-    for error in hook_errors:
-        issues.append(Issue("error", "hook_invalid", "20-Sources/Hook Library", error))
-    if not hook_errors:
-        expected = build_hook_index(hooks, layout)
-        current = _read(layout.hook_index) if layout.hook_index.exists() else ""
-        if current != expected:
-            issues.append(
-                Issue(
-                    "warning",
-                    "hook_index_stale",
-                    _relative(layout.hook_index, layout.root),
-                    "钩子统一索引缺失或与当前独立钩子原文不一致。",
-                )
-            )
-
-    records, _ = discover_records(layout.root)
-    if not index_is_current(layout.root, records):
-        issues.append(
-            Issue(
-                "warning",
-                "writing_index_stale",
-                _relative(layout.writing_index, layout.root),
-                "发布历史索引缺失或与当前正式正文不一致。",
-            )
-        )
-    return issues
 
 
 def scan_library(root: Path) -> dict[str, object]:
@@ -437,9 +388,13 @@ def scan_library(root: Path) -> dict[str, object]:
                 )
             )
 
-    source_paths = sorted(layout.sources.rglob("*.md"))
+    source_paths = sorted(
+        path
+        for path in layout.sources.rglob("*.md")
+        if not _is_retired_writing_path(path, layout)
+    )
     for path in source_paths:
-        if _is_reference_source(path, layout) or path.resolve() in referenced_sources:
+        if path.resolve() in referenced_sources:
             continue
         issues.append(
             Issue(
@@ -449,11 +404,6 @@ def scan_library(root: Path) -> dict[str, object]:
                 "这份来源尚未被任何活动知识文档引用。",
             )
         )
-
-    try:
-        issues.extend(_index_issues(layout))
-    except (LibraryError, ValueError, OSError, UnicodeError) as exc:
-        issues.append(Issue("error", "index_check_failed", "60-Systems", str(exc)))
 
     order = {"error": 0, "warning": 1, "info": 2}
     issues.sort(key=lambda item: (order[item.severity], item.code, item.path))
