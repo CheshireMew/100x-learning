@@ -145,23 +145,26 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("## 写作输入", content)
         self.assertNotIn("writing-handoff.md", contract)
         self.assertIn("材料准备、补充和研究只执行一次", preparation)
-        self.assertIn("【用户要求】", content)
-        self.assertNotIn("【写作规则】", content)
-        self.assertNotIn("【通用写作注意】", content)
-        self.assertIn("【材料】", content)
-        self.assertIn("【写作参考】", content)
-        self.assertNotIn("【参考案例】", content)
-        self.assertNotIn("【参考开头】", content)
-        self.assertNotIn("【完整案例】", content)
-        self.assertNotIn("【完整钩子】", content)
-        self.assertNotIn("【其它实际写作输入】", content)
-        self.assertIn("【作者声音】", content)
-        self.assertIn("不带案例库生成的标题", content)
-        self.assertIn("完整放入本次实际选用的唯一一份本地文章、公开文章、字幕或其它写作参考正文", content)
+        for retired_heading in (
+            "【用户要求】",
+            "【材料】",
+            "【写作参考】",
+            "【作者声音】",
+            "【写作规则】",
+            "【通用写作注意】",
+            "【参考案例】",
+            "【参考开头】",
+            "【完整案例】",
+            "【完整钩子】",
+            "【其它实际写作输入】",
+        ):
+            self.assertNotIn(retired_heading, content)
+        self.assertIn("不为了展示写作过程而重新复制成带有固定栏目或标签的材料包", content)
+        self.assertIn("案例库为了保存内容生成的标题、栏目名及其它包装也不参与成文", content)
+        self.assertIn("实际选用的唯一完整写作参考", content)
         self.assertNotIn("相邻正文之间", content)
         self.assertNotIn("相邻参考之间", content)
-        self.assertIn("“原文全文”等栏目名", content)
-        self.assertIn("只保留唯一一份实际参考正文", content)
+        self.assertIn("只使用唯一一份实际参考正文", content)
         self.assertIn("专项说明、材料取舍理由、搜索记录和维护规则", preparation)
         self.assertIn("说明文件本身、维护理由、字段名和检查过程不进入成文输入", skill)
         self.assertNotIn("留下足以准确成文的最少内容", contract)
@@ -179,24 +182,21 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("不把研究结果改写成中心句、因果简报、内容路线、大纲或段落任务", preparation)
         self.assertIn("证据暂时不能支持唯一结论时保留这种不确定性", preparation)
 
-    def test_writer_input_is_minimal_without_generic_style_rules(self) -> None:
+    def test_writer_uses_current_context_without_visible_material_package(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
-        self.assertEqual(1, content.count("【用户要求】"))
-        self.assertEqual(1, content.count("【材料】"))
-        self.assertEqual(1, content.count("【写作参考】"))
-        self.assertNotIn("【参考案例】", content)
-        self.assertNotIn("【参考开头】", content)
-        self.assertEqual(1, content.count("【作者声音】"))
-        self.assertNotIn("【写作规则】", content)
-        self.assertNotIn("【其它实际写作输入】", content)
-        self.assertNotIn("【通用写作注意】", skill)
-        self.assertIn("这里是文章成文输入的唯一模板", content)
-        self.assertNotIn("当前对象的事实和作者身份以本次材料为准", content)
-        self.assertIn("完整读完当前材料和唯一写作参考", content)
-        self.assertIn("沿着参考实际使用的写法直接写当前文章", content)
-        self.assertIn("不要只提炼几个技巧或另外套用通用文章结构", content)
-        self.assertIn("不要照抄原句", content)
+        for retired_heading in (
+            "【用户要求】",
+            "【材料】",
+            "【写作参考】",
+            "【作者声音】",
+        ):
+            self.assertNotIn(retired_heading, content)
+        self.assertIn("不为了展示写作过程而重新复制成带有固定栏目或标签的材料包", content)
+        self.assertIn("用户指定的对象、问题、文章重心和成品类型", content)
+        self.assertIn("不能把解释、研究或评论改造成题材相近但重心不同的人物故事", content)
+        self.assertIn("不为了缩短或展示材料而重写成二手摘要", content)
+        self.assertIn("借鉴参考时不照抄原句", content)
         for retired_reference_check in (
             "叙述推进、信息安排、详略、段落节奏、转折、语气和收束方式",
             "如果拿掉参考也大概率会得到几乎相同的通用文章",
@@ -271,11 +271,11 @@ class SkillStructureTests(unittest.TestCase):
         self.assertIn("孤立钩子不是普通文章的默认候选", skill)
         self.assertIn("选中后同样占用唯一写作参考位置", skill)
         content = _read("references/content-writing.md")
-        self.assertIn("唯一参考必须完整进入这份成文输入", skill)
-        self.assertIn("直接作为本次文章的写法范本", skill)
+        self.assertIn("实际选用的唯一完整写作参考", skill)
+        self.assertIn("它可以帮助表达和组织", skill)
         self.assertIn("认真寻找后仍没有合适参考", skill)
         self.assertIn(
-            "沿着参考实际使用的写法直接写当前文章",
+            "写作参考只帮助表达与组织",
             content,
         )
         for retired_creative_instruction in (
@@ -385,34 +385,21 @@ class SkillStructureTests(unittest.TestCase):
         self.assertNotIn("references/github-project-list.md", skill)
         self.assertIn("短帖和 Thread 都使用 `social`", skill)
 
-    def test_delivery_exposes_prepared_material_result_and_references(self) -> None:
+    def test_delivery_exposes_code_block_result_and_reference_only(self) -> None:
         skill = _read("SKILL.md")
         content = _read("references/content-writing.md")
-        self.assertIn("每次文章写作在同一次回复中固定展示四部分", skill)
+        self.assertIn("每次文章写作在同一次回复中只展示两部分", skill)
         self.assertIn("在同一次回复中直接成文", skill)
-        self.assertIn("只放用户要生成的成品", skill)
-        self.assertIn("用户提供的内容说明进入写作准备材料", skill)
-        self.assertIn("用户提供的事实、关系、判断、猜测、问题、宣发角度和内容主次属于材料", skill)
-        self.assertIn("同一条消息里的对象事实、关系、观点、疑问、猜测、内容主次和角度说明进入材料", content)
-        self.assertNotIn("写作要求能直接摘录用户原话时不改写", skill)
-        self.assertNotIn("只放用户本次明确提出的写作要求", content)
         self.assertIn("用户没有提出限制时不擅自补上“不要搜索外部资料”等要求", skill)
         self.assertIn("文章写作前可以联网发现新的内容材料和完整写作参考", _read("references/writing-material-preparation.md"))
-        self.assertIn("`【写作参考】` 只放唯一一份完整原文", skill)
-        for heading in (
-            "**写作要求**",
-            "**写作准备材料**",
-            "**结果**",
-            "**本次创作参考**",
-        ):
-            self.assertEqual(1, skill.count(heading))
-        self.assertIn("在独立代码块中完整展示本次实际选入的成文输入", skill)
-        self.assertIn("而不是复制全部内容来源", skill)
-        self.assertIn("不另建临时文件", skill)
-        self.assertIn("每份结果分别放在独立代码块中", skill)
-        self.assertIn("不重新摘要或改写已选内容", skill)
-        self.assertIn("只列出真正进入本次成文输入的唯一完整写作参考", skill)
-        self.assertIn("不列候选阶段读过但没有送入成文模型的内容", skill)
+        self.assertNotIn("**写作要求**", skill)
+        self.assertNotIn("**写作准备材料**", skill)
+        self.assertEqual(1, skill.count("**结果**"))
+        self.assertEqual(1, skill.count("**本次创作参考**"))
+        self.assertIn("每份最终成稿分别放在独立代码块中", skill)
+        self.assertIn("默认不展示写作要求、准备材料、成文输入、搜索过程或其它内部处理说明", skill)
+        self.assertIn("只列出真正用于本次成文的唯一完整写作参考", skill)
+        self.assertIn("不列候选阶段读过但没有采用的内容", skill)
         self.assertIn("本地参考使用可点击的绝对文件路径", skill)
         self.assertIn("临时公开参考使用原始网页链接", skill)
         self.assertIn("本次未找到合适的完整写作参考", skill)

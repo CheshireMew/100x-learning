@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 try:
-    from scripts.marktree_integration import managed_write_text
     from scripts.private_library import (
         LibraryError,
         LibraryLayout,
@@ -19,7 +18,6 @@ try:
         validate_library,
     )
 except ModuleNotFoundError:
-    from marktree_integration import managed_write_text
     from private_library import (
         LibraryError,
         LibraryLayout,
@@ -545,12 +543,7 @@ def write_index(
 ) -> Path:
     index_path = library_root.resolve() / INDEX_RELATIVE
     index_path.parent.mkdir(parents=True, exist_ok=True)
-    managed_write_text(
-        library_root,
-        index_path,
-        render_index(records),
-        config_path=config_path,
-    )
+    index_path.write_bytes(render_index(records).encode("utf-8"))
     return index_path
 
 

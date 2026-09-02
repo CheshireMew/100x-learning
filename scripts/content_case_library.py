@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Sequence
 
 try:
-    from scripts.marktree_integration import managed_write_text
     from scripts.private_library import (
         LibraryError,
         LibraryLayout,
@@ -20,7 +19,6 @@ try:
         validate_library,
     )
 except ModuleNotFoundError:
-    from marktree_integration import managed_write_text
     from private_library import (
         LibraryError,
         LibraryLayout,
@@ -390,7 +388,7 @@ def add_case(
     if path.exists():
         raise CaseError(f"内容案例已经存在：{path}")
     path.parent.mkdir(parents=True, exist_ok=True)
-    managed_write_text(layout.root, path, body, config_path=config_path)
+    path.write_bytes(body.encode("utf-8"))
     _parse_case(path, kind, layout)
     return path
 
@@ -404,12 +402,7 @@ def write_indexes(
     paths: list[Path] = []
     for asset in ("social", "article"):
         path = _index_path(layout, asset)
-        managed_write_text(
-            layout.root,
-            path,
-            build_index(cases, layout, asset),
-            config_path=config_path,
-        )
+        path.write_bytes(build_index(cases, layout, asset).encode("utf-8"))
         paths.append(path)
     return paths[0], paths[1]
 

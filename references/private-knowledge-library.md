@@ -53,16 +53,16 @@ python scripts/private_library.py show
 
 把返回的 `library_root` 作为本次唯一的 `<私人知识库>`。后续所有路径都相对这个根目录解释。当前任务明确给出另一个库时，可以在相应脚本上使用 `--library-root <路径>`；这只覆盖本次调用，不改变已保存的默认库。
 
-`show` 同时返回可选的 `marktree_cli`。用户要让 Marktree 与本 Skill 共管同一个私人库时，先构建或安装 Marktree CLI，再运行：
+`show` 可能同时返回为兼容旧配置保留的 `marktree_cli`。这个字段不触发任何 Marktree 操作；100x Learning 的普通读取、保存、索引维护和字幕写入都忽略它，直接使用本地文件和各自的专用脚本。只有用户明确要求使用 Marktree、查看 Marktree 变更或通过 Marktree 同步时，才先确认 CLI 可用并运行：
 
 ```powershell
 python scripts/private_library.py configure-marktree --cli "D:\Tools\Marktree\marktree-cli.exe"
 python scripts/marktree_integration.py status
 ```
 
-状态结果中的 `data.root` 必须与 `library_root` 指向同一个实际目录。`data.git` 为空表示普通工作区；这种情况下 Marktree 仍会显示 Agent 的真实文件结果，但不会生成 Git 变更清单。只有私人库根目录自身存在 `.git` 时才进入 Marktree 的精确 Git 链路，禁止借用父目录仓库。
+明确使用 Marktree 时，状态结果中的 `data.root` 必须与 `library_root` 指向同一个实际目录。`data.git` 为空表示普通工作区；这种情况下 Marktree 仍会显示 Agent 的真实文件结果，但不会生成 Git 变更清单。只有私人库根目录自身存在 `.git` 时才进入 Marktree 的精确 Git 链路，禁止借用父目录仓库。
 
-Marktree 只负责工作区范围、保留原文、避免同时写入冲突、操作恢复和可选 Git；本 Skill 继续决定知识、来源、项目、成果、案例和钩子分别该放在哪里。不要在 Marktree 内复制一套知识分类规则。
+用户明确启用时，Marktree 只负责工作区范围、保留原文、避免同时写入冲突、操作恢复和可选 Git；本 Skill 继续决定知识、来源、项目、成果、案例和钩子分别该放在哪里。不要在 Marktree 内复制一套知识分类规则。
 
 普通写作在准备查找本地同主题来源和现有案例时尝试运行 `show` 取得路径，不运行 `validate`。取得路径后，可以在 `20-Sources` 的活动原始来源中按当前主题实体及其中英文名称或常见别名搜索字幕、访谈、文章、论文、课程原稿和其它完整来源；排除 `Archive`、`Content Cases` 与 `Hook Library`，命中候选后阅读全文再决定是否使用。通用文章案例只从文章案例索引及其指向的完整案例取得；用户明确要求专门设计或修改开头时，才读取钩子索引及其指向的完整钩子。不读取库首页、`10-Knowledge`、项目、成果、作者声音、发布历史、内容策略或同主题知识笔记。配置不存在、路径不可达或参考不可用时继续写作，不把内部状态告诉用户，也不临时初始化私人库。
 

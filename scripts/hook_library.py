@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any, Sequence
 
 try:
-    from scripts.marktree_integration import managed_write_text
     from scripts.private_library import (
         LibraryError,
         LibraryLayout,
@@ -18,7 +17,6 @@ try:
         validate_library,
     )
 except ModuleNotFoundError:
-    from marktree_integration import managed_write_text
     from private_library import (
         LibraryError,
         LibraryLayout,
@@ -209,12 +207,7 @@ def write_indexes(
     config_path: Path | None = None,
 ) -> Path:
     layout.hook_root.mkdir(parents=True, exist_ok=True)
-    managed_write_text(
-        layout.root,
-        layout.hook_index,
-        build_index(hooks, layout),
-        config_path=config_path,
-    )
+    layout.hook_index.write_bytes(build_index(hooks, layout).encode("utf-8"))
     return layout.hook_index
 
 
@@ -262,7 +255,7 @@ def add_hook(
         ]
     ) + "\n"
     path.parent.mkdir(parents=True, exist_ok=True)
-    managed_write_text(layout.root, path, body, config_path=config_path)
+    path.write_bytes(body.encode("utf-8"))
     _parse_hook(path, layout)
     return path
 
