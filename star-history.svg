@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650" role="img" aria-labelledby="title description">
   <title id="title">Star history for CheshireMew/100x-learning</title>
-  <desc id="description">Cumulative GitHub stars through 2026-10-05. Total: 98.</desc>
+  <desc id="description">Cumulative GitHub stars through 2026-10-07. Total: 99.</desc>
   <rect width="100%" height="100%" rx="12" fill="#ffffff"/>
   <g data-style="hand-drawn" font-family="Comic Sans MS,Segoe Print,Bradley Hand,cursive" fill="#111111">
     <text x="500.0" y="58" text-anchor="middle" font-size="34" font-weight="700">Star History</text>
@@ -21,17 +21,17 @@
     <text x="91" y="105.00" text-anchor="end" dominant-baseline="middle" font-size="17">100</text>
     <path d="M 105.00 557 L 106.00 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
     <text x="105.00" y="594" text-anchor="start" font-size="17">07-13</text>
-    <path d="M 278.04 557 L 279.04 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="278.04" y="594" text-anchor="middle" font-size="17">07-30</text>
-    <path d="M 451.07 557 L 452.07 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="451.07" y="594" text-anchor="middle" font-size="17">08-16</text>
-    <path d="M 613.93 557 L 614.93 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="613.93" y="594" text-anchor="middle" font-size="17">09-01</text>
-    <path d="M 786.96 557 L 787.96 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="786.96" y="594" text-anchor="middle" font-size="17">09-18</text>
+    <path d="M 274.01 557 L 275.01 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="274.01" y="594" text-anchor="middle" font-size="17">07-30</text>
+    <path d="M 443.02 557 L 444.02 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="443.02" y="594" text-anchor="middle" font-size="17">08-16</text>
+    <path d="M 621.98 557 L 622.98 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="621.98" y="594" text-anchor="middle" font-size="17">09-03</text>
+    <path d="M 790.99 557 L 791.99 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="790.99" y="594" text-anchor="middle" font-size="17">09-20</text>
     <path d="M 960.00 557 L 961.00 567" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="960.00" y="594" text-anchor="end" font-size="17">10-05</text>
-    <path data-role="star-line" d="M 105.00 560.00 L 339.11 382.55 L 349.29 291.55 L 359.46 273.35 L 369.64 227.85 L 379.82 218.75 L 390.00 209.65 L 400.18 196.00 L 410.36 191.45 L 420.54 182.35 L 440.89 177.80 L 451.07 173.25 L 481.61 168.70 L 542.68 159.60 L 552.86 155.05 L 563.04 150.50 L 573.21 145.95 L 593.57 136.85 L 603.75 132.30 L 613.93 123.20 L 634.29 118.65 L 960.00 114.10" fill="none" stroke="#f2380f" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+    <text x="960.00" y="594" text-anchor="end" font-size="17">10-07</text>
+    <path data-role="star-line" d="M 105.00 560.00 L 333.66 382.55 L 343.60 291.55 L 353.55 273.35 L 363.49 227.85 L 373.43 218.75 L 383.37 209.65 L 393.31 196.00 L 403.26 191.45 L 413.20 182.35 L 433.08 177.80 L 443.02 173.25 L 472.85 168.70 L 532.50 159.60 L 542.44 155.05 L 552.38 150.50 L 562.33 145.95 L 582.21 136.85 L 592.15 132.30 L 602.09 123.20 L 621.98 118.65 L 940.12 114.10 L 960.00 109.55" fill="none" stroke="#f2380f" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
     <g data-role="signature" transform="translate(786 608)">
       <path d="M 12 0 L 15 9 L 25 6 L 18 14 L 26 21 L 16 18 L 12 28 L 9 18 L 0 22 L 7 14 L 0 7 L 9 10 Z" fill="none" stroke="#00a83f" stroke-width="2.5" stroke-linejoin="round"/>
       <text x="34" y="18" fill="#59636e" font-size="15">project-steward</text>
